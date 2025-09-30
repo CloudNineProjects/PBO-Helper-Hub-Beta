@@ -18,8 +18,9 @@ body.light{background:var(--bg-light);color:var(--text-light)}
 body.dark{background:var(--bg-dark);color:var(--text-dark)}
 header{display:flex;justify-content:flex-end;padding:10px}
 .toggle{cursor:pointer}
-.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative}
 .loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
+.loader .toggle{position:absolute;top:10px;right:10px}
 button{cursor:pointer;border:none;padding:8px 16px;margin:4px;border-radius:6px;font-size:1rem}
 .card{background:var(--card-light);padding:16px;margin:16px;border-radius:8px;color:white}
 body.dark .card{background:var(--card-dark)}
@@ -35,7 +36,7 @@ label.checked{text-decoration:line-through;opacity:0.7}
 <body class="light">
 
 <div id="loading" class="loader">
-  <div class="toggle" id="modeToggle">🌙 Dark Mode</div>
+  <div class="toggle" id="modeToggle">🌞 Light Mode</div>
   <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo"/>
   <button id="loadBtn">Load Data</button>
   <div id="loadingText" style="margin-top:10px;display:none">Loading...</div>
@@ -43,7 +44,7 @@ label.checked{text-decoration:line-through;opacity:0.7}
 
 <div id="app" style="display:none">
   <header>
-    <div class="toggle" id="modeToggleApp">🌙 Dark Mode</div>
+    <div class="toggle" id="modeToggleApp">🌞 Light Mode</div>
   </header>
   <div id="daily" class="card"><h2>Daily <button id="resetDaily">Reset Dailies</button></h2><div class="list"></div></div>
   <div id="weekly" class="card"><h2>Weekly <button id="resetWeekly">Reset Weeklies</button></h2><div class="list"></div></div>
@@ -166,7 +167,7 @@ document.getElementById("closeOverlay").onclick=()=>{
 function setMode(mode){
   document.body.className=mode;
   document.querySelectorAll(".toggle").forEach(el=>{
-    el.textContent=mode==="light"?"☀️ Light Mode":"🌙 Dark Mode";
+    el.textContent=mode==="light"?"🌞 Light Mode":"🌙 Dark Mode";
   });
 }
 document.getElementById("modeToggle").onclick=()=>{
