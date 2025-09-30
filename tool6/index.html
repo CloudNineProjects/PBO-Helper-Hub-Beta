@@ -1,253 +1,182 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PBO Checklist</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      transition: background 0.3s, color 0.3s;
-    }
-    .light-mode {
-      background: #666769;
-      color: #000;
-    }
-    .dark-mode {
-      background: #1A252C;
-      color: #fff;
-    }
-    .card {
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 800px;
-    }
-    .light-mode .card {
-      background: #026503;
-    }
-    .dark-mode .card {
-      background: #023804;
-    }
-    h2 {
-      color: white;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-    .loader {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      height: 100vh;
-      text-align: center;
-    }
-    .loader img.logo {
-      width: 220px;
-      height: 220px;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-    }
-    .theme-toggle {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-    .checked {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
-    .vs-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      color: #000;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      display: none;
-      z-index: 1000;
-    }
-    .vs-popup.dark-mode {
-      background: #023804;
-      color: #fff;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PBO Checklist</title>
+<style>
+:root {
+  --bg-light:#666769;
+  --bg-dark:#1A252C;
+  --card-light:#026503;
+  --card-dark:#023804;
+  --text-light:#fff;
+  --text-dark:#fff;
+}
+body{margin:0;font-family:sans-serif;transition:background 0.3s,color 0.3s}
+body.light{background:var(--bg-light);color:var(--text-light)}
+body.dark{background:var(--bg-dark);color:var(--text-dark)}
+header{display:flex;justify-content:flex-end;padding:10px}
+.toggle{cursor:pointer}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+.loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
+button{cursor:pointer;border:none;padding:8px 16px;margin:4px;border-radius:6px;font-size:1rem}
+.card{background:var(--card-light);padding:16px;margin:16px;border-radius:8px;color:white}
+body.dark .card{background:var(--card-dark)}
+h2{margin-top:0}
+label{display:flex;align-items:center;gap:8px;margin:6px 0}
+label.checked{text-decoration:line-through;opacity:0.7}
+.timestamp{font-size:0.85rem;color:#ddd;margin-left:auto}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;z-index:1000}
+.overlay .box{background:#023804;padding:20px;border-radius:8px;position:relative}
+.overlay button{position:absolute;top:5px;right:5px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer}
+</style>
 </head>
-<body class="light-mode">
-  <div id="loader" class="loader">
-    <div class="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">☀️</span></div>
-    <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo">
-    <button onclick="loadData()">Load Data</button>
-    <p id="loadingText"></p>
+<body class="light">
+
+<div id="loading" class="loader">
+  <div class="toggle" id="modeToggle">🌞 Light Mode</div>
+  <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo"/>
+  <button id="loadBtn">Load Data</button>
+  <div id="loadingText" style="margin-top:10px;display:none">Loading...</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="toggle" id="modeToggleApp">🌞 Light Mode</div>
+  </header>
+  <div id="daily" class="card"><h2>Daily <button id="resetDaily">Reset Dailies</button></h2><div class="list"></div></div>
+  <div id="weekly" class="card"><h2>Weekly <button id="resetWeekly">Reset Weeklies</button></h2><div class="list"></div></div>
+  <div id="others" class="card"><h2>Others</h2><div class="list"></div></div>
+  <div id="vsseeker" class="card"><h2>VS Seeker</h2>
+    <label><input type="checkbox" id="vsCheck"/> VS Seeker</label>
+    <div id="vsTimer"></div>
   </div>
+</div>
 
-  <div id="content" style="display:none;">
-    <div class="card">
-      <h2>Daily</h2>
-      <div id="daily"></div>
-      <button onclick="resetSection('Daily')">Reset Dailies</button>
-    </div>
-    <div class="card">
-      <h2>Weekly</h2>
-      <div id="weekly"></div>
-      <button onclick="resetSection('Weekly')">Reset Weeklies</button>
-    </div>
-    <div class="card">
-      <h2>Others</h2>
-      <div id="others"></div>
-    </div>
-    <div class="card">
-      <h2>VS Seeker</h2>
-      <label><input type="checkbox" id="vsCheck" onchange="startVsTimer()"> VS Seeker</label>
-      <span id="vsTimer"></span>
-    </div>
+<div id="overlay" class="overlay" style="display:none">
+  <div class="box">
+    <button id="closeOverlay">✖</button>
+    VS Seeker is ready!
   </div>
+</div>
 
-  <div id="vsPopup" class="vs-popup">
-    <p>VS Seeker is ready!</p>
-    <button onclick="closeVsPopup()">Close</button>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
+let data=[];
 
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
-    let activities = [];
-    let vsInterval;
+function escapeHtml(str){return str?str.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])):''}
 
-    function toggleTheme() {
-      document.body.classList.toggle("dark-mode");
-      document.body.classList.toggle("light-mode");
-      updateToggleIcon();
+function renderList(section,rows){
+  const container=document.querySelector("#"+section+" .list");
+  container.innerHTML="";
+  rows.forEach((r,i)=>{
+    const key=section+"_"+i+"_"+r.Activity;
+    const checked=localStorage.getItem(key+"_checked")==="true";
+    const ts=localStorage.getItem(key+"_ts")||"";
+    const label=document.createElement("label");
+    if(checked)label.classList.add("checked");
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=checked;
+    cb.addEventListener("change",()=>{
+      localStorage.setItem(key+"_checked",cb.checked);
+      localStorage.setItem(key+"_ts",new Date().toLocaleString());
+      renderAll();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(`${r.Activity} | ${r.Location} | ${r.Content} | ${r.Time}`));
+    const span=document.createElement("span");span.className="timestamp";span.textContent=ts?`Last done: ${ts}`:"";
+    label.appendChild(span);
+    container.appendChild(label);
+    if(section==="others"){
+      const resetBtn=document.createElement("button");resetBtn.textContent="Reset";
+      resetBtn.onclick=()=>{localStorage.setItem(key+"_checked",false);renderAll()};
+      container.appendChild(resetBtn);
     }
+  });
+}
 
-    function updateToggleIcon() {
-      const mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
-      const icon = document.getElementById("theme-icon");
-      if (mode === "dark") {
-        icon.textContent = "🌙";
-      } else {
-        icon.textContent = "☀️"; // Korrigiert: Sonne ohne Gesicht
+function renderAll(){
+  renderList("daily",data.filter(r=>r.Time==="Daily"));
+  renderList("weekly",data.filter(r=>r.Time==="Weekly"));
+  renderList("others",data.filter(r=>r.Time!=="Daily"&&r.Time!=="Weekly"));
+}
+
+function loadData(){
+  document.getElementById("loadingText").style.display="block";
+  fetch(SHEET_URL).then(r=>r.text()).then(txt=>{
+    const parsed=Papa.parse(txt,{header:true,skipEmptyLines:true});
+    data=parsed.data;
+    document.getElementById("loading").style.display="none";
+    document.getElementById("app").style.display="block";
+    renderAll();
+  });
+}
+
+document.getElementById("loadBtn").onclick=loadData;
+document.getElementById("resetDaily").onclick=()=>{
+  data.filter(r=>r.Time==="Daily").forEach((r,i)=>localStorage.setItem("daily_"+i+"_"+r.Activity+"_checked",false));
+  renderAll();
+};
+document.getElementById("resetWeekly").onclick=()=>{
+  data.filter(r=>r.Time==="Weekly").forEach((r,i)=>localStorage.setItem("weekly_"+i+"_"+r.Activity+"_checked",false));
+  renderAll();
+};
+
+// VS Seeker
+function updateVsTimer(){
+  const last=localStorage.getItem("vs_last");
+  const vsChecked=document.getElementById("vsCheck");
+  const timerDiv=document.getElementById("vsTimer");
+  if(last){
+    const diff=Date.now()-parseInt(last);
+    const remain=2*60*60*1000-diff;
+    if(remain>0){
+      const m=Math.floor(remain/60000);const s=Math.floor((remain%60000)/1000);
+      timerDiv.textContent=`${m}m ${s}s remaining`;
+      setTimeout(updateVsTimer,1000);
+    }else{
+      timerDiv.textContent="Ready!";
+      if(!localStorage.getItem("vs_alerted")){
+        document.getElementById("overlay").style.display="flex";
+        localStorage.setItem("vs_alerted","true");
       }
     }
+  }else{
+    timerDiv.textContent="";
+  }
+  vsChecked.checked=!!last;
+}
+document.getElementById("vsCheck").onchange=()=>{
+  if(document.getElementById("vsCheck").checked){
+    localStorage.setItem("vs_last",Date.now());
+    localStorage.removeItem("vs_alerted");
+    updateVsTimer();
+  }else{
+    localStorage.removeItem("vs_last");
+    localStorage.removeItem("vs_alerted");
+    document.getElementById("vsTimer").textContent="";
+  }
+};
+document.getElementById("closeOverlay").onclick=()=>{
+  document.getElementById("overlay").style.display="none";
+};
 
-    function loadData() {
-      document.getElementById("loadingText").textContent = "Loading...";
-      fetch(sheetUrl)
-        .then(res => res.text())
-        .then(csv => {
-          const rows = csv.split("\n").map(r => r.split(","));
-          const headers = rows.shift();
-          activities = rows.map(r => ({
-            activity: r[0],
-            location: r[1],
-            content: r[2],
-            time: r[3]
-          }));
-          renderChecklist();
-          document.getElementById("loader").style.display = "none";
-          document.getElementById("content").style.display = "block";
-        });
-    }
-
-    function renderChecklist() {
-      renderSection("Daily", document.getElementById("daily"));
-      renderSection("Weekly", document.getElementById("weekly"));
-      renderSection("Others", document.getElementById("others"));
-    }
-
-    function renderSection(type, container) {
-      container.innerHTML = "";
-      activities.filter(a => {
-        if (type === "Others") return a.time !== "Daily" && a.time !== "Weekly";
-        return a.time === type;
-      }).forEach((a, index) => {
-        const id = type + index;
-        const ts = localStorage.getItem(id + "_ts") || "";
-        container.innerHTML += `
-          <div>
-            <label><input type="checkbox" id="${id}" onchange="toggleCheck('${id}')"> 
-              ${a.activity} - ${a.location} - ${a.content} (${a.time})
-            </label>
-            <span id="${id}_ts">${ts}</span>
-            ${type === "Others" ? `<button onclick="resetItem('${id}')">Reset</button>` : ""}
-          </div>`;
-      });
-    }
-
-    function toggleCheck(id) {
-      const box = document.getElementById(id);
-      const label = box.parentElement;
-      if (box.checked) {
-        label.classList.add("checked");
-        const now = new Date().toLocaleString();
-        localStorage.setItem(id + "_ts", now);
-        document.getElementById(id + "_ts").textContent = now;
-      } else {
-        label.classList.remove("checked");
-      }
-    }
-
-    function resetSection(type) {
-      const container = document.getElementById(type.toLowerCase());
-      container.querySelectorAll("input[type=checkbox]").forEach(box => {
-        box.checked = false;
-        box.parentElement.classList.remove("checked");
-      });
-    }
-
-    function resetItem(id) {
-      const box = document.getElementById(id);
-      box.checked = false;
-      box.parentElement.classList.remove("checked");
-    }
-
-    function startVsTimer() {
-      clearInterval(vsInterval);
-      const timer = document.getElementById("vsTimer");
-      const box = document.getElementById("vsCheck");
-      if (box.checked) {
-        let timeLeft = 2 * 60 * 60; // 2 Stunden in Sekunden
-        vsInterval = setInterval(() => {
-          timeLeft--;
-          const h = Math.floor(timeLeft / 3600);
-          const m = Math.floor((timeLeft % 3600) / 60);
-          const s = timeLeft % 60;
-          timer.textContent = ` (${h}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")})`;
-          if (timeLeft <= 0) {
-            clearInterval(vsInterval);
-            document.getElementById("vsPopup").style.display = "block";
-            timer.textContent = "";
-            box.checked = false;
-          }
-        }, 1000);
-      } else {
-        timer.textContent = "";
-      }
-    }
-
-    function closeVsPopup() {
-      document.getElementById("vsPopup").style.display = "none";
-    }
-  </script>
+// Mode toggle
+function setMode(mode){
+  document.body.className=mode;
+  document.querySelectorAll(".toggle").forEach(el=>{
+    el.textContent=mode==="light"?"🌞 Light Mode":"🌙 Dark Mode";
+  });
+}
+document.getElementById("modeToggle").onclick=()=>{
+  setMode(document.body.className==="light"?"dark":"light");
+};
+document.getElementById("modeToggleApp").onclick=()=>{
+  setMode(document.body.className==="light"?"dark":"light");
+};
+setMode("light");
+updateVsTimer();
+</script>
 </body>
 </html>
