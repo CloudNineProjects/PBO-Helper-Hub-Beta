@@ -11,8 +11,8 @@
       --bg-dark:#1A252C;
       --card-light:#026503;
       --card-dark:#023804;
-      --accent:#0b74de;
-      --text-light:#fff;
+      --accent:#F0F0F0;
+      --text-light:#270027;
       --muted:rgba(255,255,255,0.85);
     }
     html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif}
@@ -68,7 +68,7 @@
   </style>
 </head>
 <body>
-  <div id="modeToggle" class="mode-toggle">🌙 Light Mode</div>
+  <div id="modeToggle" class="mode-toggle">🌙 Dark Mode</div>
 
   <!-- Loading screen -->
   <div id="loading" class="loader">
@@ -252,7 +252,7 @@
   // mode toggle
   const modeToggle = $('modeToggle');
   function updateToggle(){
-    modeToggle.textContent = document.body.classList.contains('dark') ? '☀️ Dark Mode' : '🌙 Light Mode';
+    modeToggle.textContent = document.body.classList.contains('dark') ? '☀️ Light Mode' : '🌙 Dark Mode';
   }
   modeToggle.addEventListener('click', ()=>{
     document.body.classList.toggle('dark');
