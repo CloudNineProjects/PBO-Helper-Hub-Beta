@@ -1,296 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PBO Checklist</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #666769;
-      color: white;
+      margin: 0;
+      padding: 0;
       transition: background 0.3s, color 0.3s;
     }
-    body.dark {
-      background-color: #1A252C;
+    .light-mode {
+      background: #666769;
+      color: #000;
+    }
+    .dark-mode {
+      background: #1A252C;
+      color: #fff;
+    }
+    .card {
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+    }
+    .light-mode .card {
+      background: #026503;
+    }
+    .dark-mode .card {
+      background: #023804;
+    }
+    h2 {
       color: white;
     }
-    header {
-      display: flex;
-      justify-content: flex-end;
-      padding: 10px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
     }
-    .toggle-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 20px;
-      color: inherit;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
     }
     .loader {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      flex-direction: column;
       height: 100vh;
+      text-align: center;
     }
-    .card {
-      background-color: #026503;
-      padding: 20px;
-      margin: 20px;
-      border-radius: 8px;
-    }
-    body.dark .card {
-      background-color: #023804;
-    }
-    select, button {
-      margin: 5px 0;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+    .loader img.logo {
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 50%;
     }
     button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5rem;
       cursor: pointer;
     }
-    .strikethrough {
+    .checked {
       text-decoration: line-through;
       opacity: 0.6;
     }
-    .timestamp {
-      font-size: 0.8em;
-      color: #ddd;
-      margin-left: 10px;
-    }
     .vs-popup {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .vs-popup-content {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: #fff;
       color: #000;
       padding: 20px;
-      border-radius: 8px;
-      text-align: center;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 1000;
     }
-    .vs-popup-content button {
-      margin-top: 10px;
+    .vs-popup.dark-mode {
+      background: #023804;
+      color: #fff;
     }
   </style>
 </head>
-<body>
-  <div id="loading-screen">
-    <header>
-      <button id="mode-toggle" class="toggle-btn">☀️ Light Mode</button>
-    </header>
-    <div class="loader">
-      <img src="https://i.imgur.com/XZcfQzw.png" alt="Loading" style="max-width:300px;">
-      <button id="load-btn">Load Data</button>
-      <p id="loading-text" style="display:none;">Loading...</p>
-    </div>
+<body class="light-mode">
+  <div id="loader" class="loader">
+    <div class="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">☀️</span></div>
+    <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo">
+    <button onclick="loadData()">Load Data</button>
+    <p id="loadingText"></p>
   </div>
 
-  <div id="app" style="display:none;">
-    <header>
-      <button id="mode-toggle-app" class="toggle-btn">☀️ Light Mode</button>
-    </header>
+  <div id="content" style="display:none;">
     <div class="card">
       <h2>Daily</h2>
-      <div id="daily-list"></div>
-      <button id="reset-daily">Reset Dailies</button>
+      <div id="daily"></div>
+      <button onclick="resetSection('Daily')">Reset Dailies</button>
     </div>
     <div class="card">
       <h2>Weekly</h2>
-      <div id="weekly-list"></div>
-      <button id="reset-weekly">Reset Weeklies</button>
+      <div id="weekly"></div>
+      <button onclick="resetSection('Weekly')">Reset Weeklies</button>
     </div>
     <div class="card">
       <h2>Others</h2>
-      <div id="others-list"></div>
+      <div id="others"></div>
     </div>
     <div class="card">
       <h2>VS Seeker</h2>
-      <label><input type="checkbox" id="vs-checkbox"> VS Seeker</label>
-      <span id="vs-timer"></span>
+      <label><input type="checkbox" id="vsCheck" onchange="startVsTimer()"> VS Seeker</label>
+      <span id="vsTimer"></span>
     </div>
   </div>
 
-  <div id="vs-popup" class="vs-popup" style="display:none;">
-    <div class="vs-popup-content">
-      <p>VS Seeker is ready!</p>
-      <button id="close-popup">Close</button>
-    </div>
+  <div id="vsPopup" class="vs-popup">
+    <p>VS Seeker is ready!</p>
+    <button onclick="closeVsPopup()">Close</button>
   </div>
 
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
-    let data = [];
-    let vsTimerInterval;
+    let activities = [];
+    let vsInterval;
 
-    const loadingScreen = document.getElementById("loading-screen");
-    const app = document.getElementById("app");
-    const loadBtn = document.getElementById("load-btn");
-    const loadingText = document.getElementById("loading-text");
-
-    const modeToggle = document.getElementById("mode-toggle");
-    const modeToggleApp = document.getElementById("mode-toggle-app");
-
-    function toggleMode() {
-      document.body.classList.toggle("dark");
-      const isDark = document.body.classList.contains("dark");
-      modeToggle.textContent = isDark ? "🌙 Dark Mode" : "☀️ Light Mode";
-      modeToggleApp.textContent = isDark ? "🌙 Dark Mode" : "☀️ Light Mode";
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+      document.body.classList.toggle("light-mode");
+      updateToggleIcon();
     }
-    modeToggle.addEventListener("click", toggleMode);
-    modeToggleApp.addEventListener("click", toggleMode);
 
-    loadBtn.addEventListener("click", () => {
-      loadingText.style.display = "block";
+    function updateToggleIcon() {
+      const mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
+      const icon = document.getElementById("theme-icon");
+      if (mode === "dark") {
+        icon.textContent = "🌙";
+      } else {
+        icon.textContent = "☀️"; // Korrigiert: Sonne ohne Gesicht
+      }
+    }
+
+    function loadData() {
+      document.getElementById("loadingText").textContent = "Loading...";
       fetch(sheetUrl)
         .then(res => res.text())
-        .then(text => {
-          data = Papa.parse(text, {header: true}).data;
-          render();
-          loadingScreen.style.display = "none";
-          app.style.display = "block";
+        .then(csv => {
+          const rows = csv.split("\n").map(r => r.split(","));
+          const headers = rows.shift();
+          activities = rows.map(r => ({
+            activity: r[0],
+            location: r[1],
+            content: r[2],
+            time: r[3]
+          }));
+          renderChecklist();
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("content").style.display = "block";
         });
-    });
-
-    function render() {
-      renderSection("Daily", "daily-list", "reset-daily");
-      renderSection("Weekly", "weekly-list", "reset-weekly");
-      renderOthers();
-      initVSSeeker();
     }
 
-    function renderSection(type, listId, resetId) {
-      const list = document.getElementById(listId);
-      list.innerHTML = "";
-      data.filter(r => r.Time === type).forEach((row, idx) => {
-        const div = document.createElement("div");
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.id = `${listId}-${idx}`;
-        const saved = JSON.parse(localStorage.getItem(cb.id) || "{}");
-        cb.checked = saved.checked || false;
-        const label = document.createElement("label");
-        label.textContent = `${row.Activity} - ${row.Location} - ${row.Content}`;
-        if (cb.checked) label.classList.add("strikethrough");
-        const ts = document.createElement("span");
-        ts.className = "timestamp";
-        ts.textContent = saved.timestamp ? `Last: ${saved.timestamp}` : "";
-        cb.addEventListener("change", () => {
-          const now = new Date().toLocaleString();
-          localStorage.setItem(cb.id, JSON.stringify({checked: cb.checked, timestamp: now}));
-          label.classList.toggle("strikethrough", cb.checked);
-          ts.textContent = cb.checked ? `Last: ${now}` : saved.timestamp ? `Last: ${saved.timestamp}` : "";
-        });
-        div.appendChild(cb);
-        div.appendChild(label);
-        div.appendChild(ts);
-        list.appendChild(div);
+    function renderChecklist() {
+      renderSection("Daily", document.getElementById("daily"));
+      renderSection("Weekly", document.getElementById("weekly"));
+      renderSection("Others", document.getElementById("others"));
+    }
+
+    function renderSection(type, container) {
+      container.innerHTML = "";
+      activities.filter(a => {
+        if (type === "Others") return a.time !== "Daily" && a.time !== "Weekly";
+        return a.time === type;
+      }).forEach((a, index) => {
+        const id = type + index;
+        const ts = localStorage.getItem(id + "_ts") || "";
+        container.innerHTML += `
+          <div>
+            <label><input type="checkbox" id="${id}" onchange="toggleCheck('${id}')"> 
+              ${a.activity} - ${a.location} - ${a.content} (${a.time})
+            </label>
+            <span id="${id}_ts">${ts}</span>
+            ${type === "Others" ? `<button onclick="resetItem('${id}')">Reset</button>` : ""}
+          </div>`;
       });
-      document.getElementById(resetId).addEventListener("click", () => {
-        [...list.querySelectorAll("input[type=checkbox]")].forEach(cb => {
-          cb.checked = false;
-          const saved = JSON.parse(localStorage.getItem(cb.id) || "{}");
-          if (saved.timestamp) {
-            localStorage.setItem(cb.id, JSON.stringify({checked: false, timestamp: saved.timestamp}));
-          } else {
-            localStorage.removeItem(cb.id);
+    }
+
+    function toggleCheck(id) {
+      const box = document.getElementById(id);
+      const label = box.parentElement;
+      if (box.checked) {
+        label.classList.add("checked");
+        const now = new Date().toLocaleString();
+        localStorage.setItem(id + "_ts", now);
+        document.getElementById(id + "_ts").textContent = now;
+      } else {
+        label.classList.remove("checked");
+      }
+    }
+
+    function resetSection(type) {
+      const container = document.getElementById(type.toLowerCase());
+      container.querySelectorAll("input[type=checkbox]").forEach(box => {
+        box.checked = false;
+        box.parentElement.classList.remove("checked");
+      });
+    }
+
+    function resetItem(id) {
+      const box = document.getElementById(id);
+      box.checked = false;
+      box.parentElement.classList.remove("checked");
+    }
+
+    function startVsTimer() {
+      clearInterval(vsInterval);
+      const timer = document.getElementById("vsTimer");
+      const box = document.getElementById("vsCheck");
+      if (box.checked) {
+        let timeLeft = 2 * 60 * 60; // 2 Stunden in Sekunden
+        vsInterval = setInterval(() => {
+          timeLeft--;
+          const h = Math.floor(timeLeft / 3600);
+          const m = Math.floor((timeLeft % 3600) / 60);
+          const s = timeLeft % 60;
+          timer.textContent = ` (${h}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")})`;
+          if (timeLeft <= 0) {
+            clearInterval(vsInterval);
+            document.getElementById("vsPopup").style.display = "block";
+            timer.textContent = "";
+            box.checked = false;
           }
-          cb.nextSibling.classList.remove("strikethrough");
-        });
-      });
+        }, 1000);
+      } else {
+        timer.textContent = "";
+      }
     }
 
-    function renderOthers() {
-      const list = document.getElementById("others-list");
-      list.innerHTML = "";
-      data.filter(r => r.Time !== "Daily" && r.Time !== "Weekly").forEach((row, idx) => {
-        const div = document.createElement("div");
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.id = `others-${idx}`;
-        const saved = JSON.parse(localStorage.getItem(cb.id) || "{}");
-        cb.checked = saved.checked || false;
-        const label = document.createElement("label");
-        label.textContent = `${row.Activity} - ${row.Location} - ${row.Content} (${row.Time})`;
-        if (cb.checked) label.classList.add("strikethrough");
-        const ts = document.createElement("span");
-        ts.className = "timestamp";
-        ts.textContent = saved.timestamp ? `Last: ${saved.timestamp}` : "";
-        const resetBtn = document.createElement("button");
-        resetBtn.textContent = "Reset";
-        cb.addEventListener("change", () => {
-          const now = new Date().toLocaleString();
-          localStorage.setItem(cb.id, JSON.stringify({checked: cb.checked, timestamp: now}));
-          label.classList.toggle("strikethrough", cb.checked);
-          ts.textContent = cb.checked ? `Last: ${now}` : saved.timestamp ? `Last: ${saved.timestamp}` : "";
-        });
-        resetBtn.addEventListener("click", () => {
-          cb.checked = false;
-          const saved = JSON.parse(localStorage.getItem(cb.id) || "{}");
-          if (saved.timestamp) {
-            localStorage.setItem(cb.id, JSON.stringify({checked: false, timestamp: saved.timestamp}));
-          } else {
-            localStorage.removeItem(cb.id);
-          }
-          label.classList.remove("strikethrough");
-        });
-        div.appendChild(cb);
-        div.appendChild(label);
-        div.appendChild(ts);
-        div.appendChild(resetBtn);
-        list.appendChild(div);
-      });
+    function closeVsPopup() {
+      document.getElementById("vsPopup").style.display = "none";
     }
-
-    function initVSSeeker() {
-      const vsCb = document.getElementById("vs-checkbox");
-      const vsTimer = document.getElementById("vs-timer");
-      const saved = JSON.parse(localStorage.getItem("vs-seeker") || "{}");
-      if (saved.endTime) startVSTimer(new Date(saved.endTime));
-      vsCb.addEventListener("change", () => {
-        if (vsCb.checked) {
-          const endTime = new Date(Date.now() + 2*60*60*1000);
-          localStorage.setItem("vs-seeker", JSON.stringify({endTime}));
-          startVSTimer(endTime);
-        } else {
-          clearInterval(vsTimerInterval);
-          vsTimer.textContent = "";
-          localStorage.removeItem("vs-seeker");
-        }
-      });
-    }
-
-    function startVSTimer(endTime) {
-      clearInterval(vsTimerInterval);
-      const vsTimer = document.getElementById("vs-timer");
-      vsTimerInterval = setInterval(() => {
-        const diff = endTime - new Date();
-        if (diff <= 0) {
-          clearInterval(vsTimerInterval);
-          vsTimer.textContent = "";
-          document.getElementById("vs-popup").style.display = "flex";
-        } else {
-          const h = Math.floor(diff/3600000);
-          const m = Math.floor((diff%3600000)/60000);
-          const s = Math.floor((diff%60000)/1000);
-          vsTimer.textContent = ` (${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')})`;
-        }
-      }, 1000);
-    }
-    document.getElementById("close-popup").addEventListener("click", () => {
-      document.getElementById("vs-popup").style.display = "none";
-    });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 </body>
 </html>
