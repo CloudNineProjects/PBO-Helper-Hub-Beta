@@ -69,6 +69,11 @@
       justify-content: center;
       height: 100vh;
     }
+    #loadingScreen img {
+      max-width: 300px;
+      height: auto;
+      border: none;
+    }
     #popup {
       display: none;
       position: fixed;
@@ -105,7 +110,7 @@
   <button id="modeToggle">🌙 Dark Mode</button>
   
   <div id="loadingScreen">
-    <img src="https://i.imgur.com/XZcfQzw.png" alt="Loading Image" style="max-width:400px; border:none;">
+    <img src="https://i.imgur.com/XZcfQzw.png" alt="Loading Image">
     <button id="loadBtn">Load Data</button>
     <div id="loadingText" style="margin-top:10px; display:none;">Loading...</div>
   </div>
@@ -164,8 +169,13 @@
 
     function parseCSV(str) {
       return str.trim().split("\n").slice(1).map(line => {
-        const [a,b,c,d] = line.split(",");
-        return {Activity:a, Location:b, Content:c, Time:d};
+        const parts = line.split(",");
+        return {
+          Activity: (parts[0] || "").trim(),
+          Location: (parts[1] || "").trim(),
+          Content: (parts[2] || "").trim(),
+          Time: (parts[3] || "").trim()
+        };
       });
     }
 
@@ -185,9 +195,9 @@
           <span id="timestamp-${i}"></span>
           ${r.Time!=="Daily" && r.Time!=="Weekly" ? '<button class="reset-btn" onclick="resetItem('+i+')">Reset</button>' : ''}
         `;
-        if(r.Time==="Daily"){
+        if(r.Time === "Daily"){
           document.getElementById("dailyList").appendChild(div);
-        } else if(r.Time==="Weekly"){
+        } else if(r.Time === "Weekly"){
           document.getElementById("weeklyList").appendChild(div);
         } else {
           document.getElementById("othersList").appendChild(div);
@@ -232,7 +242,7 @@
     });
 
     function startVS(){
-      vsEnd = Date.now() + 2*60*60*1000; // 2h
+      vsEnd = Date.now() + 2*60*60*1000; // 2 Stunden
       clearInterval(vsInterval);
       vsInterval = setInterval(updateVS, 1000);
     }
