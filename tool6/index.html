@@ -18,7 +18,6 @@ body.light{background:var(--bg-light);color:var(--text-light)}
 body.dark{background:var(--bg-dark);color:var(--text-dark)}
 header{display:flex;justify-content:flex-end;padding:10px}
 
-/* Toggle Button Vollfläche */
 .toggle{
   cursor:pointer;
   padding:6px 12px;
@@ -28,10 +27,7 @@ header{display:flex;justify-content:flex-end;padding:10px}
   background:#F0F0F0;
   color:#000;
 }
-body.dark .toggle{
-  background:#444;
-  color:#fff;
-}
+body.dark .toggle{background:#444;color:#fff}
 
 .loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative}
 .loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
@@ -68,6 +64,7 @@ label.checked{text-decoration:line-through;opacity:0.7}
   <div id="vsseeker" class="card"><h2>VS Seeker</h2>
     <label><input type="checkbox" id="vsCheck"/> VS Seeker</label>
     <div id="vsTimer"></div>
+    <button id="muteBtn">🔊 Mute</button>
   </div>
 </div>
 
@@ -82,6 +79,8 @@ label.checked{text-decoration:line-through;opacity:0.7}
 <script>
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
 let data=[];
+let audio=new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
+let muted=false;
 
 function renderList(section,rows){
   const container=document.querySelector("#"+section+" .list");
@@ -145,7 +144,7 @@ function updateVsTimer(){
   const timerDiv=document.getElementById("vsTimer");
   if(last){
     const diff=Date.now()-parseInt(last);
-    const remain=2*60*60*1000-diff;
+    const remain=15*1000-diff; // aktuell 15 Sek. zum Testen
     if(remain>0){
       const m=Math.floor(remain/60000);const s=Math.floor((remain%60000)/1000);
       timerDiv.textContent=`${m}m ${s}s remaining`;
@@ -153,6 +152,7 @@ function updateVsTimer(){
     }else{
       timerDiv.textContent="Ready!";
       if(!localStorage.getItem("vs_alerted")){
+        if(!muted) audio.play();
         document.getElementById("overlay").style.display="flex";
         localStorage.setItem("vs_alerted","true");
       }
@@ -173,8 +173,10 @@ document.getElementById("vsCheck").onchange=()=>{
     document.getElementById("vsTimer").textContent="";
   }
 };
-document.getElementById("closeOverlay").onclick=()=>{
-  document.getElementById("overlay").style.display="none";
+document.getElementById("closeOverlay").onclick=()=>{document.getElementById("overlay").style.display="none";};
+document.getElementById("muteBtn").onclick=()=>{
+  muted=!muted;
+  document.getElementById("muteBtn").textContent=muted?"🔇 Unmute":"🔊 Mute";
 };
 
 // Mode toggle
@@ -184,13 +186,9 @@ function setMode(mode){
     el.textContent=mode==="light"?"🌙 Dark Mode":"🌞 Light Mode";
   });
 }
-document.getElementById("modeToggle").onclick=()=>{
-  setMode(document.body.className==="light"?"dark":"light");
-};
-document.getElementById("modeToggleApp").onclick=()=>{
-  setMode(document.body.className==="light"?"dark":"light");
-};
-setMode("light"); // Start im Light Mode → Button zeigt Dark Mode
+document.getElementById("modeToggle").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
+document.getElementById("modeToggleApp").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
+setMode("light"); // Start im Light Mode
 updateVsTimer();
 </script>
 </body>
