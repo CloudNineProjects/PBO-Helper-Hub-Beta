@@ -173,5 +173,33 @@
     let vsEnd=0; let interval;
     vsCheck.addEventListener("change",()=>{
       if(vsCheck.checked){
-        vsEnd=Date.now()+2*60*60*1000; // 2h
-        interval=
+        vsEnd=Date.now()+5*60*1000; // 2h
+        interval=setInterval(updateVS,1000);
+      } else {
+        clearInterval(interval);vsCountdown.textContent="Ready";
+      }
+    });
+
+    function updateVS(){
+      const rem=vsEnd-Date.now();
+      if(rem>0){
+        const h=Math.floor(rem/1000/60/60);
+        const m=Math.floor((rem/1000/60)%60);
+        const s=Math.floor((rem/1000)%60);
+        vsCountdown.textContent=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+      } else {
+        clearInterval(interval);
+        vsCountdown.textContent="Ready";
+        vsCheck.checked=false;
+        overlay.style.display="block";
+
+        // system notification zusätzlich
+        if (Notification.permission === "granted") {
+          new Notification("⚡ VS Seeker is ready!");
+        }
+      }
+    }
+    function closeOverlay(){overlay.style.display="none";}
+  </script>
+</body>
+</html>
