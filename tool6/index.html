@@ -28,7 +28,6 @@
 
   <div id="app" style="display:none;">
     <button id="themeToggle" class="reset-btn">🌙 Dark Mode</button>
-    <button id="muteBtn" class="reset-btn">🔊 Sound On</button>
     <h1>PBO Checklist</h1>
     <div id="daily" class="card">
       <h2>Daily <button class="reset-btn" onclick="resetCategory('Daily')">Reset Dailies</button></h2>
@@ -42,29 +41,20 @@
       <h2>Others</h2>
       <div id="othersList"></div>
     </div>
-    <div class="card">
+    <div class="card" id="vsseeker">
       <h2>VS Seeker</h2>
       <label><input type="checkbox" id="vsCheck"> VS Seeker</label>
       <div id="vsTimer"></div>
     </div>
   </div>
 
-  <div id="popup" class="popup">
-    <p id="popupMsg"></p>
-    <button onclick="closePopup()">Close</button>
+  <div id="overlay" class="popup">
+    <p id="popupMsg">VS Seeker is ready!</p>
+    <button id="closeOverlay">Close</button>
   </div>
 
 <script>
 let data = [];
-let muted = false;
-let audio = new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
-audio.preload = "auto";
-
-// Mute toggle
-document.getElementById("muteBtn").onclick = ()=>{
-  muted = !muted;
-  document.getElementById("muteBtn").textContent = muted ? "🔇 Sound Off" : "🔊 Sound On";
-};
 
 // Load data
 function loadData(){
@@ -81,7 +71,7 @@ function loadData(){
 
 function parseCSV(txt){
   const lines = txt.trim().split("\n").map(l=>l.split(","));
-  const headers = lines.shift();
+  lines.shift(); // skip header
   return lines.map(r=>({
     Activity:r[0], Location:r[1], Content:r[2], Time:r[3]
   }));
@@ -156,16 +146,46 @@ document.getElementById("themeToggle").onclick=()=>{
 
 // Popup
 function showPopup(msg){
-  const p=document.getElementById("popup");
+  const p=document.getElementById("overlay");
   document.getElementById("popupMsg").textContent=msg;
   p.style.display="block";
 }
 function closePopup(){
-  document.getElementById("popup").style.display="none";
+  document.getElementById("overlay").style.display="none";
+}
+document.getElementById("closeOverlay").onclick=closePopup;
+
+// --- VS Seeker ---
+let audio = new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
+audio.preload="auto";
+let muted=false;
+
+let vsInterval=null;
+function updateVsTimer(){
+  const last=localStorage.getItem("vs_last");
+  const timerDiv=document.getElementById("vsTimer");
+  if(last){
+    const diff=Date.now()-parseInt(last);
+    // Testweise 15 Sekunden
+    const remain=15*1000-diff;
+    if(remain>0){
+      const m=Math.floor(remain/60000);
+      const s=Math.floor((remain%60000)/1000);
+      timerDiv.textContent=`${m}m ${s}s remaining`;
+      vsInterval=setTimeout(updateVsTimer,1000);
+    }else{
+      timerDiv.textContent="Ready!";
+      if(!localStorage.getItem("vs_alerted")){
+        showPopup("VS Seeker is ready!");
+        if(!muted){ audio.play(); }
+        localStorage.setItem("vs_alerted","true");
+      }
+    }
+  }else{
+    timerDiv.textContent="";
+  }
 }
 
-// VS Seeker logic
-let vsInterval=null;
 document.getElementById("vsCheck").onchange=()=>{
   if(document.getElementById("vsCheck").checked){
     // unlock audio
@@ -173,39 +193,24 @@ document.getElementById("vsCheck").onchange=()=>{
     localStorage.setItem("vs_last",Date.now());
     localStorage.removeItem("vs_alerted");
     updateVsTimer();
-    vsInterval=setInterval(updateVsTimer,1000);
   } else {
-    clearInterval(vsInterval);
     localStorage.removeItem("vs_last");
     localStorage.removeItem("vs_alerted");
     document.getElementById("vsTimer").textContent="";
   }
 };
 
-function updateVsTimer(){
-  const last=localStorage.getItem("vs_last");
-  if(!last) return;
-  const now=Date.now();
-  const end=parseInt(last)+15*1000; // 15s test delay
-  const remain=end-now;
-  if(remain>0){
-    const sec=Math.floor(remain/1000)%60;
-    const min=Math.floor(remain/1000/60)%60;
-    const hr=Math.floor(remain/1000/60/60);
-    document.getElementById("vsTimer").textContent=
-      `${hr.toString().padStart(2,"0")}:${min.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
-  } else {
-    if(!localStorage.getItem("vs_alerted")){
-      showPopup("VS Seeker is ready!");
-      if(!muted){
-        audio.currentTime=0;
-        audio.play();
-      }
-      localStorage.setItem("vs_alerted","true");
-    }
-    document.getElementById("vsTimer").textContent="00:00:00";
-  }
-}
+// Mute Button
+const muteBtn=document.createElement("button");
+muteBtn.textContent="🔇 Mute";
+muteBtn.style.marginLeft="10px";
+muteBtn.onclick=()=>{
+  muted=!muted;
+  muteBtn.textContent=muted?"🔈 Unmute":"🔇 Mute";
+};
+document.querySelector("#vsseeker h2").appendChild(muteBtn);
+
+updateVsTimer();
 </script>
 </body>
 </html>
