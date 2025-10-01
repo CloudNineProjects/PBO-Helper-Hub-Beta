@@ -1,92 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PBO Checklist</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #666769;
-      color: white;
-    }
-    .dark {
-      background: #1A252C;
-      color: white;
-    }
-    header {
-      display: flex;
-      justify-content: flex-end;
-      padding: 10px;
-    }
-    .toggle-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 5px;
-      background: #F0F0F0;
-      color: black;
-      cursor: pointer;
-    }
-    .card {
-      margin: 20px;
-      padding: 20px;
-      border-radius: 10px;
-      background: #026503;
-    }
-    .dark .card {
-      background: #023804;
-    }
-    button {
-      margin-top: 10px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .reset-btn {
-      background: #f0f0f0;
-      color: black;
-    }
-    .checklist {
-      margin-top: 10px;
-    }
-    .checklist label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 5px 0;
-    }
-    .checked {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
-    .timestamp {
-      font-size: 0.8em;
-      margin-left: auto;
-      color: #ddd;
-    }
-    .overlay {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #333;
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      display: none;
-      z-index: 1000;
-    }
+    body {margin:0;font-family:Arial,sans-serif;background:#666769;color:white;}
+    .dark {background:#1A252C;color:white;}
+    header {display:flex;justify-content:flex-end;padding:10px;}
+    .toggle-btn {padding:6px 12px;border:none;border-radius:5px;background:#F0F0F0;color:black;cursor:pointer;}
+    .card {margin:20px;padding:20px;border-radius:10px;background:#026503;}
+    .dark .card {background:#023804;}
+    button {margin-top:10px;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;}
+    .reset-btn {background:#f0f0f0;color:black;}
+    .checklist {margin-top:10px;}
+    .checklist label {display:flex;align-items:center;gap:10px;margin:5px 0;}
+    .checked {text-decoration:line-through;opacity:0.6;}
+    .timestamp {font-size:0.8em;margin-left:auto;color:#ddd;}
+    .overlay {position:fixed;top:20px;right:20px;background:#333;color:white;padding:15px;border-radius:10px;display:none;z-index:1000;}
   </style>
 </head>
 <body>
   <header>
     <button id="modeToggle" class="toggle-btn">🌙 Dark Mode</button>
   </header>
+
+  <!-- Loading Screen -->
   <div id="loading" style="text-align:center;margin-top:50px">
-    <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:300px"/><br/>
+    <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:300px;height:auto"/><br/>
     <button id="loadBtn">Load Data</button>
   </div>
+
+  <!-- App -->
   <div id="app" style="display:none">
     <div class="card">
       <h2>Daily</h2>
@@ -108,27 +53,31 @@
       <div id="vsCountdown">Ready</div>
     </div>
   </div>
+
   <div class="overlay" id="vsOverlay">
     ⚡ VS Seeker is ready!
     <button onclick="closeOverlay()">✖</button>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
     let data = [];
     const timestamps = JSON.parse(localStorage.getItem("timestamps")||"{}");
 
+    // Toggle dark/light
     const modeToggle = document.getElementById("modeToggle");
     modeToggle.addEventListener("click",()=>{
       document.body.classList.toggle("dark");
       modeToggle.textContent = document.body.classList.contains("dark") ? "☀️ Light Mode":"🌙 Dark Mode";
     });
 
+    // Load data
     document.getElementById("loadBtn").addEventListener("click",async()=>{
       document.getElementById("loading").style.display="none";
       document.getElementById("app").style.display="block";
 
-      // Anfrage für Notifications
+      // ask Notification permission once
       if (Notification.permission !== "granted" && Notification.permission !== "denied") {
         Notification.requestPermission();
       }
@@ -217,41 +166,12 @@
       saveTimestamps();renderLists();
     }
 
-    // VS Seeker
+    // VS Seeker Timer
     const vsCheck=document.getElementById("vsCheck");
     const vsCountdown=document.getElementById("vsCountdown");
     const overlay=document.getElementById("vsOverlay");
     let vsEnd=0; let interval;
     vsCheck.addEventListener("change",()=>{
       if(vsCheck.checked){
-        vsEnd=Date.now()+5*60*1000; // 2h
-        interval=setInterval(updateVS,1000);
-      } else {
-        clearInterval(interval);vsCountdown.textContent="Ready";
-      }
-    });
-
-    function updateVS(){
-      const rem=vsEnd-Date.now();
-      if(rem>0){
-        const h=Math.floor(rem/1000/60/60);
-        const m=Math.floor((rem/1000/60)%60);
-        const s=Math.floor((rem/1000)%60);
-        vsCountdown.textContent=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-      } else {
-        clearInterval(interval);
-        vsCountdown.textContent="Ready";
-        vsCheck.checked=false;
-        overlay.style.display="block";
-
-        // System Notification
-        if (Notification.permission === "granted") {
-          new Notification("⚡ VS Seeker is ready!");
-        }
-      }
-    }
-
-    function closeOverlay(){overlay.style.display="none";}
-  </script>
-</body>
-</html>
+        vsEnd=Date.now()+2*60*60*1000; // 2h
+        interval=
