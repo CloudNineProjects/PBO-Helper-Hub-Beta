@@ -224,7 +224,7 @@
     let vsEnd=0; let interval;
     vsCheck.addEventListener("change",()=>{
       if(vsCheck.checked){
-        vsEnd=Date.now()+2*60*60*1000; // 2h
+        vsEnd=Date.now()+5*60*1000; // 2h
         interval=setInterval(updateVS,1000);
       } else {
         clearInterval(interval);vsCountdown.textContent="Ready";
