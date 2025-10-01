@@ -1,293 +1,412 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PBO Checklist</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #666769;
-      color: #fff;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    .dark-mode {
-      background-color: #1A252C;
-      color: #fff;
-    }
-    .card {
-      background-color: #026503;
-      padding: 20px;
-      margin: 20px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    .dark-mode .card {
-      background-color: #023804;
-    }
-    .button {
-      background-color: #F0F0F0;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-    }
-    .dark-mode .button {
-      background-color: #444;
-      color: #fff;
-    }
-    .toggle-container {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
-    .hidden { display: none; }
-    .checklist-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 5px 0;
-    }
-    .checklist-item input[type="checkbox"] {
-      margin-right: 10px;
-    }
-    .checked {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
-    .timestamp {
-      font-size: 0.8em;
-      margin-left: 10px;
-      opacity: 0.7;
-    }
-    /* Overlay */
-    #overlay {
-      position: fixed;
-      display: none;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0,0,0,0.8);
-      z-index: 1000;
-      cursor: pointer;
-      justify-content: center;
-      align-items: center;
-    }
-    #overlay-content {
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 400px;
-    }
-    #closeOverlay {
-      margin-top: 10px;
-      padding: 5px 10px;
-      background: #444;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PBO Checklist</title>
+<!-- Papaparse CDN -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+:root{
+  --bg-light:#666769;
+  --bg-dark:#1A252C;
+  --card-light:#026503;
+  --card-dark:#023804;
+  --toggle-light:#F0F0F0;
+  --toggle-dark:#444;
+  --text-light:#ffffff;
+  --text-dark:#ffffff;
+}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif}
+body.light{background:var(--bg-light);color:var(--text-light)}
+body.dark{background:var(--bg-dark);color:var(--text-dark)}
+
+/* Toggle button (filled) */
+.toggle{
+  position:fixed;
+  top:12px;
+  right:12px;
+  z-index:2000;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:14px;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 6px 16px rgba(0,0,0,0.12);
+}
+body.light .toggle{ background:var(--toggle-light); color:#000; border:none; }
+body.dark .toggle{ background:var(--toggle-dark); color:#fff; border:none; }
+
+/* Loader */
+.loader{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;position:relative}
+.loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
+.load-btn{padding:10px 18px;border-radius:8px;border:none;background:#0b74de;color:#fff;cursor:pointer;font-size:16px}
+
+/* App */
+.app-wrap{max-width:980px;margin:28px auto;padding:12px}
+.card{background:var(--card-light);padding:16px;margin:16px 0;border-radius:10px;box-shadow:0 10px 22px rgba(0,0,0,0.08)}
+body.dark .card{background:var(--card-dark)}
+h1{margin:0 0 8px 0}
+.section-title{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.controls{display:flex;gap:8px}
+.button{padding:8px 12px;border-radius:8px;border:none;background:#eef3fb;color:#0b1720;cursor:pointer}
+.button.secondary{background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.06)}
+
+/* items */
+.item{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin:8px 0;display:block}
+.item .row{display:flex;gap:12px;align-items:flex-start}
+.item label{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer}
+.item .meta{font-size:0.9rem;color:rgba(255,255,255,0.85)}
+.item .content{margin-top:8px;white-space:pre-wrap;font-family:inherit;background:rgba(0,0,0,0.06);padding:8px;border-radius:6px}
+.checked .meta{ text-decoration:line-through; opacity:0.65 }
+
+/* timestamps */
+.ts{font-size:0.85rem;color:rgba(255,255,255,0.75);margin-left:8px}
+
+/* overlay */
+#overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);z-index:3000}
+#overlay .box{background:#fff;color:#000;padding:18px;border-radius:10px;text-align:center;max-width:420px}
+body.dark #overlay .box{background:#023804;color:#fff}
+#overlay button{margin-top:10px;padding:8px 12px;border:none;border-radius:8px;background:#444;color:#fff;cursor:pointer}
+</style>
 </head>
-<body>
-  <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;">
-    <div class="toggle-container">
-      <button id="modeToggle" class="button">🌙 Dark Mode</button>
-    </div>
-    <img src="https://i.imgur.com/XZcfQzw.png" alt="Loading" style="max-width:300px;">
-    <button id="loadBtn" class="button">Load Data</button>
-    <p id="loading-text" class="hidden">Loading...</p>
+<body class="light">
+  <!-- Toggle (fixed) -->
+  <div id="themeToggle" class="toggle">🌙 Dark Mode</div>
+
+  <!-- Loading screen -->
+  <main id="loader" class="loader" aria-hidden="false">
+    <img class="logo" src="https://i.imgur.com/XZcfQzw.png" alt="CloudNine logo">
+    <button id="loadBtn" class="load-btn">Load Data</button>
+    <div id="loadingText" style="margin-top:8px;display:none;color:rgba(255,255,255,0.85)">Loading…</div>
+  </main>
+
+  <!-- App -->
+  <div id="app" class="app-wrap" style="display:none">
+    <h1 style="text-align:center">PBO Checklist</h1>
+
+    <section class="card" id="secDaily">
+      <div class="section-title">
+        <strong>Daily</strong>
+        <div class="controls"><button id="resetDaily" class="button">Reset Dailies</button></div>
+      </div>
+      <div id="dailyList"></div>
+    </section>
+
+    <section class="card" id="secWeekly">
+      <div class="section-title">
+        <strong>Weekly</strong>
+        <div class="controls"><button id="resetWeekly" class="button">Reset Weeklies</button></div>
+      </div>
+      <div id="weeklyList"></div>
+    </section>
+
+    <section class="card" id="secOthers">
+      <div class="section-title"><strong>Others</strong></div>
+      <div id="othersList"></div>
+    </section>
+
+    <section class="card" id="secVS">
+      <div class="section-title"><strong>VS Seeker</strong></div>
+      <div id="vsBlock"></div>
+    </section>
   </div>
 
-  <div id="app" class="hidden">
-    <div class="toggle-container">
-      <button id="modeToggle2" class="button">🌙 Dark Mode</button>
-    </div>
-    <h1 style="text-align:center;">PBO Checklist</h1>
-    <div id="daily" class="card"><h2>Daily</h2><div class="list"></div><button class="button" onclick="resetSection('Daily')">Reset Dailies</button></div>
-    <div id="weekly" class="card"><h2>Weekly</h2><div class="list"></div><button class="button" onclick="resetSection('Weekly')">Reset Weeklies</button></div>
-    <div id="others" class="card"><h2>Others</h2><div class="list"></div></div>
-    <div id="vsseeker" class="card"><h2>VS Seeker</h2><div id="vsContainer"></div></div>
-  </div>
-
-  <div id="overlay">
-    <div id="overlay-content">
-      <h2>⚡ VS Seeker is ready! ⚡</h2>
-      <button id="closeOverlay">Close</button>
-    </div>
-  </div>
+  <!-- overlay -->
+  <div id="overlay"><div class="box"><div id="overlayText">⚡ VS Seeker is ready! ⚡</div><button id="closeOverlay">Close</button></div></div>
 
 <script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
-let data = [];
-let originalTitle = document.title;
-let flashInterval;
+/* ========== Config ========== */
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
 
-// Dark/Light toggle
-function setMode(dark) {
-  document.body.classList.toggle("dark-mode", dark);
-  document.querySelectorAll("#modeToggle, #modeToggle2").forEach(btn => {
-    btn.textContent = dark ? "☀️ Light Mode" : "🌙 Dark Mode";
+/* ========== Utilities ========== */
+function $(id){return document.getElementById(id)}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ========== Theme Toggle ========== */
+const themeToggle = $('themeToggle');
+function setMode(isDark){
+  document.body.className = isDark ? 'dark' : 'light';
+  themeToggle.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+themeToggle.addEventListener('click', ()=> setMode(document.body.className !== 'dark'));
+setMode(false); // start light
+
+/* ========== Load & Parse CSV (PapaParse) ========== */
+let rawRows = []; // parsed rows (objects)
+let canonicalRows = []; // normalized rows with Activity/Location/Content/Time
+
+function mapHeaders(fields){
+  // fields is array like ['Activity','Location','Content','Time'] - we map to canonical names
+  const lower = fields.map(f=>f?f.trim().toLowerCase():'');
+  const find = name => {
+    const i = lower.indexOf(name);
+    return i>=0 ? fields[i] : null;
+  };
+  return {
+    Activity: find('activity') || find('a') || fields[0],
+    Location: find('location') || find('b') || fields[1],
+    Content: find('content') || find('c') || fields[2],
+    Time: find('time') || find('d') || fields[3]
+  };
+}
+
+function normalizeRow(r, keys){
+  // produce object with canonical keys and trimmed Time
+  const a = (r[keys.Activity] !== undefined) ? r[keys.Activity] : '';
+  const b = (r[keys.Location] !== undefined) ? r[keys.Location] : '';
+  const c = (r[keys.Content] !== undefined) ? r[keys.Content] : '';
+  const t = (r[keys.Time] !== undefined) ? r[keys.Time] : '';
+  return {
+    Activity: String(a).trim(),
+    Location: String(b).trim(),
+    Content: String(c), // keep whitespace/newlines as-is
+    Time: String(t).trim()
+  };
+}
+
+function loadData(){
+  $('loadingText').style.display='block';
+  // use Papa.parse download mode for robustness
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: h => h ? h.trim() : h,
+    complete: (res) => {
+      rawRows = res.data || [];
+      const fields = res.meta && res.meta.fields ? res.meta.fields.map(f=>f.trim()) : [];
+      const keys = mapHeaders(fields);
+      canonicalRows = rawRows.map(r => normalizeRow(r, keys)).filter(r => r.Activity || r.Location || r.Content); // drop empty rows
+      // render app
+      $('loader').style.display='none';
+      $('app').style.display='block';
+      renderAll();
+      startVsTimerLoop(); // ensure VS timer loop running
+    },
+    error: (err) => {
+      console.error('CSV load error', err);
+      $('loadingText').textContent = 'Error loading CSV';
+    }
   });
 }
-document.addEventListener("click", e => {
-  if (e.target.id === "modeToggle" || e.target.id === "modeToggle2") {
-    const dark = !document.body.classList.contains("dark-mode");
-    setMode(dark);
-  }
+$('loadBtn').addEventListener('click', loadData);
+
+/* ========== LocalStorage keys utils ========= */
+function keyChecked(i){ return `pbo_chk_${i}_checked`; }
+function keyTs(i){ return `pbo_chk_${i}_ts`; }
+
+/* ========== Rendering ========== */
+function renderAll(){
+  renderSection('Daily', 'dailyList');
+  renderSection('Weekly', 'weeklyList');
+  renderSection('Others', 'othersList');
+  renderVSBlock();
+}
+
+function renderSection(timeLabel, containerId){
+  const container = $(containerId);
+  container.innerHTML = '';
+  canonicalRows.forEach((r,i)=>{
+    const tNorm = (r.Time||'').trim();
+    // classify
+    let section = 'Others';
+    if (tNorm.toLowerCase() === 'daily') section='Daily';
+    else if (tNorm.toLowerCase() === 'weekly') section='Weekly';
+    if (section !== timeLabel) return;
+    // build item
+    const checked = localStorage.getItem(keyChecked(i)) === 'true';
+    const ts = localStorage.getItem(keyTs(i)) || '';
+    const div = document.createElement('div'); div.className = 'item' + (checked ? ' checked' : '');
+    // top row with checkbox and meta
+    const row = document.createElement('div'); row.className='row';
+    const label = document.createElement('label');
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = checked;
+    cb.style.marginRight='8px';
+    cb.addEventListener('change', ()=> {
+      localStorage.setItem(keyChecked(i), cb.checked ? 'true' : 'false');
+      // update timestamp when checked
+      if(cb.checked) localStorage.setItem(keyTs(i), new Date().toLocaleString());
+      renderAll();
+    });
+    label.appendChild(cb);
+    const meta = document.createElement('div'); meta.className='meta';
+    meta.innerHTML = `<strong>${escapeHtml(r.Activity)}</strong> — <em>${escapeHtml(r.Location)}</em> <span class="ts">(${escapeHtml(r.Time)})</span>`;
+    label.appendChild(meta);
+    row.appendChild(label);
+    // timestamp displayed on right
+    const tsSpan = document.createElement('div'); tsSpan.className='ts'; tsSpan.textContent = ts ? `Last done: ${ts}` : '';
+    row.appendChild(tsSpan);
+    div.appendChild(row);
+    // content block (preserve line breaks)
+    const content = document.createElement('pre'); content.className='content'; content.style.whiteSpace='pre-wrap';
+    content.textContent = r.Content || '';
+    div.appendChild(content);
+    // for Others: add Reset button that only unchecks (timestamp preserved)
+    if(timeLabel === 'Others'){
+      const btn = document.createElement('button');
+      btn.className = 'button secondary';
+      btn.textContent = 'Reset';
+      btn.addEventListener('click', ()=> {
+        localStorage.setItem(keyChecked(i), 'false');
+        renderAll();
+      });
+      div.appendChild(btn);
+    }
+    container.appendChild(div);
+  });
+}
+
+/* Reset buttons for Daily/Weekly: uncheck but keep timestamps */
+$('resetDaily').addEventListener('click', ()=>{
+  canonicalRows.forEach((r,i)=>{
+    if((r.Time||'').trim().toLowerCase() === 'daily'){
+      localStorage.setItem(keyChecked(i),'false');
+    }
+  });
+  renderAll();
+});
+$('resetWeekly').addEventListener('click', ()=>{
+  canonicalRows.forEach((r,i)=>{
+    if((r.Time||'').trim().toLowerCase() === 'weekly'){
+      localStorage.setItem(keyChecked(i),'false');
+    }
+  });
+  renderAll();
 });
 
-// CSV parse
-function parseCSV(str) {
-  const rows = str.split("\n").map(r=>r.split(","));
-  const headers = rows.shift();
-  return rows.map(r=>{
-    let obj={};
-    headers.forEach((h,i)=>obj[h.trim()]=r[i]?r[i].trim():"");
-    return obj;
-  });
-}
+/* ========== VS Seeker ========== */
+const VS_KEY_LAST = 'pbo_vs_last';       // ms timestamp when started
+const VS_KEY_ALERTED = 'pbo_vs_alerted'; // boolean flag
+let vsIntervalHandle = null;
+let tabFlashHandle = null;
+let originalTitle = document.title;
 
-function loadData() {
-  document.getElementById("loading-text").classList.remove("hidden");
-  fetch(sheetUrl)
-    .then(r=>r.text())
-    .then(t=>{
-      data = parseCSV(t);
-      render();
-      document.getElementById("loading-screen").style.display="none";
-      document.getElementById("app").classList.remove("hidden");
-    });
-}
-
-function render() {
-  ["Daily","Weekly","Others"].forEach(s=>{
-    const list=document.querySelector(`#${s.toLowerCase()} .list`);
-    list.innerHTML="";
-  });
-
-  data.forEach((row,i)=>{
-    const section = row.Time==="Daily"?"daily":row.Time==="Weekly"?"weekly":"others";
-    const list=document.querySelector(`#${section} .list`);
-    const id=`chk_${i}`;
-    const checked=localStorage.getItem(id)==="true";
-    const ts=localStorage.getItem(id+"_ts")||"";
-    const div=document.createElement("div");
-    div.className="checklist-item"+(checked?" checked":"");
-    div.innerHTML=`<label><input type="checkbox" id="${id}" ${checked?"checked":""}>${row.Activity} - ${row.Location} - ${row.Content}</label><span class="timestamp">${ts}</span>`;
-    if(section==="others") {
-      const resetBtn=document.createElement("button");
-      resetBtn.textContent="Reset";
-      resetBtn.className="button";
-      resetBtn.onclick=()=>{localStorage.removeItem(id);localStorage.removeItem(id+"_ts");render();};
-      div.appendChild(resetBtn);
-    }
-    list.appendChild(div);
-    document.getElementById(id)?.addEventListener("change",e=>{
-      localStorage.setItem(id,e.target.checked);
-      localStorage.setItem(id+"_ts",new Date().toLocaleString());
-      render();
-    });
-  });
-
-  // VS Seeker
-  renderVS();
-}
-
-function resetSection(type){
-  data.forEach((row,i)=>{
-    if(row.Time===type){
-      localStorage.removeItem(`chk_${i}`);
-      // timestamps bleiben
-    }
-  });
-  render();
-}
-
-// VS Seeker logic
-function renderVS(){
-  const cont=document.getElementById("vsContainer");
-  cont.innerHTML="";
-  const id="vsseeker";
-  const ts=localStorage.getItem(id+"_ts")||"";
-  let nextReady=null;
-  if(ts){
-    nextReady=new Date(ts);
-    nextReady.setHours(nextReady.getHours()+2);
-  }
-  const remaining=nextReady?Math.max(0,Math.floor((nextReady-new Date())/1000)):-1;
-  const div=document.createElement("div");
-  div.className="checklist-item";
-  div.innerHTML=`<label><input type="checkbox" id="${id}">VS Seeker</label><span class="timestamp">${ts}</span><span id="vsTimer"></span>`;
+function renderVSBlock(){
+  const cont = $('vsBlock');
+  cont.innerHTML = '';
+  const div = document.createElement('div'); div.className='item';
+  // show checkbox + timestamp + timer
+  const last = parseInt(localStorage.getItem(VS_KEY_LAST) || '0', 10) || 0;
+  const now = Date.now();
+  const end = last ? (last + 2*60*60*1000) : 0;
+  const remaining = end ? Math.max(0, Math.floor((end - now) / 1000)) : -1;
+  // build elements
+  const label = document.createElement('label');
+  const cb = document.createElement('input'); cb.type='checkbox';
+  cb.checked = last && (now < end);
+  cb.style.marginRight='8px';
+  const meta = document.createElement('div'); meta.className='meta'; meta.innerHTML = `<strong>VS Seeker</strong>`;
+  label.appendChild(cb); label.appendChild(meta);
+  div.appendChild(label);
+  const tsSpan = document.createElement('div'); tsSpan.className='ts';
+  tsSpan.textContent = last ? `Started: ${new Date(last).toLocaleString()}` : '';
+  div.appendChild(tsSpan);
+  const timerSpan = document.createElement('div'); timerSpan.id = 'vsTimer'; timerSpan.className='ts';
+  div.appendChild(timerSpan);
   cont.appendChild(div);
-  const cb=div.querySelector("input");
-  cb.addEventListener("change",()=>{
+
+  // checkbox logic
+  cb.addEventListener('change', ()=> {
     if(cb.checked){
-      const now=new Date();
-      localStorage.setItem(id+"_ts",now.toISOString());
-      startVSTimer();
+      const nowMs = Date.now();
+      localStorage.setItem(VS_KEY_LAST, String(nowMs));
+      localStorage.removeItem(VS_KEY_ALERTED);
+      startVsInterval();
+    } else {
+      localStorage.removeItem(VS_KEY_LAST);
+      localStorage.removeItem(VS_KEY_ALERTED);
+      stopVsInterval();
+      timerSpan.textContent = '';
     }
+    renderVSBlock(); // refresh UI
   });
-  if(remaining>0) startVSTimer();
+
+  // if currently running, ensure timer active
+  if(remaining > 0){
+    startVsInterval();
+  } else if (remaining === 0) {
+    // ready now — show overlay & flash if not alerted
+    if(!localStorage.getItem(VS_KEY_ALERTED)){
+      showOverlay();
+      flashTab('⚡ VS Seeker ready! ⚡');
+      localStorage.setItem(VS_KEY_ALERTED, 'true');
+    }
+    timerSpan.textContent = 'ready!';
+  } else {
+    timerSpan.textContent = '';
+  }
 }
 
-function startVSTimer(){
-  const id="vsseeker";
-  const ts=localStorage.getItem(id+"_ts");
-  if(!ts)return;
-  const start=new Date(ts);
-  const ready=new Date(start.getTime()+2*60*60*1000);
-  function tick(){
-    const now=new Date();
-    const rem=Math.max(0,Math.floor((ready-now)/1000));
-    const el=document.getElementById("vsTimer");
+function startVsInterval(){
+  stopVsInterval();
+  vsIntervalHandle = setInterval(()=>{
+    const last = parseInt(localStorage.getItem(VS_KEY_LAST) || '0',10) || 0;
+    if(!last) return;
+    const now = Date.now();
+    const end = last + 2*60*60*1000;
+    const rem = Math.max(0, Math.floor((end - now)/1000));
+    const el = $('vsTimer');
     if(el){
-      if(rem>0){
-        const h=Math.floor(rem/3600);
-        const m=Math.floor((rem%3600)/60);
-        const s=rem%60;
-        el.textContent=` ${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-      }else{
-        el.textContent=" ready!";
-        if(!localStorage.getItem("vs_alerted")){
-          document.getElementById("overlay").style.display="flex";
-          flashTab("⚡ VS Seeker ready! ⚡");
-          localStorage.setItem("vs_alerted","true");
+      if(rem > 0){
+        const h = Math.floor(rem/3600); const m = Math.floor((rem%3600)/60); const s = rem%60;
+        el.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      } else {
+        el.textContent = 'ready!';
+        // trigger overlay and tab flash once
+        if(!localStorage.getItem(VS_KEY_ALERTED)){
+          showOverlay();
+          flashTab('⚡ VS Seeker ready! ⚡');
+          localStorage.setItem(VS_KEY_ALERTED, 'true');
         }
+        stopVsInterval();
       }
     }
-  }
-  setInterval(tick,1000);
+  }, 1000);
 }
 
-// Tab flashing
-function flashTab(message){
-  originalTitle=document.title;
-  let flashing=true;
-  flashInterval=setInterval(()=>{
-    document.title=flashing?message:originalTitle;
-    flashing=!flashing;
-  },1000);
-  window.addEventListener("focus",()=>{
-    clearInterval(flashInterval);
-    document.title=originalTitle;
-  },{once:true});
+function stopVsInterval(){
+  if(vsIntervalHandle){ clearInterval(vsIntervalHandle); vsIntervalHandle = null; }
 }
 
-document.getElementById("loadBtn").addEventListener("click",loadData);
-document.getElementById("closeOverlay").addEventListener("click",()=>{
-  document.getElementById("overlay").style.display="none";
+/* Overlay */
+function showOverlay(){ $('overlay').style.display='flex'; }
+$('closeOverlay').addEventListener('click', ()=> { $('overlay').style.display='none'; });
+
+/* Tab flashing (title) */
+function flashTab(msg){
+  if(tabFlashHandle) clearInterval(tabFlashHandle);
+  originalTitle = document.title;
+  let state = true;
+  tabFlashHandle = setInterval(()=> {
+    document.title = state ? msg : originalTitle;
+    state = !state;
+  }, 800);
+  // stop when user focuses tab
+  window.addEventListener('focus', ()=> {
+    if(tabFlashHandle) clearInterval(tabFlashHandle);
+    document.title = originalTitle;
+  }, { once:true });
+}
+
+/* Start a background loop to keep VS timer/overlay in sync */
+let vsLoopStarted = false;
+function startVsTimerLoop(){
+  if(vsLoopStarted) return;
+  vsLoopStarted = true;
+  // run every second to keep UI in sync (also if CSV reloaded)
+  setInterval(()=> {
+    // re-render VS block only (cheap)
+    try{ renderVSBlock(); }catch(e){/*ignore*/ }
+  }, 1000);
+}
+
+/* ========== Init helpers ========== */
+/* ensure UI elements exist and wire reset buttons (they exist in DOM) */
+document.addEventListener('DOMContentLoaded', ()=> {
+  // wire theme toggle also for keyboard (optional)
+  // themeToggle already wired above
 });
-setMode(false); // Start im Light Mode
 </script>
 </body>
 </html>
