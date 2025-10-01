@@ -1,207 +1,257 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PBO Checklist</title>
-<style>
-:root {
-  --bg-light:#666769;
-  --bg-dark:#1A252C;
-  --card-light:#026503;
-  --card-dark:#023804;
-  --text-light:#fff;
-  --text-dark:#fff;
-}
-body{margin:0;font-family:sans-serif;transition:background 0.3s,color 0.3s}
-body.light{background:var(--bg-light);color:var(--text-light)}
-body.dark{background:var(--bg-dark);color:var(--text-dark)}
-header{display:flex;justify-content:flex-end;padding:10px}
-
-/* Toggle Button Vollfläche */
-.toggle{
-  cursor:pointer;
-  padding:6px 12px;
-  border-radius:6px;
-  font-size:0.9rem;
-  user-select:none;
-  background:#F0F0F0;
-  color:#000;
-}
-body.dark .toggle{
-  background:#444;
-  color:#fff;
-}
-
-.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative}
-.loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
-.loader .toggle{position:absolute;top:10px;right:10px}
-
-button{cursor:pointer;border:none;padding:8px 16px;margin:4px;border-radius:6px;font-size:1rem}
-.card{background:var(--card-light);padding:16px;margin:16px;border-radius:8px;color:white}
-body.dark .card{background:var(--card-dark)}
-h2{margin-top:0}
-label{display:flex;align-items:center;gap:8px;margin:6px 0}
-label.checked{text-decoration:line-through;opacity:0.7}
-.timestamp{font-size:0.85rem;color:#ddd;margin-left:auto}
-.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;z-index:1000}
-.overlay .box{background:#023804;padding:20px;border-radius:8px;position:relative}
-.overlay button{position:absolute;top:5px;right:5px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer}
-</style>
-</head>
-<body class="light">
-
-<div id="loading" class="loader">
-  <div class="toggle" id="modeToggle">🌙 Dark Mode</div>
-  <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo"/>
-  <button id="loadBtn">Load Data</button>
-  <div id="loadingText" style="margin-top:10px;display:none">Loading...</div>
-</div>
-
-<div id="app" style="display:none">
-  <header>
-    <div class="toggle" id="modeToggleApp">🌙 Dark Mode</div>
-  </header>
-  <div id="daily" class="card"><h2>Daily <button id="resetDaily">Reset Dailies</button></h2><div class="list"></div></div>
-  <div id="weekly" class="card"><h2>Weekly <button id="resetWeekly">Reset Weeklies</button></h2><div class="list"></div></div>
-  <div id="others" class="card"><h2>Others</h2><div class="list"></div></div>
-  <div id="vsseeker" class="card"><h2>VS Seeker</h2>
-    <label><input type="checkbox" id="vsCheck"/> VS Seeker</label>
-    <div id="vsTimer"></div>
-    <button id="muteBtn">🔊 Sound On</button>
-    <audio id="vsSound" src="https://www.myinstants.com/media/sounds/pokemon-item-found.mp3" preload="auto"></audio>
-  </div>
-</div>
-
-<div id="overlay" class="overlay" style="display:none">
-  <div class="box">
-    <button id="closeOverlay">✖</button>
-    VS Seeker is ready!
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script>
-const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
-let data=[];
-let muted=false;
-
-function renderList(section,rows){
-  const container=document.querySelector("#"+section+" .list");
-  container.innerHTML="";
-  rows.forEach((r,i)=>{
-    const key=section+"_"+i+"_"+r.Activity;
-    const checked=localStorage.getItem(key+"_checked")==="true";
-    const ts=localStorage.getItem(key+"_ts")||"";
-    const label=document.createElement("label");
-    if(checked)label.classList.add("checked");
-    const cb=document.createElement("input");cb.type="checkbox";cb.checked=checked;
-    cb.addEventListener("change",()=>{
-      localStorage.setItem(key+"_checked",cb.checked);
-      localStorage.setItem(key+"_ts",new Date().toLocaleString());
-      renderAll();
-    });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(`${r.Activity} | ${r.Location} | ${r.Content} | ${r.Time}`));
-    const span=document.createElement("span");span.className="timestamp";span.textContent=ts?`Last done: ${ts}`:"";
-    label.appendChild(span);
-    container.appendChild(label);
-    if(section==="others"){
-      const resetBtn=document.createElement("button");resetBtn.textContent="Reset";
-      resetBtn.onclick=()=>{localStorage.setItem(key+"_checked",false);renderAll()};
-      container.appendChild(resetBtn);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PBO Checklist</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #666769;
+      color: white;
     }
-  });
-}
+    .dark {
+      background: #1A252C;
+      color: white;
+    }
+    header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px;
+    }
+    .toggle-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      background: #F0F0F0;
+      color: black;
+      cursor: pointer;
+    }
+    .card {
+      margin: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #026503;
+    }
+    .dark .card {
+      background: #023804;
+    }
+    button {
+      margin-top: 10px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .reset-btn {
+      background: #f0f0f0;
+      color: black;
+    }
+    .checklist {
+      margin-top: 10px;
+    }
+    .checklist label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 5px 0;
+    }
+    .checked {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+    .timestamp {
+      font-size: 0.8em;
+      margin-left: auto;
+      color: #ddd;
+    }
+    .overlay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #333;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="modeToggle" class="toggle-btn">🌙 Dark Mode</button>
+  </header>
+  <div id="loading" style="text-align:center;margin-top:50px">
+    <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:300px"/><br/>
+    <button id="loadBtn">Load Data</button>
+  </div>
+  <div id="app" style="display:none">
+    <div class="card">
+      <h2>Daily</h2>
+      <div id="dailyList" class="checklist"></div>
+      <button class="reset-btn" onclick="resetSection('Daily')">Reset Dailies</button>
+    </div>
+    <div class="card">
+      <h2>Weekly</h2>
+      <div id="weeklyList" class="checklist"></div>
+      <button class="reset-btn" onclick="resetSection('Weekly')">Reset Weeklies</button>
+    </div>
+    <div class="card">
+      <h2>Others</h2>
+      <div id="otherList" class="checklist"></div>
+    </div>
+    <div class="card">
+      <h2>VS Seeker</h2>
+      <label><input type="checkbox" id="vsCheck"> VS Seeker</label>
+      <div id="vsCountdown">Ready</div>
+    </div>
+  </div>
+  <div class="overlay" id="vsOverlay">
+    ⚡ VS Seeker is ready!
+    <button onclick="closeOverlay()">✖</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
+    let data = [];
+    const timestamps = JSON.parse(localStorage.getItem("timestamps")||"{}");
 
-function renderAll(){
-  renderList("daily",data.filter(r=>r.Time==="Daily"));
-  renderList("weekly",data.filter(r=>r.Time==="Weekly"));
-  renderList("others",data.filter(r=>r.Time!=="Daily"&&r.Time!=="Weekly"));
-}
+    const modeToggle = document.getElementById("modeToggle");
+    modeToggle.addEventListener("click",()=>{
+      document.body.classList.toggle("dark");
+      modeToggle.textContent = document.body.classList.contains("dark") ? "☀️ Light Mode":"🌙 Dark Mode";
+    });
 
-function loadData(){
-  document.getElementById("loadingText").style.display="block";
-  fetch(SHEET_URL).then(r=>r.text()).then(txt=>{
-    const parsed=Papa.parse(txt,{header:true,skipEmptyLines:true});
-    data=parsed.data;
-    document.getElementById("loading").style.display="none";
-    document.getElementById("app").style.display="block";
-    renderAll();
-  });
-}
+    document.getElementById("loadBtn").addEventListener("click",async()=>{
+      document.getElementById("loading").style.display="none";
+      document.getElementById("app").style.display="block";
 
-document.getElementById("loadBtn").onclick=loadData;
-document.getElementById("resetDaily").onclick=()=>{
-  data.filter(r=>r.Time==="Daily").forEach((r,i)=>localStorage.setItem("daily_"+i+"_"+r.Activity+"_checked",false));
-  renderAll();
-};
-document.getElementById("resetWeekly").onclick=()=>{
-  data.filter(r=>r.Time==="Weekly").forEach((r,i)=>localStorage.setItem("weekly_"+i+"_"+r.Activity+"_checked",false));
-  renderAll();
-};
+      // Anfrage für Notifications
+      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
 
-// VS Seeker
-function updateVsTimer(){
-  const last=localStorage.getItem("vs_last");
-  const vsChecked=document.getElementById("vsCheck");
-  const timerDiv=document.getElementById("vsTimer");
-  if(last){
-    const diff=Date.now()-parseInt(last);
-    const remain=5*60*1000-diff;
-    if(remain>0){
-      const h=Math.floor(remain/3600000);
-      const m=Math.floor((remain%3600000)/60000);
-      const s=Math.floor((remain%60000)/1000);
-      timerDiv.textContent=`${h}h ${m}m ${s}s remaining`;
-      setTimeout(updateVsTimer,1000);
-    }else{
-      timerDiv.textContent="Ready!";
-      if(!localStorage.getItem("vs_alerted")){
-        document.getElementById("overlay").style.display="flex";
-        localStorage.setItem("vs_alerted","true");
-        if(!muted){
-          const audio=document.getElementById("vsSound");
-          audio.currentTime=0;
-          audio.play();
+      const res = await fetch(sheetUrl);
+      const text = await res.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true});
+      data = parsed.data;
+      renderLists();
+    });
+
+    function renderLists(){
+      renderSection("Daily","dailyList");
+      renderSection("Weekly","weeklyList");
+      renderSectionOthers();
+    }
+
+    function renderSection(type,containerId){
+      const container=document.getElementById(containerId);
+      container.innerHTML="";
+      data.filter(r=>r.Time===type).forEach((r,i)=>{
+        const key=r.Activity+"_"+i;
+        const checked=timestamps[key]?.checked;
+        const time=timestamps[key]?.time||"";
+        const label=document.createElement("label");
+        const cb=document.createElement("input");
+        cb.type="checkbox"; cb.checked=checked;
+        cb.addEventListener("change",()=>toggleCheck(key,cb,r,label));
+        label.appendChild(cb);
+        const span=document.createElement("span");
+        span.textContent=`${r.Activity} - ${r.Location} - ${r.Content} - ${r.Time}`;
+        if(checked) span.classList.add("checked");
+        label.appendChild(span);
+        if(time){const ts=document.createElement("span");ts.className="timestamp";ts.textContent=new Date(time).toLocaleString();label.appendChild(ts);}
+        container.appendChild(label);
+      });
+    }
+
+    function renderSectionOthers(){
+      const container=document.getElementById("otherList");
+      container.innerHTML="";
+      data.filter(r=>r.Time!=="Daily"&&r.Time!=="Weekly").forEach((r,i)=>{
+        const key=r.Activity+"_"+i;
+        const checked=timestamps[key]?.checked;
+        const time=timestamps[key]?.time||"";
+        const div=document.createElement("div");
+        const label=document.createElement("label");
+        const cb=document.createElement("input");
+        cb.type="checkbox"; cb.checked=checked;
+        cb.addEventListener("change",()=>toggleCheck(key,cb,r,label));
+        label.appendChild(cb);
+        const span=document.createElement("span");
+        span.textContent=`${r.Activity} - ${r.Location} - ${r.Content} - ${r.Time}`;
+        if(checked) span.classList.add("checked");
+        label.appendChild(span);
+        if(time){const ts=document.createElement("span");ts.className="timestamp";ts.textContent=new Date(time).toLocaleString();label.appendChild(ts);}
+        div.appendChild(label);
+        const resetBtn=document.createElement("button");
+        resetBtn.textContent="Reset";
+        resetBtn.className="reset-btn";
+        resetBtn.addEventListener("click",()=>{delete timestamps[key];saveTimestamps();renderLists();});
+        div.appendChild(resetBtn);
+        container.appendChild(div);
+      });
+    }
+
+    function toggleCheck(key,cb,r,label){
+      if(cb.checked){
+        timestamps[key]={checked:true,time:Date.now()};
+      }else{
+        timestamps[key]={checked:false,time:Date.now()};
+      }
+      saveTimestamps();
+      renderLists();
+    }
+
+    function saveTimestamps(){
+      localStorage.setItem("timestamps",JSON.stringify(timestamps));
+    }
+
+    function resetSection(type){
+      data.filter(r=>r.Time===type).forEach((r,i)=>{
+        const key=r.Activity+"_"+i;
+        if(timestamps[key])timestamps[key].checked=false;
+      });
+      saveTimestamps();renderLists();
+    }
+
+    // VS Seeker
+    const vsCheck=document.getElementById("vsCheck");
+    const vsCountdown=document.getElementById("vsCountdown");
+    const overlay=document.getElementById("vsOverlay");
+    let vsEnd=0; let interval;
+    vsCheck.addEventListener("change",()=>{
+      if(vsCheck.checked){
+        vsEnd=Date.now()+2*60*60*1000; // 2h
+        interval=setInterval(updateVS,1000);
+      } else {
+        clearInterval(interval);vsCountdown.textContent="Ready";
+      }
+    });
+
+    function updateVS(){
+      const rem=vsEnd-Date.now();
+      if(rem>0){
+        const h=Math.floor(rem/1000/60/60);
+        const m=Math.floor((rem/1000/60)%60);
+        const s=Math.floor((rem/1000)%60);
+        vsCountdown.textContent=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+      } else {
+        clearInterval(interval);
+        vsCountdown.textContent="Ready";
+        vsCheck.checked=false;
+        overlay.style.display="block";
+
+        // System Notification
+        if (Notification.permission === "granted") {
+          new Notification("⚡ VS Seeker is ready!");
         }
       }
     }
-  }else{
-    timerDiv.textContent="";
-  }
-  vsChecked.checked=!!last;
-}
-document.getElementById("vsCheck").onchange=()=>{
-  if(document.getElementById("vsCheck").checked){
-    localStorage.setItem("vs_last",Date.now());
-    localStorage.removeItem("vs_alerted");
-    updateVsTimer();
-  }else{
-    localStorage.removeItem("vs_last");
-    localStorage.removeItem("vs_alerted");
-    document.getElementById("vsTimer").textContent="";
-  }
-};
-document.getElementById("closeOverlay").onclick=()=>{document.getElementById("overlay").style.display="none";};
 
-// Mute Button
-document.getElementById("muteBtn").onclick=()=>{
-  muted=!muted;
-  document.getElementById("muteBtn").textContent=muted?"🔇 Sound Off":"🔊 Sound On";
-};
-
-// Mode toggle
-function setMode(mode){
-  document.body.className=mode;
-  document.querySelectorAll(".toggle").forEach(el=>{
-    el.textContent=mode==="light"?"🌙 Dark Mode":"🌞 Light Mode";
-  });
-}
-document.getElementById("modeToggle").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
-document.getElementById("modeToggleApp").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
-setMode("light"); // Start im Light Mode
-updateVsTimer();
-</script>
+    function closeOverlay(){overlay.style.display="none";}
+  </script>
 </body>
 </html>
