@@ -17,22 +17,26 @@ body{margin:0;font-family:sans-serif;transition:background 0.3s,color 0.3s}
 body.light{background:var(--bg-light);color:var(--text-light)}
 body.dark{background:var(--bg-dark);color:var(--text-dark)}
 header{display:flex;justify-content:flex-end;padding:10px}
+
+/* Toggle Button Vollfläche */
 .toggle{
   cursor:pointer;
   padding:6px 12px;
-  border:1px solid #ccc;
   border-radius:6px;
-  background:rgba(255,255,255,0.1);
   font-size:0.9rem;
   user-select:none;
+  background:#F0F0F0;
+  color:#000;
 }
 body.dark .toggle{
-  border:1px solid #555;
-  background:rgba(0,0,0,0.2);
+  background:#444;
+  color:#fff;
 }
+
 .loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative}
 .loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
 .loader .toggle{position:absolute;top:10px;right:10px}
+
 button{cursor:pointer;border:none;padding:8px 16px;margin:4px;border-radius:6px;font-size:1rem}
 .card{background:var(--card-light);padding:16px;margin:16px;border-radius:8px;color:white}
 body.dark .card{background:var(--card-dark)}
@@ -78,8 +82,6 @@ label.checked{text-decoration:line-through;opacity:0.7}
 <script>
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
 let data=[];
-
-function escapeHtml(str){return str?str.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])):''}
 
 function renderList(section,rows){
   const container=document.querySelector("#"+section+" .list");
@@ -179,7 +181,7 @@ document.getElementById("closeOverlay").onclick=()=>{
 function setMode(mode){
   document.body.className=mode;
   document.querySelectorAll(".toggle").forEach(el=>{
-    el.textContent=mode==="light"?"☀️ Light Mode":"🌙 Dark Mode";
+    el.textContent=mode==="light"?"🌙 Dark Mode":"🌞 Light Mode";
   });
 }
 document.getElementById("modeToggle").onclick=()=>{
@@ -188,7 +190,7 @@ document.getElementById("modeToggle").onclick=()=>{
 document.getElementById("modeToggleApp").onclick=()=>{
   setMode(document.body.className==="light"?"dark":"light");
 };
-setMode("light");
+setMode("light"); // Start im Light Mode → Button zeigt Dark Mode
 updateVsTimer();
 </script>
 </body>
