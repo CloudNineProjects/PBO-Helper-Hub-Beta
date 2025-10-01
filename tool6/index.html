@@ -289,7 +289,7 @@ function renderVSBlock(){
   // show checkbox + timestamp + timer
   const last = parseInt(localStorage.getItem(VS_KEY_LAST) || '0', 10) || 0;
   const now = Date.now();
-  const end = last ? (last + 2*60*60*1000) : 0;
+  const end = last ? (last + 5*60*1000) : 0;
   const remaining = end ? Math.max(0, Math.floor((end - now) / 1000)) : -1;
   // build elements
   const label = document.createElement('label');
