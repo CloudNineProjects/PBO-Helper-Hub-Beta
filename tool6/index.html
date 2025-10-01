@@ -1,195 +1,211 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PBO Checklist</title>
-<style>
-:root {
-  --bg-light:#666769;
-  --bg-dark:#1A252C;
-  --card-light:#026503;
-  --card-dark:#023804;
-  --text-light:#fff;
-  --text-dark:#fff;
-}
-body{margin:0;font-family:sans-serif;transition:background 0.3s,color 0.3s}
-body.light{background:var(--bg-light);color:var(--text-light)}
-body.dark{background:var(--bg-dark);color:var(--text-dark)}
-header{display:flex;justify-content:flex-end;padding:10px}
-
-.toggle{
-  cursor:pointer;
-  padding:6px 12px;
-  border-radius:6px;
-  font-size:0.9rem;
-  user-select:none;
-  background:#F0F0F0;
-  color:#000;
-}
-body.dark .toggle{background:#444;color:#fff}
-
-.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative}
-.loader img.logo{width:220px;height:220px;object-fit:cover;border-radius:50%;box-shadow:none}
-.loader .toggle{position:absolute;top:10px;right:10px}
-
-button{cursor:pointer;border:none;padding:8px 16px;margin:4px;border-radius:6px;font-size:1rem}
-.card{background:var(--card-light);padding:16px;margin:16px;border-radius:8px;color:white}
-body.dark .card{background:var(--card-dark)}
-h2{margin-top:0}
-label{display:flex;align-items:center;gap:8px;margin:6px 0}
-label.checked{text-decoration:line-through;opacity:0.7}
-.timestamp{font-size:0.85rem;color:#ddd;margin-left:auto}
-.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;z-index:1000}
-.overlay .box{background:#023804;padding:20px;border-radius:8px;position:relative}
-.overlay button{position:absolute;top:5px;right:5px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer}
-</style>
-</head>
-<body class="light">
-
-<div id="loading" class="loader">
-  <div class="toggle" id="modeToggle">🌙 Dark Mode</div>
-  <img src="https://i.imgur.com/XZcfQzw.png" alt="logo" class="logo"/>
-  <button id="loadBtn">Load Data</button>
-  <div id="loadingText" style="margin-top:10px;display:none">Loading...</div>
-</div>
-
-<div id="app" style="display:none">
-  <header>
-    <div class="toggle" id="modeToggleApp">🌙 Dark Mode</div>
-  </header>
-  <div id="daily" class="card"><h2>Daily <button id="resetDaily">Reset Dailies</button></h2><div class="list"></div></div>
-  <div id="weekly" class="card"><h2>Weekly <button id="resetWeekly">Reset Weeklies</button></h2><div class="list"></div></div>
-  <div id="others" class="card"><h2>Others</h2><div class="list"></div></div>
-  <div id="vsseeker" class="card"><h2>VS Seeker</h2>
-    <label><input type="checkbox" id="vsCheck"/> VS Seeker</label>
-    <div id="vsTimer"></div>
-    <button id="muteBtn">🔊 Mute</button>
-  </div>
-</div>
-
-<div id="overlay" class="overlay" style="display:none">
-  <div class="box">
-    <button id="closeOverlay">✖</button>
-    VS Seeker is ready!
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script>
-const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv";
-let data=[];
-let audio=new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
-let muted=false;
-
-function renderList(section,rows){
-  const container=document.querySelector("#"+section+" .list");
-  container.innerHTML="";
-  rows.forEach((r,i)=>{
-    const key=section+"_"+i+"_"+r.Activity;
-    const checked=localStorage.getItem(key+"_checked")==="true";
-    const ts=localStorage.getItem(key+"_ts")||"";
-    const label=document.createElement("label");
-    if(checked)label.classList.add("checked");
-    const cb=document.createElement("input");cb.type="checkbox";cb.checked=checked;
-    cb.addEventListener("change",()=>{
-      localStorage.setItem(key+"_checked",cb.checked);
-      localStorage.setItem(key+"_ts",new Date().toLocaleString());
-      renderAll();
-    });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(`${r.Activity} | ${r.Location} | ${r.Content} | ${r.Time}`));
-    const span=document.createElement("span");span.className="timestamp";span.textContent=ts?`Last done: ${ts}`:"";
-    label.appendChild(span);
-    container.appendChild(label);
-    if(section==="others"){
-      const resetBtn=document.createElement("button");resetBtn.textContent="Reset";
-      resetBtn.onclick=()=>{localStorage.setItem(key+"_checked",false);renderAll()};
-      container.appendChild(resetBtn);
+  <meta charset="UTF-8">
+  <title>PBO Checklist</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#666769; color:white; margin:0; }
+    .card { background:#026503; padding:20px; margin:20px; border-radius:8px; }
+    button { padding:6px 12px; margin:5px; border:none; border-radius:4px; cursor:pointer; }
+    .reset-btn { background:#f0f0f0; color:black; }
+    .checked { text-decoration: line-through; opacity:0.6; }
+    .dark { background:#1A252C; color:white; }
+    .dark .card { background:#023804; }
+    .popup {
+      position:fixed; top:30%; left:50%; transform:translate(-50%, -50%);
+      background:#333; color:white; padding:20px; border-radius:8px;
+      display:none; z-index:1000;
     }
-  });
-}
+    .popup button { margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div id="loading" style="text-align:center; margin-top:50px;">
+    <img src="https://i.imgur.com/XZcfQzw.png" width="300"><br>
+    <button onclick="loadData()">Load Data</button>
+    <p id="loadingStatus"></p>
+  </div>
 
-function renderAll(){
-  renderList("daily",data.filter(r=>r.Time==="Daily"));
-  renderList("weekly",data.filter(r=>r.Time==="Weekly"));
-  renderList("others",data.filter(r=>r.Time!=="Daily"&&r.Time!=="Weekly"));
-}
+  <div id="app" style="display:none;">
+    <button id="themeToggle" class="reset-btn">🌙 Dark Mode</button>
+    <button id="muteBtn" class="reset-btn">🔊 Sound On</button>
+    <h1>PBO Checklist</h1>
+    <div id="daily" class="card">
+      <h2>Daily <button class="reset-btn" onclick="resetCategory('Daily')">Reset Dailies</button></h2>
+      <div id="dailyList"></div>
+    </div>
+    <div id="weekly" class="card">
+      <h2>Weekly <button class="reset-btn" onclick="resetCategory('Weekly')">Reset Weeklies</button></h2>
+      <div id="weeklyList"></div>
+    </div>
+    <div id="others" class="card">
+      <h2>Others</h2>
+      <div id="othersList"></div>
+    </div>
+    <div class="card">
+      <h2>VS Seeker</h2>
+      <label><input type="checkbox" id="vsCheck"> VS Seeker</label>
+      <div id="vsTimer"></div>
+    </div>
+  </div>
 
+  <div id="popup" class="popup">
+    <p id="popupMsg"></p>
+    <button onclick="closePopup()">Close</button>
+  </div>
+
+<script>
+let data = [];
+let muted = false;
+let audio = new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
+audio.preload = "auto";
+
+// Mute toggle
+document.getElementById("muteBtn").onclick = ()=>{
+  muted = !muted;
+  document.getElementById("muteBtn").textContent = muted ? "🔇 Sound Off" : "🔊 Sound On";
+};
+
+// Load data
 function loadData(){
-  document.getElementById("loadingText").style.display="block";
-  fetch(SHEET_URL).then(r=>r.text()).then(txt=>{
-    const parsed=Papa.parse(txt,{header:true,skipEmptyLines:true});
-    data=parsed.data;
+  document.getElementById("loadingStatus").textContent="Loading...";
+  fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv")
+  .then(r=>r.text())
+  .then(txt=>{
+    data = parseCSV(txt);
+    buildChecklist();
     document.getElementById("loading").style.display="none";
     document.getElementById("app").style.display="block";
-    renderAll();
   });
 }
 
-document.getElementById("loadBtn").onclick=loadData;
-document.getElementById("resetDaily").onclick=()=>{
-  data.filter(r=>r.Time==="Daily").forEach((r,i)=>localStorage.setItem("daily_"+i+"_"+r.Activity+"_checked",false));
-  renderAll();
-};
-document.getElementById("resetWeekly").onclick=()=>{
-  data.filter(r=>r.Time==="Weekly").forEach((r,i)=>localStorage.setItem("weekly_"+i+"_"+r.Activity+"_checked",false));
-  renderAll();
+function parseCSV(txt){
+  const lines = txt.trim().split("\n").map(l=>l.split(","));
+  const headers = lines.shift();
+  return lines.map(r=>({
+    Activity:r[0], Location:r[1], Content:r[2], Time:r[3]
+  }));
+}
+
+function buildChecklist(){
+  const daily = data.filter(d=>d.Time.toLowerCase()=="daily");
+  const weekly = data.filter(d=>d.Time.toLowerCase()=="weekly");
+  const others = data.filter(d=>d.Time.toLowerCase()!="daily" && d.Time.toLowerCase()!="weekly");
+
+  renderList("dailyList", daily);
+  renderList("weeklyList", weekly);
+  renderList("othersList", others, true);
+}
+
+function renderList(id, arr, hasIndividualReset=false){
+  const container = document.getElementById(id);
+  container.innerHTML="";
+  arr.forEach((item,i)=>{
+    const key = id+"_"+i;
+    const div = document.createElement("div");
+    const cb = document.createElement("input");
+    cb.type="checkbox";
+    cb.id=key;
+    cb.checked=localStorage.getItem(key+"_checked")=="true";
+    const lbl = document.createElement("label");
+    lbl.textContent=`${item.Activity} - ${item.Location} - ${item.Content} - ${item.Time}`;
+    if(cb.checked) lbl.classList.add("checked");
+    const ts = document.createElement("span");
+    ts.style.marginLeft="10px";
+    ts.textContent=localStorage.getItem(key+"_ts")||"";
+    cb.onchange=()=>{
+      if(cb.checked){
+        lbl.classList.add("checked");
+        localStorage.setItem(key+"_checked","true");
+        const t=new Date().toLocaleString();
+        localStorage.setItem(key+"_ts",t);
+        ts.textContent=t;
+      } else {
+        lbl.classList.remove("checked");
+        localStorage.setItem(key+"_checked","false");
+      }
+    };
+    div.appendChild(cb); div.appendChild(lbl); div.appendChild(ts);
+    if(hasIndividualReset){
+      const b=document.createElement("button");
+      b.textContent="Reset";
+      b.className="reset-btn";
+      b.onclick=()=>{cb.checked=false; cb.onchange();};
+      div.appendChild(b);
+    }
+    container.appendChild(div);
+  });
+}
+
+function resetCategory(cat){
+  document.querySelectorAll(`#${cat.toLowerCase()}List input[type=checkbox]`).forEach(cb=>{
+    cb.checked=false; cb.onchange();
+  });
+}
+
+// Theme toggle
+document.getElementById("themeToggle").onclick=()=>{
+  document.body.classList.toggle("dark");
+  const btn=document.getElementById("themeToggle");
+  if(document.body.classList.contains("dark")){
+    btn.textContent="☀️ Light Mode";
+  } else {
+    btn.textContent="🌙 Dark Mode";
+  }
 };
 
-// VS Seeker
-function updateVsTimer(){
-  const last=localStorage.getItem("vs_last");
-  const vsChecked=document.getElementById("vsCheck");
-  const timerDiv=document.getElementById("vsTimer");
-  if(last){
-    const diff=Date.now()-parseInt(last);
-    const remain=15*1000-diff; // aktuell 15 Sek. zum Testen
-    if(remain>0){
-      const m=Math.floor(remain/60000);const s=Math.floor((remain%60000)/1000);
-      timerDiv.textContent=`${m}m ${s}s remaining`;
-      setTimeout(updateVsTimer,1000);
-    }else{
-      timerDiv.textContent="Ready!";
-      if(!localStorage.getItem("vs_alerted")){
-        if(!muted) audio.play();
-        document.getElementById("overlay").style.display="flex";
-        localStorage.setItem("vs_alerted","true");
-      }
-    }
-  }else{
-    timerDiv.textContent="";
-  }
-  vsChecked.checked=!!last;
+// Popup
+function showPopup(msg){
+  const p=document.getElementById("popup");
+  document.getElementById("popupMsg").textContent=msg;
+  p.style.display="block";
 }
+function closePopup(){
+  document.getElementById("popup").style.display="none";
+}
+
+// VS Seeker logic
+let vsInterval=null;
 document.getElementById("vsCheck").onchange=()=>{
   if(document.getElementById("vsCheck").checked){
+    // unlock audio
+    audio.play().then(()=>{ audio.pause(); audio.currentTime=0; });
     localStorage.setItem("vs_last",Date.now());
     localStorage.removeItem("vs_alerted");
     updateVsTimer();
-  }else{
+    vsInterval=setInterval(updateVsTimer,1000);
+  } else {
+    clearInterval(vsInterval);
     localStorage.removeItem("vs_last");
     localStorage.removeItem("vs_alerted");
     document.getElementById("vsTimer").textContent="";
   }
 };
-document.getElementById("closeOverlay").onclick=()=>{document.getElementById("overlay").style.display="none";};
-document.getElementById("muteBtn").onclick=()=>{
-  muted=!muted;
-  document.getElementById("muteBtn").textContent=muted?"🔇 Unmute":"🔊 Mute";
-};
 
-// Mode toggle
-function setMode(mode){
-  document.body.className=mode;
-  document.querySelectorAll(".toggle").forEach(el=>{
-    el.textContent=mode==="light"?"🌙 Dark Mode":"🌞 Light Mode";
-  });
+function updateVsTimer(){
+  const last=localStorage.getItem("vs_last");
+  if(!last) return;
+  const now=Date.now();
+  const end=parseInt(last)+15*1000; // 15s test delay
+  const remain=end-now;
+  if(remain>0){
+    const sec=Math.floor(remain/1000)%60;
+    const min=Math.floor(remain/1000/60)%60;
+    const hr=Math.floor(remain/1000/60/60);
+    document.getElementById("vsTimer").textContent=
+      `${hr.toString().padStart(2,"0")}:${min.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
+  } else {
+    if(!localStorage.getItem("vs_alerted")){
+      showPopup("VS Seeker is ready!");
+      if(!muted){
+        audio.currentTime=0;
+        audio.play();
+      }
+      localStorage.setItem("vs_alerted","true");
+    }
+    document.getElementById("vsTimer").textContent="00:00:00";
+  }
 }
-document.getElementById("modeToggle").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
-document.getElementById("modeToggleApp").onclick=()=>{setMode(document.body.className==="light"?"dark":"light");};
-setMode("light"); // Start im Light Mode
-updateVsTimer();
 </script>
 </body>
 </html>
