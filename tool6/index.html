@@ -14,8 +14,21 @@
     .strike { text-decoration: line-through; opacity:0.6; }
     .loader { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; }
     .loader img { width:220px; height:220px; object-fit:cover; border-radius:50%; }
-    #toggleMode { position:absolute; top:15px; right:15px; padding:6px 10px; border-radius:6px; background:#f0f0f0; color:#000; }
-    .dark-mode #toggleMode { background:#444; color:#fff; }
+    #toggleMode, #toggleMode2 {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #f0f0f0;
+      color: #000;
+  }
+  .dark-mode #toggleMode, 
+  .dark-mode #toggleMode2 {
+    background: #444;
+    color: #fff;
+  }
+
   </style>
 </head>
 <body>
@@ -26,10 +39,9 @@
     <p id="loadingText" style="display:none;">Loading...</p>
   </div>
 
-  <div id="content" style="display:none;">
-    <button id="toggleMode2">🌙 Dark Mode</button>
-    <h1>PBO Checklist</h1>
-    <div id="daily" class="card">
+  <div id="content" style="display:none; position:relative;">
+  <button id="toggleMode2">🌙 Dark Mode</button>
+     <div id="daily" class="card">
       <h2>Daily</h2>
       <div id="dailyList"></div>
       <button class="reset-btn" onclick="resetChecks('Daily')">Reset Dailies</button>
@@ -136,7 +148,7 @@
     document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
       clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
       if(e.target.checked){
-        vsEnd=Date.now()+15*1000; // 15s test delay
+        vsEnd=Date.now()+2*60*60*1000; // 15s test delay
         if(!vsAudioCtx){ // init context
           vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
           const osc=vsAudioCtx.createOscillator();
