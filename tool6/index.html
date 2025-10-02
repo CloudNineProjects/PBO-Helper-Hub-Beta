@@ -57,6 +57,9 @@
     </div>
   </div>
 
+  <!-- PapaParse -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
   <script>
     let dark=false;
     function toggleMode(){
@@ -70,23 +73,21 @@
     document.getElementById("toggleMode").onclick=toggleMode;
     document.getElementById("toggleMode2").onclick=toggleMode;
 
+    // Load Data with PapaParse
     document.getElementById("loadBtn").onclick=()=>{
       document.getElementById("loadingText").style.display="block";
-      fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv")
-        .then(r=>r.text()).then(csv=>{
-          const rows=csv.split("\n").map(r=>r.split(","));
-          const head=rows.shift();
-          const act=head.indexOf("Activity");
-          const loc=head.indexOf("Location");
-          const con=head.indexOf("Content");
-          const time=head.indexOf("Time");
-          let daily="",weekly="",others="";
-          rows.forEach((r,i)=>{
-            if(r.length<4) return;
+      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv", {
+        download:true,
+        header:true,
+        complete: function(results) {
+          const data = results.data;
+          let daily="", weekly="", others="";
+          data.forEach((r,i)=>{
+            if(!r.Activity) return;
             const id="chk"+i;
-            const group=r[time].trim();
-            const item=`<label><input type="checkbox" id="${id}" onchange="markCheck('${id}')"> 
-              ${r[act]} - ${r[loc]} - ${r[con]} (${r[time]})
+            const group=r.Time.trim();
+            const item=`<label><input type="checkbox" id="${id}" onchange="markCheck('${id}')">
+              ${r.Activity} - ${r.Location} - ${r.Content} (${r.Time})
               <span id="${id}ts"></span></label><br>`;
             if(group==="Daily") daily+=item;
             else if(group==="Weekly") weekly+=item;
@@ -97,7 +98,8 @@
           document.getElementById("othersList").innerHTML=others;
           document.getElementById("loader").style.display="none";
           document.getElementById("content").style.display="block";
-        });
+        }
+      });
     };
 
     function markCheck(id){
@@ -134,7 +136,7 @@
     document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
       clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
       if(e.target.checked){
-        vsEnd=Date.now()+15*1000; // 15s test
+        vsEnd=Date.now()+15*1000; // 15s test delay
         if(!vsAudioCtx){ // init context
           vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
           const osc=vsAudioCtx.createOscillator();
