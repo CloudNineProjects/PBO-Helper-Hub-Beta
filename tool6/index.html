@@ -30,6 +30,13 @@
       background: #444;
       color: #fff;
     }
+
+    /* Cards nach unten versetzen */
+    #content {
+      display:none;
+      position:relative;
+      padding-top: 70px; /* Abstand, damit Toggle nicht wie Teil der Card wirkt */
+    }
   </style>
 </head>
 <body>
@@ -42,7 +49,7 @@
     <p id="loadingText" style="display:none;">Loading...</p>
   </div>
 
-  <div id="content" style="display:none; position:relative;">
+  <div id="content">
      <div id="daily" class="card">
       <h2>Daily</h2>
       <div id="dailyList"></div>
@@ -91,6 +98,10 @@
         download:true,
         header:true,
         complete: function(results) {
+          if (!results || !results.data || results.data.length === 0) {
+            document.getElementById("loadingText").textContent = "⚠️ Keine Daten geladen!";
+            return;
+          }
           const data = results.data;
           let daily="", weekly="", others="";
           data.forEach((r,i)=>{
@@ -109,6 +120,13 @@
           document.getElementById("othersList").innerHTML=others;
           document.getElementById("loader").style.display="none";
           document.getElementById("content").style.display="block";
+
+          // VS Seeker erst jetzt initialisieren
+          initVsSeeker();
+        },
+        error: function(err) {
+          console.error("CSV Load Error:", err);
+          document.getElementById("loadingText").textContent = "⚠️ Fehler beim Laden!";
         }
       });
     };
@@ -150,30 +168,41 @@
       osc.connect(gain); gain.connect(vsAudioCtx.destination);
       osc.start(); osc.stop(vsAudioCtx.currentTime+0.5);
     }
-    document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
-      clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
-      if(e.target.checked){
-        vsEnd=Date.now()+2*60*60*1000; 
-        if(!vsAudioCtx){
-          vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
-          const osc=vsAudioCtx.createOscillator();
-          osc.connect(vsAudioCtx.destination); osc.start(); osc.stop(vsAudioCtx.currentTime);
-        }
-        vsTimer=setInterval(()=>{
-          const remain=vsEnd-Date.now();
-          if(remain<=0){
-            clearInterval(vsTimer);
-            playBeep();
-            document.getElementById("vsPopup").style.display="block";
-            document.getElementById("vsCountdown").innerText="";
-          } else {
-            const sec=Math.ceil(remain/1000);
-            const m=Math.floor(sec/60), s=sec%60;
-            document.getElementById("vsCountdown").innerText=m+"m "+(s<10?"0":"")+s+"s remaining";
+
+    function initVsSeeker() {
+      const vsCheck = document.getElementById("vsSeekerCheck");
+      if (!vsCheck) return;
+
+      vsCheck.addEventListener("change", e => {
+        clearInterval(vsTimer);
+        document.getElementById("vsCountdown").innerText="";
+
+        if(e.target.checked){
+          vsEnd = Date.now() + 2*60*60*1000; // 2 Stunden
+          if(!vsAudioCtx){
+            vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+            const osc=vsAudioCtx.createOscillator();
+            osc.connect(vsAudioCtx.destination); 
+            osc.start(); 
+            osc.stop(vsAudioCtx.currentTime);
           }
-        },1000);
-      }
-    });
+          vsTimer=setInterval(()=>{
+            const remain = vsEnd - Date.now();
+            if(remain <= 0){
+              clearInterval(vsTimer);
+              playBeep();
+              document.getElementById("vsPopup").style.display="block";
+              document.getElementById("vsCountdown").innerText="";
+            } else {
+              const sec=Math.ceil(remain/1000);
+              const m=Math.floor(sec/60), s=sec%60;
+              document.getElementById("vsCountdown").innerText=
+                m+"m "+(s<10?"0":"")+s+"s remaining";
+            }
+          },1000);
+        }
+      });
+    }
   </script>
 </body>
 </html>
