@@ -14,33 +14,35 @@
     .strike { text-decoration: line-through; opacity:0.6; }
     .loader { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; }
     .loader img { width:220px; height:220px; object-fit:cover; border-radius:50%; }
-    #toggleMode, #toggleMode2 {
-      position: absolute;
+
+    /* Toggle oben rechts fixiert */
+    #toggleMode {
+      position: fixed;
       top: 15px;
       right: 15px;
       padding: 6px 10px;
       border-radius: 6px;
       background: #f0f0f0;
       color: #000;
-  }
-  .dark-mode #toggleMode, 
-  .dark-mode #toggleMode2 {
-    background: #444;
-    color: #fff;
-  }
-
+      z-index: 1001;
+    }
+    .dark-mode #toggleMode {
+      background: #444;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
+  <!-- Toggle-Button global -->
+  <button id="toggleMode">🌙 Dark Mode</button>
+
   <div id="loader" class="loader">
-    <button id="toggleMode">🌙 Dark Mode</button>
     <img src="https://i.imgur.com/XZcfQzw.png" alt="logo">
     <button id="loadBtn">Load Data</button>
     <p id="loadingText" style="display:none;">Loading...</p>
   </div>
 
   <div id="content" style="display:none; position:relative;">
-  <button id="toggleMode2">🌙 Dark Mode</button>
      <div id="daily" class="card">
       <h2>Daily</h2>
       <div id="dailyList"></div>
@@ -77,13 +79,10 @@
     function toggleMode(){
       dark=!dark;
       document.body.classList.toggle("dark-mode",dark);
-      const btns=document.querySelectorAll("#toggleMode,#toggleMode2");
-      btns.forEach(b=>{
-        b.textContent=dark?"☀ Light Mode":"🌙 Dark Mode";
-      });
+      const btn=document.getElementById("toggleMode");
+      btn.textContent=dark?"☀ Light Mode":"🌙 Dark Mode";
     }
     document.getElementById("toggleMode").onclick=toggleMode;
-    document.getElementById("toggleMode2").onclick=toggleMode;
 
     // Load Data with PapaParse
     document.getElementById("loadBtn").onclick=()=>{
@@ -122,16 +121,22 @@
         ts.textContent=" ("+new Date().toLocaleString()+")";
       } else {
         cb.parentNode.classList.remove("strike");
+        ts.textContent="";
       }
     }
     function resetChecks(type){
       document.querySelectorAll("#"+type.toLowerCase()+"List input[type=checkbox]").forEach(cb=>{
         cb.checked=false; cb.parentNode.classList.remove("strike");
+        const ts=document.getElementById(cb.id+"ts");
+        if(ts) ts.textContent="";
       });
     }
     function resetSingle(id){
       const cb=document.getElementById(id);
-      if(cb){ cb.checked=false; cb.parentNode.classList.remove("strike"); }
+      if(cb){ cb.checked=false; cb.parentNode.classList.remove("strike");
+        const ts=document.getElementById(id+"ts");
+        if(ts) ts.textContent="";
+      }
     }
 
     /* VS Seeker */
@@ -148,8 +153,8 @@
     document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
       clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
       if(e.target.checked){
-        vsEnd=Date.now()+2*60*60*1000; // 15s test delay
-        if(!vsAudioCtx){ // init context
+        vsEnd=Date.now()+2*60*60*1000; 
+        if(!vsAudioCtx){
           vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
           const osc=vsAudioCtx.createOscillator();
           osc.connect(vsAudioCtx.destination); osc.start(); osc.stop(vsAudioCtx.currentTime);
