@@ -148,7 +148,7 @@
     document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
       clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
       if(e.target.checked){
-        vsEnd=Date.now()+15*1000; // 15s test delay
+        vsEnd=Date.now()2 * 60 * 60 * 1000; // 
         if(!vsAudioCtx){ // init context
           vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
           const osc=vsAudioCtx.createOscillator();
