@@ -76,6 +76,13 @@
         <button onclick="document.getElementById('vsPopup').style.display='none'">X</button>
       </div>
     </div>
+
+    <!-- Reset All Button -->
+    <div class="card">
+      <h2>Settings</h2>
+      <button class="reset-btn" onclick="resetAllData()">Reset All Data</button>
+      <p style="font-size:0.9em;opacity:0.8;">⚠️ Löscht alle gespeicherten Häkchen und Zeiten dauerhaft.</p>
+    </div>
   </div>
 
   <!-- PapaParse -->
@@ -123,6 +130,9 @@
 
           // VS Seeker erst jetzt initialisieren
           initVsSeeker();
+
+          // gespeicherte Checks wiederherstellen
+          restoreChecks();
         },
         error: function(err) {
           console.error("CSV Load Error:", err);
@@ -134,19 +144,28 @@
     function markCheck(id){
       const cb=document.getElementById(id);
       const ts=document.getElementById(id+"ts");
-      if(cb.checked){
+      const checked=cb.checked;
+
+      if(checked){
         cb.parentNode.classList.add("strike");
         ts.textContent=" ("+new Date().toLocaleString()+")";
       } else {
         cb.parentNode.classList.remove("strike");
         ts.textContent="";
       }
+
+      // Speichern in localStorage
+      const saveData=JSON.parse(localStorage.getItem("checklistData")||"{}");
+      saveData[id]={ checked, timestamp: ts.textContent };
+      localStorage.setItem("checklistData", JSON.stringify(saveData));
     }
+
     function resetChecks(type){
       document.querySelectorAll("#"+type.toLowerCase()+"List input[type=checkbox]").forEach(cb=>{
         cb.checked=false; cb.parentNode.classList.remove("strike");
         const ts=document.getElementById(cb.id+"ts");
         if(ts) ts.textContent="";
+        markCheck(cb.id); // auch im Speicher zurücksetzen
       });
     }
     function resetSingle(id){
@@ -154,6 +173,39 @@
       if(cb){ cb.checked=false; cb.parentNode.classList.remove("strike");
         const ts=document.getElementById(id+"ts");
         if(ts) ts.textContent="";
+        markCheck(id); // auch im Speicher zurücksetzen
+      }
+    }
+
+    function restoreChecks(){
+      const saveData=JSON.parse(localStorage.getItem("checklistData")||"{}");
+      Object.keys(saveData).forEach(id=>{
+        const entry=saveData[id];
+        const cb=document.getElementById(id);
+        const ts=document.getElementById(id+"ts");
+        if(cb){
+          cb.checked=entry.checked;
+          if(entry.checked) cb.parentNode.classList.add("strike");
+          if(ts) ts.textContent=entry.timestamp||"";
+        } else {
+          // Eintrag existiert nicht mehr → aufräumen
+          delete saveData[id];
+        }
+      });
+      localStorage.setItem("checklistData", JSON.stringify(saveData));
+    }
+
+    function resetAllData(){
+      if(confirm("⚠️ Bist du sicher? Alle gespeicherten Daten werden gelöscht.")){
+        localStorage.removeItem("checklistData");
+        // Alle Häkchen im DOM zurücksetzen
+        document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+          cb.checked=false;
+          cb.parentNode.classList.remove("strike");
+          const ts=document.getElementById(cb.id+"ts");
+          if(ts) ts.textContent="";
+        });
+        alert("Alle gespeicherten Daten wurden gelöscht.");
       }
     }
 
