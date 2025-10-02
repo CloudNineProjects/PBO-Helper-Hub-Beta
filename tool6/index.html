@@ -4,213 +4,157 @@
   <meta charset="UTF-8">
   <title>PBO Checklist</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#666769; color:white; margin:0; }
-    .card { background:#026503; padding:20px; margin:20px; border-radius:8px; }
-    button { padding:6px 12px; margin:5px; border:none; border-radius:4px; cursor:pointer; }
-    .reset-btn { background:#f0f0f0; color:black; }
-    .checked { text-decoration: line-through; opacity:0.6; }
-    .dark { background:#1A252C; color:white; }
-    .dark .card { background:#023804; }
-    .popup {
-      position:fixed; top:30%; left:50%; transform:translate(-50%, -50%);
-      background:#333; color:white; padding:20px; border-radius:8px;
-      display:none; z-index:1000;
-    }
-    .popup button { margin-top:10px; }
+    body { font-family: Arial, sans-serif; margin:0; background:#666769; color:#fff; }
+    .dark-mode { background:#1A252C; color:#fff; }
+    .card { background:#026503; padding:20px; margin:20px; border-radius:10px; }
+    .dark-mode .card { background:#023804; }
+    button { margin-top:10px; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+    .reset-btn { background:#f0f0f0; color:#000; }
+    .dark-mode .reset-btn { background:#444; color:#fff; }
+    .strike { text-decoration: line-through; opacity:0.6; }
+    .loader { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; }
+    .loader img { width:220px; height:220px; object-fit:cover; border-radius:50%; }
+    #toggleMode { position:absolute; top:15px; right:15px; padding:6px 10px; border-radius:6px; background:#f0f0f0; color:#000; }
+    .dark-mode #toggleMode { background:#444; color:#fff; }
   </style>
 </head>
 <body>
-  <div id="loading" style="text-align:center; margin-top:50px;">
-    <img src="https://i.imgur.com/XZcfQzw.png" width="300"><br>
-    <button onclick="loadData()">Load Data</button>
-    <p id="loadingStatus"></p>
+  <div id="loader" class="loader">
+    <button id="toggleMode">🌙 Dark Mode</button>
+    <img src="https://i.imgur.com/XZcfQzw.png" alt="logo">
+    <button id="loadBtn">Load Data</button>
+    <p id="loadingText" style="display:none;">Loading...</p>
   </div>
 
-  <div id="app" style="display:none;">
-    <button id="themeToggle" class="reset-btn">🌙 Dark Mode</button>
+  <div id="content" style="display:none;">
+    <button id="toggleMode2">🌙 Dark Mode</button>
     <h1>PBO Checklist</h1>
     <div id="daily" class="card">
-      <h2>Daily <button class="reset-btn" onclick="resetCategory('Daily')">Reset Dailies</button></h2>
+      <h2>Daily</h2>
       <div id="dailyList"></div>
+      <button class="reset-btn" onclick="resetChecks('Daily')">Reset Dailies</button>
     </div>
-    <div id="weekly" class="card">
-      <h2>Weekly <button class="reset-btn" onclick="resetCategory('Weekly')">Reset Weeklies</button></h2>
+    <div id="weekly" class="card alt">
+      <h2>Weekly</h2>
       <div id="weeklyList"></div>
+      <button class="reset-btn" onclick="resetChecks('Weekly')">Reset Weeklies</button>
     </div>
     <div id="others" class="card">
       <h2>Others</h2>
       <div id="othersList"></div>
     </div>
-    <div class="card" id="vsseeker">
+
+    <!-- VS Seeker -->
+    <div class="card alt">
       <h2>VS Seeker</h2>
-      <label><input type="checkbox" id="vsCheck"> VS Seeker</label>
-      <div id="vsTimer"></div>
+      <label><input type="checkbox" id="vsSeekerCheck"> Activate VS Seeker</label>
+      <div id="vsCountdown"></div>
+      <div id="vsPopup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+           background:#333; color:#fff; padding:20px; border-radius:10px; z-index:1000;">
+        <p>VS Seeker is ready!</p>
+        <button onclick="document.getElementById('vsPopup').style.display='none'">X</button>
+      </div>
     </div>
   </div>
 
-  <div id="overlay" class="popup">
-    <p id="popupMsg">VS Seeker is ready!</p>
-    <button id="closeOverlay">Close</button>
-  </div>
+  <script>
+    let dark=false;
+    function toggleMode(){
+      dark=!dark;
+      document.body.classList.toggle("dark-mode",dark);
+      const btns=document.querySelectorAll("#toggleMode,#toggleMode2");
+      btns.forEach(b=>{
+        b.textContent=dark?"☀ Light Mode":"🌙 Dark Mode";
+      });
+    }
+    document.getElementById("toggleMode").onclick=toggleMode;
+    document.getElementById("toggleMode2").onclick=toggleMode;
 
-<script>
-let data = [];
-
-// Load data
-function loadData(){
-  document.getElementById("loadingStatus").textContent="Loading...";
-  fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv")
-  .then(r=>r.text())
-  .then(txt=>{
-    data = parseCSV(txt);
-    buildChecklist();
-    document.getElementById("loading").style.display="none";
-    document.getElementById("app").style.display="block";
-  });
-}
-
-function parseCSV(txt){
-  const lines = txt.trim().split("\n").map(l=>l.split(","));
-  lines.shift(); // skip header
-  return lines.map(r=>({
-    Activity:r[0], Location:r[1], Content:r[2], Time:r[3]
-  }));
-}
-
-function buildChecklist(){
-  const daily = data.filter(d=>d.Time.toLowerCase()=="daily");
-  const weekly = data.filter(d=>d.Time.toLowerCase()=="weekly");
-  const others = data.filter(d=>d.Time.toLowerCase()!="daily" && d.Time.toLowerCase()!="weekly");
-
-  renderList("dailyList", daily);
-  renderList("weeklyList", weekly);
-  renderList("othersList", others, true);
-}
-
-function renderList(id, arr, hasIndividualReset=false){
-  const container = document.getElementById(id);
-  container.innerHTML="";
-  arr.forEach((item,i)=>{
-    const key = id+"_"+i;
-    const div = document.createElement("div");
-    const cb = document.createElement("input");
-    cb.type="checkbox";
-    cb.id=key;
-    cb.checked=localStorage.getItem(key+"_checked")=="true";
-    const lbl = document.createElement("label");
-    lbl.textContent=`${item.Activity} - ${item.Location} - ${item.Content} - ${item.Time}`;
-    if(cb.checked) lbl.classList.add("checked");
-    const ts = document.createElement("span");
-    ts.style.marginLeft="10px";
-    ts.textContent=localStorage.getItem(key+"_ts")||"";
-    cb.onchange=()=>{
-      if(cb.checked){
-        lbl.classList.add("checked");
-        localStorage.setItem(key+"_checked","true");
-        const t=new Date().toLocaleString();
-        localStorage.setItem(key+"_ts",t);
-        ts.textContent=t;
-      } else {
-        lbl.classList.remove("checked");
-        localStorage.setItem(key+"_checked","false");
-      }
+    document.getElementById("loadBtn").onclick=()=>{
+      document.getElementById("loadingText").style.display="block";
+      fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv")
+        .then(r=>r.text()).then(csv=>{
+          const rows=csv.split("\n").map(r=>r.split(","));
+          const head=rows.shift();
+          const act=head.indexOf("Activity");
+          const loc=head.indexOf("Location");
+          const con=head.indexOf("Content");
+          const time=head.indexOf("Time");
+          let daily="",weekly="",others="";
+          rows.forEach((r,i)=>{
+            if(r.length<4) return;
+            const id="chk"+i;
+            const group=r[time].trim();
+            const item=`<label><input type="checkbox" id="${id}" onchange="markCheck('${id}')"> 
+              ${r[act]} - ${r[loc]} - ${r[con]} (${r[time]})
+              <span id="${id}ts"></span></label><br>`;
+            if(group==="Daily") daily+=item;
+            else if(group==="Weekly") weekly+=item;
+            else others+=item+`<button class="reset-btn" onclick="resetSingle('${id}')">Reset</button><br>`;
+          });
+          document.getElementById("dailyList").innerHTML=daily;
+          document.getElementById("weeklyList").innerHTML=weekly;
+          document.getElementById("othersList").innerHTML=others;
+          document.getElementById("loader").style.display="none";
+          document.getElementById("content").style.display="block";
+        });
     };
-    div.appendChild(cb); div.appendChild(lbl); div.appendChild(ts);
-    if(hasIndividualReset){
-      const b=document.createElement("button");
-      b.textContent="Reset";
-      b.className="reset-btn";
-      b.onclick=()=>{cb.checked=false; cb.onchange();};
-      div.appendChild(b);
-    }
-    container.appendChild(div);
-  });
-}
 
-function resetCategory(cat){
-  document.querySelectorAll(`#${cat.toLowerCase()}List input[type=checkbox]`).forEach(cb=>{
-    cb.checked=false; cb.onchange();
-  });
-}
-
-// Theme toggle
-document.getElementById("themeToggle").onclick=()=>{
-  document.body.classList.toggle("dark");
-  const btn=document.getElementById("themeToggle");
-  if(document.body.classList.contains("dark")){
-    btn.textContent="☀️ Light Mode";
-  } else {
-    btn.textContent="🌙 Dark Mode";
-  }
-};
-
-// Popup
-function showPopup(msg){
-  const p=document.getElementById("overlay");
-  document.getElementById("popupMsg").textContent=msg;
-  p.style.display="block";
-}
-function closePopup(){
-  document.getElementById("overlay").style.display="none";
-}
-document.getElementById("closeOverlay").onclick=closePopup;
-
-// --- VS Seeker ---
-let audio = new Audio("https://www.myinstants.com/media/sounds/pokemon-item-found.mp3");
-audio.preload="auto";
-let muted=false;
-
-let vsInterval=null;
-function updateVsTimer(){
-  const last=localStorage.getItem("vs_last");
-  const timerDiv=document.getElementById("vsTimer");
-  if(last){
-    const diff=Date.now()-parseInt(last);
-    // Testweise 15 Sekunden
-    const remain=15*1000-diff;
-    if(remain>0){
-      const m=Math.floor(remain/60000);
-      const s=Math.floor((remain%60000)/1000);
-      timerDiv.textContent=`${m}m ${s}s remaining`;
-      vsInterval=setTimeout(updateVsTimer,1000);
-    }else{
-      timerDiv.textContent="Ready!";
-      if(!localStorage.getItem("vs_alerted")){
-        showPopup("VS Seeker is ready!");
-        if(!muted){ audio.play(); }
-        localStorage.setItem("vs_alerted","true");
+    function markCheck(id){
+      const cb=document.getElementById(id);
+      const ts=document.getElementById(id+"ts");
+      if(cb.checked){
+        cb.parentNode.classList.add("strike");
+        ts.textContent=" ("+new Date().toLocaleString()+")";
+      } else {
+        cb.parentNode.classList.remove("strike");
       }
     }
-  }else{
-    timerDiv.textContent="";
-  }
-}
+    function resetChecks(type){
+      document.querySelectorAll("#"+type.toLowerCase()+"List input[type=checkbox]").forEach(cb=>{
+        cb.checked=false; cb.parentNode.classList.remove("strike");
+      });
+    }
+    function resetSingle(id){
+      const cb=document.getElementById(id);
+      if(cb){ cb.checked=false; cb.parentNode.classList.remove("strike"); }
+    }
 
-document.getElementById("vsCheck").onchange=()=>{
-  if(document.getElementById("vsCheck").checked){
-    // unlock audio
-    audio.play().then(()=>{ audio.pause(); audio.currentTime=0; });
-    localStorage.setItem("vs_last",Date.now());
-    localStorage.removeItem("vs_alerted");
-    updateVsTimer();
-  } else {
-    localStorage.removeItem("vs_last");
-    localStorage.removeItem("vs_alerted");
-    document.getElementById("vsTimer").textContent="";
-  }
-};
-
-// Mute Button
-const muteBtn=document.createElement("button");
-muteBtn.textContent="🔇 Mute";
-muteBtn.style.marginLeft="10px";
-muteBtn.onclick=()=>{
-  muted=!muted;
-  muteBtn.textContent=muted?"🔈 Unmute":"🔇 Mute";
-};
-document.querySelector("#vsseeker h2").appendChild(muteBtn);
-
-updateVsTimer();
-</script>
+    /* VS Seeker */
+    let vsTimer, vsEnd, vsAudioCtx;
+    function playBeep(){
+      if(!vsAudioCtx) vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      const osc=vsAudioCtx.createOscillator();
+      const gain=vsAudioCtx.createGain();
+      osc.type="sine"; osc.frequency.setValueAtTime(880,vsAudioCtx.currentTime);
+      gain.gain.setValueAtTime(0.2,vsAudioCtx.currentTime);
+      osc.connect(gain); gain.connect(vsAudioCtx.destination);
+      osc.start(); osc.stop(vsAudioCtx.currentTime+0.5);
+    }
+    document.getElementById("vsSeekerCheck").addEventListener("change",e=>{
+      clearInterval(vsTimer); document.getElementById("vsCountdown").innerText="";
+      if(e.target.checked){
+        vsEnd=Date.now()+15*1000; // 15s test
+        if(!vsAudioCtx){ // init context
+          vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+          const osc=vsAudioCtx.createOscillator();
+          osc.connect(vsAudioCtx.destination); osc.start(); osc.stop(vsAudioCtx.currentTime);
+        }
+        vsTimer=setInterval(()=>{
+          const remain=vsEnd-Date.now();
+          if(remain<=0){
+            clearInterval(vsTimer);
+            playBeep();
+            document.getElementById("vsPopup").style.display="block";
+            document.getElementById("vsCountdown").innerText="";
+          } else {
+            const sec=Math.ceil(remain/1000);
+            const m=Math.floor(sec/60), s=sec%60;
+            document.getElementById("vsCountdown").innerText=m+"m "+(s<10?"0":"")+s+"s remaining";
+          }
+        },1000);
+      }
+    });
+  </script>
 </body>
 </html>
