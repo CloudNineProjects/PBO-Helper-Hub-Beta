@@ -15,7 +15,7 @@
     .loader { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; }
     .loader img { width:220px; height:220px; object-fit:cover; border-radius:50%; }
 
-    /* Toggle oben rechts fixiert */
+    /* Toggle top right */
     #toggleMode {
       position: fixed;
       top: 15px;
@@ -31,22 +31,21 @@
       color: #fff;
     }
 
-    /* Cards nach unten versetzen */
+    /* Cards pushed down so toggle looks independent */
     #content {
       display:none;
       position:relative;
-      padding-top: 70px; /* Abstand, damit Toggle nicht wie Teil der Card wirkt */
+      padding-top: 70px;
     }
   </style>
 </head>
 <body>
-  <!-- Toggle-Button global -->
+  <!-- Dark/Light toggle -->
   <button id="toggleMode">🌙 Dark Mode</button>
 
   <div id="loader" class="loader">
     <img src="https://i.imgur.com/XZcfQzw.png" alt="logo">
-    <button id="loadBtn">Load Data</button>
-    <p id="loadingText" style="display:none;">Loading...</p>
+    <p id="loadingText">Loading...</p>
   </div>
 
   <div id="content">
@@ -65,23 +64,11 @@
       <div id="othersList"></div>
     </div>
 
-    <!-- VS Seeker -->
-    <div class="card alt">
-      <h2>VS Seeker</h2>
-      <label><input type="checkbox" id="vsSeekerCheck"> Activate VS Seeker</label>
-      <div id="vsCountdown"></div>
-      <div id="vsPopup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-           background:#333; color:#fff; padding:20px; border-radius:10px; z-index:1000;">
-        <p>VS Seeker is ready!</p>
-        <button onclick="document.getElementById('vsPopup').style.display='none'">X</button>
-      </div>
-    </div>
-
-    <!-- Reset All Button -->
+    <!-- Settings -->
     <div class="card">
       <h2>Settings</h2>
       <button class="reset-btn" onclick="resetAllData()">Reset All Data</button>
-      <p style="font-size:0.9em;opacity:0.8;">⚠️ Löscht alle gespeicherten Häkchen und Zeiten dauerhaft.</p>
+      <p style="font-size:0.9em;opacity:0.8;">⚠️ Clears all saved checks and timestamps.</p>
     </div>
   </div>
 
@@ -98,49 +85,39 @@
     }
     document.getElementById("toggleMode").onclick=toggleMode;
 
-    // Load Data with PapaParse
-    document.getElementById("loadBtn").onclick=()=>{
-      document.getElementById("loadingText").style.display="block";
+    // Auto load on page start
+    window.onload=()=>{
       Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv", {
         download:true,
         header:true,
+        skipEmptyLines:true,
         complete: function(results) {
-          if (!results || !results.data || results.data.length === 0) {
-            document.getElementById("loadingText").textContent = "⚠️ Keine Daten geladen!";
-            return;
-          }
           const data = results.data;
           let daily="", weekly="", others="";
           data.forEach((r,i)=>{
             if(!r.Activity) return;
             const id="chk"+i;
-            const group=r.Time.trim();
+            const group=(r.Time||"").trim();
             const item=`<label><input type="checkbox" id="${id}" onchange="markCheck('${id}')">
-              ${r.Activity} - ${r.Location} - ${r.Content} (${r.Time})
+              ${r.Activity} - ${r.Location||""} - ${r.Content||""} (${r.Time||""})
               <span id="${id}ts"></span></label><br>`;
             if(group==="Daily") daily+=item;
             else if(group==="Weekly") weekly+=item;
             else others+=item+`<button class="reset-btn" onclick="resetSingle('${id}')">Reset</button><br>`;
           });
+
           document.getElementById("dailyList").innerHTML=daily;
           document.getElementById("weeklyList").innerHTML=weekly;
           document.getElementById("othersList").innerHTML=others;
           document.getElementById("loader").style.display="none";
           document.getElementById("content").style.display="block";
 
-          // VS Seeker erst jetzt initialisieren
-          initVsSeeker();
-
-          // gespeicherte Checks wiederherstellen
           restoreChecks();
-        },
-        error: function(err) {
-          console.error("CSV Load Error:", err);
-          document.getElementById("loadingText").textContent = "⚠️ Fehler beim Laden!";
         }
       });
     };
 
+    // Save & restore checks
     function markCheck(id){
       const cb=document.getElementById(id);
       const ts=document.getElementById(id+"ts");
@@ -154,7 +131,6 @@
         ts.textContent="";
       }
 
-      // Speichern in localStorage
       const saveData=JSON.parse(localStorage.getItem("checklistData")||"{}");
       saveData[id]={ checked, timestamp: ts.textContent };
       localStorage.setItem("checklistData", JSON.stringify(saveData));
@@ -165,15 +141,17 @@
         cb.checked=false; cb.parentNode.classList.remove("strike");
         const ts=document.getElementById(cb.id+"ts");
         if(ts) ts.textContent="";
-        markCheck(cb.id); // auch im Speicher zurücksetzen
+        markCheck(cb.id);
       });
     }
+
     function resetSingle(id){
       const cb=document.getElementById(id);
-      if(cb){ cb.checked=false; cb.parentNode.classList.remove("strike");
+      if(cb){ 
+        cb.checked=false; cb.parentNode.classList.remove("strike");
         const ts=document.getElementById(id+"ts");
         if(ts) ts.textContent="";
-        markCheck(id); // auch im Speicher zurücksetzen
+        markCheck(id);
       }
     }
 
@@ -188,7 +166,6 @@
           if(entry.checked) cb.parentNode.classList.add("strike");
           if(ts) ts.textContent=entry.timestamp||"";
         } else {
-          // Eintrag existiert nicht mehr → aufräumen
           delete saveData[id];
         }
       });
@@ -196,64 +173,16 @@
     }
 
     function resetAllData(){
-      if(confirm("⚠️ Bist du sicher? Alle gespeicherten Daten werden gelöscht.")){
+      if(confirm("⚠️ Are you sure? All saved data will be deleted.")){
         localStorage.removeItem("checklistData");
-        // Alle Häkchen im DOM zurücksetzen
         document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
           cb.checked=false;
           cb.parentNode.classList.remove("strike");
           const ts=document.getElementById(cb.id+"ts");
           if(ts) ts.textContent="";
         });
-        alert("Alle gespeicherten Daten wurden gelöscht.");
+        alert("All saved data has been cleared.");
       }
-    }
-
-    /* VS Seeker */
-    let vsTimer, vsEnd, vsAudioCtx;
-    function playBeep(){
-      if(!vsAudioCtx) vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      const osc=vsAudioCtx.createOscillator();
-      const gain=vsAudioCtx.createGain();
-      osc.type="sine"; osc.frequency.setValueAtTime(880,vsAudioCtx.currentTime);
-      gain.gain.setValueAtTime(0.2,vsAudioCtx.currentTime);
-      osc.connect(gain); gain.connect(vsAudioCtx.destination);
-      osc.start(); osc.stop(vsAudioCtx.currentTime+0.5);
-    }
-
-    function initVsSeeker() {
-      const vsCheck = document.getElementById("vsSeekerCheck");
-      if (!vsCheck) return;
-
-      vsCheck.addEventListener("change", e => {
-        clearInterval(vsTimer);
-        document.getElementById("vsCountdown").innerText="";
-
-        if(e.target.checked){
-          vsEnd = Date.now() + 2*60*60*1000; // 2 Stunden
-          if(!vsAudioCtx){
-            vsAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
-            const osc=vsAudioCtx.createOscillator();
-            osc.connect(vsAudioCtx.destination); 
-            osc.start(); 
-            osc.stop(vsAudioCtx.currentTime);
-          }
-          vsTimer=setInterval(()=>{
-            const remain = vsEnd - Date.now();
-            if(remain <= 0){
-              clearInterval(vsTimer);
-              playBeep();
-              document.getElementById("vsPopup").style.display="block";
-              document.getElementById("vsCountdown").innerText="";
-            } else {
-              const sec=Math.ceil(remain/1000);
-              const m=Math.floor(sec/60), s=sec%60;
-              document.getElementById("vsCountdown").innerText=
-                m+"m "+(s<10?"0":"")+s+"s remaining";
-            }
-          },1000);
-        }
-      });
     }
   </script>
 </body>
