@@ -8,7 +8,7 @@
     .dark-mode { background:#1A252C; color:#fff; }
     .card { background:#026503; padding:20px; margin:20px; border-radius:10px; }
     .dark-mode .card { background:#023804; }
-    button { margin-top:10px; padding:8px 18px; border:none; border-radius:8px; cursor:pointer; }
+    button { margin-top:10px; padding:10px 18px; border:none; border-radius:8px; cursor:pointer; }
     .reset-btn { background:#f0f0f0; color:#000; }
     .dark-mode .reset-btn { background:#444; color:#fff; }
     .strike { text-decoration: line-through; opacity:0.6; }
@@ -82,7 +82,7 @@
       dark=!dark;
       document.body.classList.toggle("dark-mode",dark);
       const btn=document.getElementById("toggleMode");
-      btn.textContent=dark?"☀ Light Mode":"🌙 Dark Mode";
+      btn.textContent=dark?"☀️ Light Mode":"🌙 Dark Mode";
     }
     document.getElementById("toggleMode").onclick=toggleMode;
 
