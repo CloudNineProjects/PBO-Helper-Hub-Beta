@@ -469,5 +469,14 @@ $('darkToggle').addEventListener('click', e => {
   $('darkToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
 });
 </script>
+<script>
+// Special Item Finder: Enter startet Suche
+document.getElementById("itemManual").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("itemManualBtn").click();
+  }
+});
+</script>  
 </body>
 </html>
