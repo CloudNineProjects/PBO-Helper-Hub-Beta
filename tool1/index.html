@@ -80,6 +80,10 @@
       background: #333;
       color: #f1f1f1;
     }
+    .dark-mode .load-button {
+  background: #f0f0f0 !important; /* hell lassen */
+  color: #000 !important;         /* schwarze Schrift */
+}
   </style>
 </head>
 <body>
@@ -89,7 +93,7 @@
 
   <div id="loading-screen">
     <img src="https://i.imgur.com/XZcfQzw.png" alt="Loading Logo" style="max-width:200px; margin-bottom:20px;">
-    <button id="loadDataBtn">Load Data</button>
+    <button id="loadDataBtn" class="load-button">Load Data</button>
     <p id="loadingText"></p>
   </div>
 
