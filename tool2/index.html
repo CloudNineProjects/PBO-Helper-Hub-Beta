@@ -1,47 +1,154 @@
-/* Dark mode */
-.dark-mode {
-  --bg:#1A252C;
-  --text:#e6eef9;
-  background:#1A252C;
-  color:#e6eef9;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg, #f4f4f4);
+      color: var(--text, #333);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .highlight {
+      background: #e3f7e3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #f5f5f5;
+    }
+    .muted {
+      color: gray;
+      font-size: 0.9em;
+    }
 
-.dark-mode .card {
-  box-shadow:none;
-  border:1px solid rgba(255,255,255,0.04);
-  background:#023804;
-}
+    /* Dark mode */
+    .dark-mode {
+      --bg:#1A252C;
+      --text:#e6eef9;
+      background:#1A252C;
+      color:#e6eef9;
+    }
 
-.dark-mode .card.highlight {
-  background:#023804;
-}
+    .dark-mode .card {
+      box-shadow:none;
+      border:1px solid rgba(255,255,255,0.04);
+      background:#023804;
+    }
 
-.dark-mode select,
-.dark-mode input[type="text"] {
-  background:#111214;
-  color:#e6eef9;
-  border:1px solid rgba(255,255,255,0.06);
-}
+    .dark-mode .card.highlight {
+      background:#023804;
+    }
 
-.dark-mode th,
-.dark-mode td {
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  color:var(--text);
-}
+    .dark-mode select,
+    .dark-mode input[type="text"] {
+      background:#111214;
+      color:#e6eef9;
+      border:1px solid rgba(255,255,255,0.06);
+    }
 
-.dark-mode button {
-  background:#1f2937;
-  color:var(--text);
-}
+    .dark-mode th,
+    .dark-mode td {
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      color:var(--text);
+    }
 
-.dark-mode button.secondary {
-  background:#0b1220;
-  color:var(--text);
-  border:1px solid rgba(255,255,255,0.06);
-}
+    .dark-mode button {
+      background:#1f2937;
+      color:var(--text);
+    }
 
-/* Ausnahme: Load Button soll immer wie im Light Mode aussehen */
-.dark-mode .load-button {
-  background:#f0f0f0 !important;
-  color:#000 !important;
-}
+    .dark-mode button.secondary {
+      background:#0b1220;
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Ausnahme: Load Button soll immer hell bleiben */
+    .dark-mode .load-button {
+      background:#f0f0f0 !important;
+      color:#000 !important;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="darkModeToggle">🌙 Dark Mode</button>
+  </header>
+
+  <main class="container">
+    <div id="loading" class="loading-screen">
+      <div class="loader-inner">
+        <img src="https://i.imgur.com/XZcfQzw.png" alt="Logo">
+        <div style="margin-top:8px">
+          <!-- hier die Klasse hinzugefügt -->
+          <button id="loadBtn" class="load-button">Load Data</button>
+        </div>
+        <div id="loadStatus" class="muted" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div id="app" class="hidden">
+      <!-- dein App-Inhalt hier -->
+    </div>
+  </main>
+
+  <script>
+    // Dark Mode Toggle
+    document.getElementById("darkModeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      const isDark = document.body.classList.contains("dark-mode");
+      document.getElementById("darkModeToggle").textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+    });
+
+    // Load Button
+    document.getElementById("loadBtn").addEventListener("click", () => {
+      const status = document.getElementById("loadStatus");
+      status.textContent = "Loading...";
+      // hier dein loadData() aufrufen
+      setTimeout(() => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("app").classList.remove("hidden");
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
