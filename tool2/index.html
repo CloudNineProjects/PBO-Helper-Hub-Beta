@@ -42,6 +42,10 @@
     .dark-mode button{background:#1f2937;color:var(--text)}
     .dark-mode button.secondary{background:#0b1220;color:var(--text);border:1px solid rgba(255,255,255,0.06)}
     }
+    .dark-mode .load-button {
+      background:#f0f0f0 !important; /* hell lassen */
+      color:#000 !important;         /* schwarze Schrift */
+  }
 
   /* >>> deine neuen Regeln am Ende vom Style-Block <<< */
   #app h1 {
@@ -68,7 +72,7 @@
       <div class="loader-inner">
         <img src="https://i.imgur.com/XZcfQzw.png" alt="Logo">
         <div style="margin-top:8px">
-          <button id="loadBtn">Load Data</button>
+          <button id="loadDataBtn" class="load-button">Load Data</button>
         </div>
         <div id="loadStatus" class="muted" style="margin-top:10px"></div>
       </div>
