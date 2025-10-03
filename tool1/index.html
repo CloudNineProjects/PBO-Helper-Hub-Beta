@@ -289,7 +289,7 @@
       }
 
       // Chest sheet
-      const chestRows = chestData.slice(1).filter(r => r[2] && r[2].toLowerCase() === query);
+      const chestRows = chestData.slice(1).filter(r => r[2] && r[2].toLowerCase().includes(query));
       if (chestRows.length) {
         results.push({ region: "Chests", headers: chestData[0], rows: chestRows });
       }
