@@ -117,8 +117,14 @@
     }, 1000);
 
     vsTimer = setTimeout(() => {
-      alert("VS Seeker is ready!");
+      // Sound sofort abspielen
       vsSound.play().catch(err => console.log("Sound-Fehler:", err));
+
+      // Popup kurz danach anzeigen
+      setTimeout(() => {
+        alert("VS Seeker is ready!");
+      }, 200);
+
       vsBtn.textContent = "⏰ VS Seeker Reminder";
       vsTimer = null;
     }, remaining * 1000);
