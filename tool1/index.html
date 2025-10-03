@@ -389,6 +389,13 @@
       const container = document.getElementById("pvpResults");
       container.innerHTML = rows.length ? renderTable(headers, rows) : "<p>Currently not listed...</p>";
     });
+    // PvP Check per Enter
+    document.getElementById("pvpInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+      e.preventDefault(); 
+      document.getElementById("pvpSearchBtn").click();
+      }
+    });
 
     document.getElementById("pvpResetBtn").addEventListener("click", () => {
       document.getElementById("pvpInput").value = "";
