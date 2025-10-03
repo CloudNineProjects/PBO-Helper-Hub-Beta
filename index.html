@@ -82,9 +82,9 @@
 
   <button class="vs-btn" id="vsReminder">⏰ VS Seeker Reminder</button>
 
-  <!-- Eingebettete MP3 als Base64 -->
+  <!-- Eingebetteter WAV-Sound -->
   <audio id="vsSound">
-    <source src="data:audio/mp3;base64,SUQzBAAAAAABHFRYWFgAAAAmAAADY29tbWVudABjb252ZXJ0ZWQgYnkgY29udmVydDJtcDMubmV0AFRJVDIAAAAbAAADSXRlbSBGb3VuZCAtIFNvdW5kIEVmZmVjdABUUEUxAAAAGgAAA1Bva8OpbW9uIFJlZC9CbHVlL1llbGxvdwBUU1NFAAAADwAAA0xhdmY1Ny44..." type="audio/mp3">
+    <source src="data:audio/wav;base64,UklGRoIGAwBXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YV4GAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA..." type="audio/wav">
   </audio>
 
 <script>
@@ -101,7 +101,7 @@
       vsInterval = null;
     }
 
-    // 🔓 Sound "entsperren" durch einmaliges Abspielen/Stoppen
+    // Unlock-Trick: Audio freigeben
     vsSound.play().then(() => {
       vsSound.pause();
       vsSound.currentTime = 0;
@@ -113,9 +113,7 @@
     vsInterval = setInterval(() => {
       remaining--;
       updateBtn();
-      if (remaining <= 0) {
-        clearInterval(vsInterval);
-      }
+      if (remaining <= 0) clearInterval(vsInterval);
     }, 1000);
 
     vsTimer = setTimeout(() => {
