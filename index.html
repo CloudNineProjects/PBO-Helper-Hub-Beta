@@ -101,6 +101,12 @@
       vsInterval = null;
     }
 
+    // 🔓 Sound "entsperren" durch einmaliges Abspielen/Stoppen
+    vsSound.play().then(() => {
+      vsSound.pause();
+      vsSound.currentTime = 0;
+    }).catch(err => console.log("Unlock error:", err));
+
     let remaining = 15; // Sekunden (Test) – später 120*60 setzen
     updateBtn();
 
