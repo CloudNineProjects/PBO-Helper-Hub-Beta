@@ -82,8 +82,10 @@
 
   <button class="vs-btn" id="vsReminder">⏰ VS Seeker Reminder</button>
 
-  <!-- Sound von Google Drive -->
-  <audio id="vsSound" src="https://drive.google.com/uc?export=download&id=1ApACtKHNhcH_MT2hzPisnyFOrqEYkyfB"></audio>
+  <!-- Eingebettete MP3 als Base64 -->
+  <audio id="vsSound">
+    <source src="data:audio/mp3;base64,SUQzBAAAAAABHFRYWFgAAAAmAAADY29tbWVudABjb252ZXJ0ZWQgYnkgY29udmVydDJtcDMubmV0AFRJVDIAAAAbAAADSXRlbSBGb3VuZCAtIFNvdW5kIEVmZmVjdABUUEUxAAAAGgAAA1Bva8OpbW9uIFJlZC9CbHVlL1llbGxvdwBUU1NFAAAADwAAA0xhdmY1Ny44..." type="audio/mp3">
+  </audio>
 
 <script>
   const vsBtn = document.getElementById("vsReminder");
@@ -99,7 +101,7 @@
       vsInterval = null;
     }
 
-    let remaining = 15; // Sekunden (später ersetzen durch 120*60)
+    let remaining = 15; // Sekunden (Test) – später 120*60 setzen
     updateBtn();
 
     vsInterval = setInterval(() => {
@@ -112,7 +114,7 @@
 
     vsTimer = setTimeout(() => {
       alert("VS Seeker is ready!");
-      vsSound.play().catch(err => console.log("Sound konnte nicht abgespielt werden:", err));
+      vsSound.play().catch(err => console.log("Sound-Fehler:", err));
       vsBtn.textContent = "⏰ VS Seeker Reminder";
       vsTimer = null;
     }, remaining * 1000);
