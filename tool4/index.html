@@ -128,7 +128,7 @@ const escapeHtml = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTZms-FGa78v8FvI5CqYGTck1d_TU0yzWGc-UVXhoEpcp3W0zF5aPdr5ZGFYc-nfWUkgVUhtEDZCfR/pub?output=csv";
 
 let rows = [];
-let keyA="Content", keyD="Comments";
+let keyA="Content", keyB="Accessibility", keyC="Team Link", keyD="Comments";
 
 function loadData(){
   $('loadBtn').disabled = true;
