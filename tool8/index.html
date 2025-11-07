@@ -151,6 +151,11 @@
   th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
   th{position:sticky;top:0;background:rgba(0,0,0,0.1);z-index:2;font-weight:700}
   .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.15);margin:4px 6px 4px 0;font-size:13px}
+  .badge.highlight {
+  background: #ff4444; /* oder z.B. #00c853 für grün */
+  color: #fff;
+  font-weight: 700;
+  }
   .cell-strong{background:#b42c2c;color:#F0F0F0;font-weight:700}
   .cell-resist{background:#206699;color:#F0F0F0}
   .cell-immune{background:#444;color:#F0F0F0}
@@ -256,7 +261,41 @@ $('infoShow').onclick=()=>{const sel=$('infoFilter').value;if(!sel)return alert(
 $('infoReset').onclick=()=>{$('infoFilter').selectedIndex=0;$('infoOut').style.display='none';};
 $('dbShow').onclick=()=>{const sel=$('dbFilter').value;if(!sel)return alert('Select');const colA=dbFields[0];const m=dbRows.filter(r=>(r[colA]||'').trim()===sel);$('dbOut').innerHTML=renderTable(m,dbFields,dbFields.slice(1,7));$('dbOut').style.display='block';};
 $('dbReset').onclick=()=>{$('dbFilter').selectedIndex=0;$('dbOut').style.display='none';};
-$('atkShow').onclick=()=>{const s1=$('atkDef1').value,s2=$('atkDef2').value;if(!s1&&!s2)return alert('Select');const sel=[s1,s2].filter(Boolean);const rowLabel=atkFields[0];const out=[];atkRows.forEach(r=>{const vals=sel.map(c=>normalizeValue(r[c]||''));if(sel.length===1){if(vals[0]==='2')out.push(r[rowLabel]);}else{const has2=vals.includes('2');const count2=vals.filter(v=>v==='2').length;const has1=vals.includes('1');if(has2&&(has1||count2>=2))out.push(r[rowLabel]);}});$('atkOut').innerHTML=out.length?out.map(x=>`<span class="badge">${escapeHtml(x)}</span>`).join(' '):'<p>No results.</p>';$('atkOut').style.display='block';};
+$('atkShow').onclick = () => {
+  const s1 = $('atkDef1').value, s2 = $('atkDef2').value;
+  if (!s1 && !s2) return alert('Select at least one defender');
+  
+  const sel = [s1, s2].filter(Boolean);
+  const rowLabel = atkFields[0];
+  const out = [];
+
+  atkRows.forEach(r => {
+    const vals = sel.map(c => normalizeValue(r[c] || ''));
+
+    if (sel.length === 1) {
+      if (vals[0] === '2') {
+        out.push({ name: r[rowLabel], highlight: false });
+      }
+    } else {
+      const has2 = vals.includes('2');
+      const count2 = vals.filter(v => v === '2').length;
+      const has1 = vals.includes('1');
+      if (has2 && (has1 || count2 >= 2)) {
+        // highlight only if both are 2
+        const highlight = (count2 >= 2);
+        out.push({ name: r[rowLabel], highlight });
+      }
+    }
+  });
+
+  $('atkOut').innerHTML = out.length
+    ? out.map(x =>
+        `<span class="badge${x.highlight ? ' highlight' : ''}">${escapeHtml(x.name)}</span>`
+      ).join(' ')
+    : '<p>No results.</p>';
+
+  $('atkOut').style.display = 'block';
+};
 $('atkReset').onclick=()=>{$('atkDef1').selectedIndex=0;$('atkDef2').selectedIndex=0;$('atkOut').style.display='none';};
 $('defShow').onclick=()=>{const c=['def1','def2','def3','def4'].map(id=>$(id).value).filter(Boolean);if(!c.length)return alert('Select');const rowLabel=atkFields[0];const m=atkRows.filter(r=>c.includes((r[rowLabel]||'').trim()));$('defOut').innerHTML=renderTable(m,atkFields,atkFields.slice(0,19));$('defOut').style.display='block';};
 $('defReset').onclick=()=>{['def1','def2','def3','def4'].forEach(id=>$(id).selectedIndex=0);$('defOut').style.display='none';};
