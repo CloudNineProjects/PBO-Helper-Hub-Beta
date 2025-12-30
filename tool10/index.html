@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PBO Quest Helper</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#666769;
+      --card:#02491D;
+      --text:#ffffff;
+      --accent:#eef3fb;
+      --radius:10px;
+    }
+
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    header{
+      display:flex;
+      justify-content:flex-end;
+      padding:12px;
+    }
+
+    button{
+      padding:10px 18px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      background:var(--accent);
+      color:#000;
+    }
+
+    button.secondary{
+      background:#1f2937;
+      color:#fff;
+    }
+
+    main{
+      max-width:900px;
+      margin:0 auto;
+      padding:12px;
+    }
+
+    .loading{
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      margin-top:16px;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:12px;
+      align-items:center;
+    }
+
+    select{
+      padding:8px;
+      border-radius:8px;
+      border:none;
+      min-width:240px;
+    }
+
+    .content-box{
+      margin-top:16px;
+      padding:14px;
+      background:#111;
+      border-radius:8px;
+      white-space:pre-wrap;
+      line-height:1.5;
+      max-height:400px;
+      overflow:auto;
+    }
+
+    .muted{
+      opacity:0.8;
+      margin-top:12px;
+    }
+
+    .hidden{display:none}
+
+    /* Dark Mode */
+    .dark-mode{
+      --bg:#1A252C;
+      --card:#023804;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <button id="darkToggle" class="secondary">🌙 Dark Mode</button>
+</header>
+
+<main>
+
+  <!-- Loading -->
+  <div id="loading" class="loading">
+    <div>
+      <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
+      <div>
+        <button id="loadBtn">Load Data</button>
+      </div>
+      <div id="loadStatus" class="muted"></div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="hidden">
+
+    <section class="card">
+      <h2>Quest Helper</h2>
+
+      <div class="row">
+        <select id="regionSelect">
+          <option value="">Select Region</option>
+        </select>
+
+        <select id="questSelect" disabled>
+          <option value="">Select Quest</option>
+        </select>
+
+        <button id="showBtn">Show</button>
+      </div>
+
+      <div id="output"></div>
+    </section>
+
+  </div>
+
+</main>
+
+<script>
+/* ===== Helpers ===== */
+const $ = id => document.getElementById(id);
+const normalize = s => (s||'').toString().trim().toLowerCase();
+const escapeHtml = s => (s||'')
+  .replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;');
+
+/* ===== CSV ===== */
+const QUEST_CSV =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUoaCoGaRwhc7rdFxpQuKmHSdYG5vlzYSjXYSAutTfowLYfmuuKxULAE-ePGl66uZpO7JKk97Yoo7/pub?output=csv';
+
+let rows = [];
+
+/* ===== Load ===== */
+function loadData(){
+  $('loadBtn').disabled = true;
+  $('loadStatus').textContent = 'Loading...';
+
+  Papa.parse(QUEST_CSV,{
+    download:true,
+    header:true,
+    skipEmptyLines:true,
+    complete:(res)=>{
+      rows = res.data.filter(r =>
+        Object.values(r).some(v => v && String(v).trim() !== '')
+      );
+      initUI();
+      $('loading').style.display='none';
+      $('app').classList.remove('hidden');
+    },
+    error:()=>{
+      $('loadStatus').textContent='Failed to load CSV';
+      $('loadBtn').disabled=false;
+    }
+  });
+}
+
+/* ===== UI Init ===== */
+function initUI(){
+  const regionKey = Object.keys(rows[0])[0]; // Spalte A
+  const questKey  = Object.keys(rows[0])[1]; // Spalte B
+
+  const regions = [...new Set(rows.map(r => r[regionKey]).filter(Boolean))];
+  const regionSel = $('regionSelect');
+
+  regions.forEach(r => regionSel.add(new Option(r,r)));
+
+  regionSel.onchange = ()=>{
+    const region = regionSel.value;
+    const questSel = $('questSelect');
+    questSel.innerHTML = '<option value="">Select Quest</option>';
+    questSel.disabled = true;
+    if(!region) return;
+
+    const quests = [...new Set(
+      rows.filter(r => r[regionKey] === region).map(r => r[questKey])
+    )];
+
+    quests.forEach(q => questSel.add(new Option(q,q)));
+    questSel.disabled = false;
+  };
+
+  $('showBtn').onclick = ()=>{
+    const region = regionSel.value;
+    const quest  = $('questSelect').value;
+    const out    = $('output');
+
+    out.innerHTML = '';
+    if(!region || !quest) return;
+
+    const contentKey = Object.keys(rows[0])[2]; // Spalte C
+    const hit = rows.find(r => r[regionKey] === region && r[questKey] === quest);
+
+    if(!hit || !hit[contentKey]){
+      out.innerHTML = '<p class="muted">No content found.</p>';
+      return;
+    }
+
+    out.innerHTML = `
+      <div class="content-box">
+${escapeHtml(hit[contentKey])}
+      </div>
+    `;
+  };
+}
+
+/* ===== Events ===== */
+$('loadBtn').addEventListener('click', loadData);
+$('darkToggle').addEventListener('click',()=>{
+  document.body.classList.toggle('dark-mode');
+  $('darkToggle').textContent =
+    document.body.classList.contains('dark-mode')
+      ? '☀️ Light Mode'
+      : '🌙 Dark Mode';
+});
+</script>
+
+</body>
+</html>
