@@ -132,11 +132,16 @@ darkModeToggle.onclick = () => {
 };
 
 /* ---------- LOADING ---------- */
-loadDataBtn.onclick = async () => {
-  loadDataBtn.disabled = true;
+const loadBtn = document.getElementById("loadDataBtn");
+const loadingText = document.getElementById("loadingText");
+const loadingScreen = document.getElementById("loading-screen");
+const app = document.getElementById("app");
+
+loadBtn.addEventListener("click", async () => {
+  loadBtn.disabled = true;
   loadingText.textContent = "Loading...";
   await loadData();
-  loading-screen.style.display = "none";
+  loadingScreen.style.display = "none";
   app.style.display = "block";
 };
 
