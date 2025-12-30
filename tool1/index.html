@@ -1,26 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>PBO Pokemon Tool</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokemon Finder Tool</title>
 
 <style>
-body{font-family:Arial,sans-serif;background:#666769;color:#F0F0F0;margin:0}
-header{display:flex;justify-content:flex-end;padding:10px}
-button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;margin:5px}
-.section{margin:20px;padding:15px;border-radius:8px;border:1px solid #ccc}
-.highlight{background:#02491D}
-table{border-collapse:collapse;margin-top:10px;width:100%}
-th,td{border:1px solid #999;padding:6px;text-align:left}
-#loading-screen{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh}
-#app{display:none}
-.dark-mode{background:#1A252C;color:#f1f1f1}
-.dark-mode .highlight{background:#023804}
-.dark-mode table{background:#1e1e1e}
-.dark-mode th,.dark-mode td{border:1px solid #555}
-.dark-mode button{background:#333;color:#f1f1f1}
-.dark-mode .load-button{background:#f0f0f0!important;color:#000!important}
+body {
+  font-family: Arial, sans-serif;
+  background: #666769;
+  color: #F0F0F0;
+  margin: 0;
+}
+header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 5px;
+}
+.section {
+  margin: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+.highlight {
+  background-color: #02491D;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  border: 1px solid #999;
+  padding: 6px;
+}
+#loading-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#app { display: none; }
+
+/* Dark Mode */
+.dark-mode {
+  background: #1A252C;
+  color: #f1f1f1;
+}
+.dark-mode .section {
+  border-color: #555;
+}
+.dark-mode table,
+.dark-mode th,
+.dark-mode td {
+  border-color: #555;
+}
+.dark-mode .highlight {
+  background: #023804;
+}
+.dark-mode button {
+  background: #333;
+  color: #f1f1f1;
+}
+.dark-mode .load-button {
+  background: #f0f0f0 !important;
+  color: #000 !important;
+}
 </style>
 </head>
 
@@ -30,168 +83,183 @@ th,td{border:1px solid #999;padding:6px;text-align:left}
   <button id="darkModeToggle">🌙 Dark Mode</button>
 </header>
 
+<!-- Loading Screen -->
 <div id="loading-screen">
-  <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:20px">
+  <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;">
   <button id="loadDataBtn" class="load-button">Load Data</button>
   <p id="loadingText"></p>
 </div>
 
+<!-- App -->
 <div id="app">
 
-<!-- ================= POKEMON FINDER ================= -->
-<div class="section highlight">
-<h2>Pokemon Finder</h2>
+  <!-- Pokemon Finder -->
+  <div class="section highlight">
+    <h2>Pokemon Finder</h2>
+    <input type="text" id="pokemonInput" placeholder="Enter Pokémon name">
+    <label>
+      <input type="checkbox" id="optimizedHunt"> Optimized Hunt
+    </label><br><br>
+    <button id="pokemonSearchBtn">Search</button>
+    <button id="pokemonResetBtn">Reset</button>
+    <div id="pokemonResults"></div>
+  </div>
 
-<input type="text" id="pokemonInput" placeholder="Enter Pokémon name">
-<label>
-  <input type="checkbox" id="optimizedHunt"> Optimized Hunt
-</label>
-
-<button id="pokemonSearchBtn">Search</button>
-<button id="pokemonResetBtn">Reset</button>
-<div id="pokemonResults"></div>
-</div>
-
-<!-- ================= SPAWN CHECK ================= -->
-<div class="section">
-<h2>Spawn Check</h2>
-<select id="regionSelect"><option value="">Select Region</option></select>
-<select id="locationSelect" disabled><option value="">Select Location</option></select>
-<button id="spawnSearchBtn">Search</button>
-<button id="spawnResetBtn">Reset</button>
-<div id="spawnResults"></div>
-</div>
-
-<!-- ================= CHEST FINDER ================= -->
-<div class="section highlight">
-<h2>Chest Finder</h2>
-<select id="chestSelect"><option value="">Select Type</option></select>
-<button id="chestSearchBtn">Search</button>
-<button id="chestResetBtn">Reset</button>
-<div id="chestResults"></div>
-</div>
+  <!-- Spawn Check -->
+  <div class="section">
+    <h2>Spawn Check</h2>
+    <select id="regionSelect">
+      <option value="">Select Region</option>
+    </select>
+    <select id="locationSelect" disabled>
+      <option value="">Select Location</option>
+    </select><br><br>
+    <button id="spawnSearchBtn">Search</button>
+    <button id="spawnResetBtn">Reset</button>
+    <div id="spawnResults"></div>
+  </div>
 
 </div>
 
 <script>
-/* ========= DARK MODE ========= */
-darkModeToggle.onclick=()=>{
-document.body.classList.toggle("dark-mode");
-darkModeToggle.textContent=
-document.body.classList.contains("dark-mode")?"☀️ Light Mode":"🌙 Dark Mode";
+/* ---------- DARK MODE ---------- */
+darkModeToggle.onclick = () => {
+  document.body.classList.toggle("dark-mode");
+  darkModeToggle.textContent =
+    document.body.classList.contains("dark-mode")
+    ? "☀️ Light Mode"
+    : "🌙 Dark Mode";
 };
 
-/* ========= LOADING ========= */
-const spawnSheets={
-Sinnoh:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=0&single=true&output=csv",
-Jvaloh:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
-Hoenn:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
-Kanto:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv",
-Event:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=867555265&single=true&output=csv",
-"Crew Wars Island":"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=277236296&single=true&output=csv"
-};
-
-const chestSheet="https://docs.google.com/spreadsheets/d/e/2PACX-1vT9NXQeF7_DUFs-GSpxYU5QsufA6Vtwi_n5O6ytErPYQAssIC4zen99a23uPvYQXzjARPvF0XbXIiOn/pub?output=csv";
-
-let spawnData={},chestData=[];
-
-async function fetchCSV(url){
-const res=await fetch(url);
-return (await res.text()).split("\n").map(r=>r.split(",").map(c=>c.trim()));
-}
-
+/* ---------- LOADING ---------- */
 loadDataBtn.onclick = async () => {
   loadDataBtn.disabled = true;
-  loadingText.textContent = "Loading…";
-
-  const spawnLoads = Object.entries(spawnSheets).map(
-    ([region, url]) =>
-      fetchCSV(url).then(data => spawnData[region] = data)
-  );
-
-  chestData = await fetchCSV(chestSheet);
-  await Promise.all(spawnLoads);
-
-  Object.keys(spawnSheets).forEach(region =>
-    regionSelect.add(new Option(region, region))
-  );
-
-  [...new Set(chestData.slice(1).map(r => r[0]))]
-    .forEach(type => chestSelect.add(new Option(type, type)));
-
-  loadingScreen.style.display = "none";
+  loadingText.textContent = "Loading...";
+  await loadData();
+  loading-screen.style.display = "none";
   app.style.display = "block";
 };
 
-/* ========= ENTER FIX ========= */
-pokemonInput.addEventListener("keydown",e=>{
-if(e.key==="Enter"){e.preventDefault();pokemonSearchBtn.click();}
-});
+/* ---------- SHEETS ---------- */
+const spawnSheets = {
+  Sinnoh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=0&single=true&output=csv",
+  Jvaloh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
+  Hoenn: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
+  Kanto: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv"
+};
 
-/* ========= POKEMON SEARCH (FIXED) ========= */
-pokemonSearchBtn.onclick=()=>{
-const q=pokemonInput.value.trim().toLowerCase();
-const opt=optimizedHunt.checked;
-pokemonResults.innerHTML="";
-if(!q)return;
+const chestSheet =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vT9NXQeF7_DUFs-GSpxYU5QsufA6Vtwi_n5O6ytErPYQAssIC4zen99a23uPvYQXzjARPvF0XbXIiOn/pub?output=csv";
 
-let results=[];
+let spawnData = {};
+let chestData = [];
 
-for(const [region,data] of Object.entries(spawnData)){
-const headers=data[0];
-const rows=data.slice(1);
-const loc=1,poke=2,rar=3;
-
-const matches=rows.filter(r=>r[poke]?.toLowerCase().includes(q));
-const final=opt?matches.filter(m=>{
-const same=rows.filter(r=>r[loc]===m[loc]);
-return same.some(r=>r[rar]?.toLowerCase()==="ultra rare");
-}):matches;
-
-if(final.length)results.push({region,headers,rows:final});
+/* ---------- HELPERS ---------- */
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  return (await res.text())
+    .split("\n")
+    .map(r => r.split(",").map(c => c.trim()));
 }
 
-pokemonResults.innerHTML=results.length
-?results.map(r=>`<h3>${r.region}</h3>`+renderTable(r.headers,r.rows)).join("")
-:"<p>Currently not listed…</p>";
-};
+async function loadData() {
+  const spawnPromises = Object.entries(spawnSheets)
+    .map(([r,u]) => fetchCSV(u).then(d => [r,d]));
 
-pokemonResetBtn.onclick=()=>{pokemonInput.value="";pokemonResults.innerHTML="";};
+  const [spawns, chest] = await Promise.all([
+    Promise.all(spawnPromises),
+    fetchCSV(chestSheet)
+  ]);
 
-/* ========= SPAWN CHECK ========= */
-regionSelect.onchange=e=>{
-locationSelect.innerHTML="<option>Select Location</option>";
-if(!e.target.value)return locationSelect.disabled=true;
-[...new Set(spawnData[e.target.value].slice(1).map(r=>r[1]))]
-.forEach(l=>locationSelect.add(new Option(l,l)));
-locationSelect.disabled=false;
-};
+  spawns.forEach(([r,d]) => spawnData[r] = d);
+  chestData = chest;
 
-spawnSearchBtn.onclick=()=>{
-const r=regionSelect.value,l=locationSelect.value;
-spawnResults.innerHTML=r&&l
-?renderTable(spawnData[r][0],spawnData[r].slice(1).filter(x=>x[1]===l))
-:"<p>Please select both.</p>";
-};
-
-spawnResetBtn.onclick=()=>{regionSelect.value="";locationSelect.disabled=true;spawnResults.innerHTML="";};
-
-/* ========= CHEST ========= */
-chestSearchBtn.onclick=()=>{
-const t=chestSelect.value;
-chestResults.innerHTML=t
-?renderTable(chestData[0],chestData.slice(1).filter(r=>r[0]===t))
-:"<p>Please select a type.</p>";
-};
-
-chestResetBtn.onclick=()=>{chestSelect.value="";chestResults.innerHTML="";};
-
-/* ========= TABLE ========= */
-function renderTable(h,r){
-if(!r.length)return"<p>No results.</p>";
-return"<table><tr>"+h.map(x=>`<th>${x}</th>`).join("")+"</tr>"+
-r.map(x=>"<tr>"+x.map(c=>`<td>${c}</td>`).join("")+"</tr>").join("")+"</table>";
+  Object.keys(spawnSheets).forEach(r => {
+    const o = document.createElement("option");
+    o.value = r; o.textContent = r;
+    regionSelect.appendChild(o);
+  });
 }
+
+function renderTable(headers, rows) {
+  if (!rows.length) return "<p>No results found.</p>";
+  return `
+  <table>
+    <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>
+      ${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+    </tbody>
+  </table>`;
+}
+
+/* ---------- POKEMON FINDER ---------- */
+pokemonSearchBtn.onclick = () => {
+  const q = pokemonInput.value.toLowerCase();
+  const optimized = optimizedHunt.checked;
+  let results = [];
+
+  for (const [region,data] of Object.entries(spawnData)) {
+    let rows = data.slice(1).filter(r => r[2]?.toLowerCase().includes(q));
+    if (optimized) {
+      rows = rows.filter(r =>
+        data.slice(1).some(o =>
+          o[1]===r[1] && o[5]===r[5] && o[3]==="Ultra Rare"
+        )
+      );
+    }
+    if (rows.length)
+      results.push({ region, headers:data[0], rows });
+  }
+
+  const chestRows = chestData.slice(1)
+    .filter(r => r[2]?.toLowerCase().includes(q));
+  if (chestRows.length)
+    results.push({ region:"Chests", headers:chestData[0], rows:chestRows });
+
+  pokemonResults.innerHTML = results.length
+    ? results.map(r=>`<h3>${r.region}</h3>`+renderTable(r.headers,r.rows)).join("")
+    : "<p>Currently not listed...</p>";
+};
+
+pokemonInput.onkeydown = e => {
+  if (e.key === "Enter") pokemonSearchBtn.click();
+};
+
+pokemonResetBtn.onclick = () => {
+  pokemonInput.value = "";
+  pokemonResults.innerHTML = "";
+};
+
+/* ---------- SPAWN CHECK ---------- */
+regionSelect.onchange = e => {
+  locationSelect.innerHTML = "<option value=''>Select Location</option>";
+  const region = e.target.value;
+  if (!region) return locationSelect.disabled = true;
+  [...new Set(spawnData[region].slice(1).map(r=>r[1]))]
+    .forEach(l => {
+      const o = document.createElement("option");
+      o.value = l; o.textContent = l;
+      locationSelect.appendChild(o);
+    });
+  locationSelect.disabled = false;
+};
+
+spawnSearchBtn.onclick = () => {
+  const r = regionSelect.value;
+  const l = locationSelect.value;
+  if (!r || !l) return spawnResults.innerHTML = "<p>Select region and location.</p>";
+  const d = spawnData[r];
+  spawnResults.innerHTML =
+    renderTable(d[0], d.slice(1).filter(x => x[1] === l));
+};
+
+spawnResetBtn.onclick = () => {
+  regionSelect.value = "";
+  locationSelect.innerHTML = "<option>Select Location</option>";
+  locationSelect.disabled = true;
+  spawnResults.innerHTML = "";
+};
 </script>
+
 </body>
 </html>
