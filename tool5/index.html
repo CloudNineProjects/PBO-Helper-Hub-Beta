@@ -92,19 +92,21 @@ th,td{
 
 <main>
 
-<!-- Loading -->
+<!-- LOADING -->
 <div id="loading" class="loading">
   <div>
     <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
-    <div><button id="loadBtn" class="primary">Load Data</button></div>
+    <div>
+      <button id="loadBtn" class="primary">Load Data</button>
+    </div>
     <div id="loadStatus" class="muted"></div>
   </div>
 </div>
 
-<!-- App -->
+<!-- APP -->
 <div id="app" class="hidden">
 
-  <!-- ROUTE PLANNER CARD -->
+  <!-- ROUTE PLANNER -->
   <section class="card">
     <h2>Route Planner</h2>
     <div class="controls">
@@ -115,7 +117,7 @@ th,td{
     <div id="routeOut"></div>
   </section>
 
-  <!-- EV SPOT FINDER CARD -->
+  <!-- EV SPOT FINDER -->
   <section class="card">
     <h2>EV Spot Finder</h2>
     <div class="controls">
@@ -131,42 +133,53 @@ th,td{
 </main>
 
 <script>
-/* ===== Helpers ===== */
+/* ================= HELPERS ================= */
 const $ = id => document.getElementById(id);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const esc = s =>
+  (s === undefined || s === null)
+    ? ''
+    : String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
 
-/* ===== CSV URLs ===== */
-const ROUTE_CSV = 'https://docs.google.com/spreadsheets/d/e/XXXXXXXX/pub?output=csv';
-const EV_CSV    = 'https://docs.google.com/spreadsheets/d/e/YYYYYYYY/pub?output=csv';
+/* ================= CSV URLS ================= */
+const ROUTE_CSV =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1exPBTlYsrTJ0U4eLuFycLc6Vwwj3jtKgc6s4jZZa7UbSJLB_LJkcnIigkaJIYtBNHsicju6cv3FJ/pub?output=csv';
 
-/* ===== State ===== */
+const EV_CSV =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3s-al3s9rwdhK0FHls7J368zMl0Hdryc_y6MVwwXaiWLpgzImXs_9YsC5lXkwRdi_aPMi_gRHfsei/pub?output=csv';
+
+/* ================= STATE ================= */
 let routeRows=[], routeFields=[];
 let evRows=[], evFields=[];
 
-/* ===== Load ===== */
+/* ================= LOADER ================= */
 $('loadBtn').onclick = ()=>{
-  $('loadBtn').disabled=true;
-  $('loadStatus').textContent='Loading...';
+  $('loadBtn').disabled = true;
+  $('loadStatus').textContent = 'Loading...';
 
-  Promise.all([loadRoute(), loadEV()]).then(()=>{
+  Promise.allSettled([loadRoute(), loadEV()]).then(results=>{
+    console.log('Load results:', results);
     $('loading').style.display='none';
     $('app').classList.remove('hidden');
-  }).catch(()=>{
-    $('loadStatus').textContent='Failed to load data';
-    $('loadBtn').disabled=false;
   });
 };
 
+/* ================= LOADERS ================= */
 function loadRoute(){
   return new Promise((res,rej)=>{
     Papa.parse(ROUTE_CSV,{
-      download:true,header:true,skipEmptyLines:true,
+      download:true,
+      header:true,
+      skipEmptyLines:true,
       complete:r=>{
-        routeRows=r.data; routeFields=r.meta.fields;
+        routeRows = r.data;
+        routeFields = r.meta.fields;
         initRoute();
         res();
       },
-      error:rej
+      error:err=>rej(err)
     });
   });
 }
@@ -174,87 +187,105 @@ function loadRoute(){
 function loadEV(){
   return new Promise((res,rej)=>{
     Papa.parse(EV_CSV,{
-      download:true,header:true,skipEmptyLines:true,
+      download:true,
+      header:true,
+      skipEmptyLines:true,
       complete:r=>{
-        evRows=r.data; evFields=r.meta.fields;
+        evRows = r.data;
+        evFields = r.meta.fields;
         initEV();
         res();
       },
-      error:rej
+      error:err=>rej(err)
     });
   });
 }
 
-/* ===== Route Planner ===== */
+/* ================= ROUTE PLANNER ================= */
 function initRoute(){
-  const rKey=routeFields[0], lKey=routeFields[1];
-  [...new Set(routeRows.map(r=>r[rKey]))].forEach(v=>{
-    $('routeRegion').add(new Option(v,v));
-  });
+  const regionKey = routeFields[0];
+  const locationKey = routeFields[1];
 
-  $('routeRegion').onchange=()=>{
+  [...new Set(routeRows.map(r=>r[regionKey]).filter(Boolean))]
+    .forEach(v => $('routeRegion').add(new Option(v,v)));
+
+  $('routeRegion').onchange = ()=>{
     $('routeLocation').innerHTML='<option value="">Select Location</option>';
-    $('routeLocation').disabled=true;
-    const r=$('routeRegion').value;
-    if(!r)return;
-    [...new Set(routeRows.filter(x=>x[rKey]===r).map(x=>x[lKey]))]
-      .forEach(v=>$('routeLocation').add(new Option(v,v)));
-    $('routeLocation').disabled=false;
+    $('routeLocation').disabled = true;
+    const r = $('routeRegion').value;
+    if(!r) return;
+
+    [...new Set(routeRows.filter(x=>x[regionKey]===r).map(x=>x[locationKey]))]
+      .forEach(v => $('routeLocation').add(new Option(v,v)));
+
+    $('routeLocation').disabled = false;
   };
 
-  $('routeShow').onclick=()=>{
-    const r=$('routeRegion').value,l=$('routeLocation').value;
-    if(!r||!l)return;
-    const hits=routeRows.filter(x=>x[rKey]===r&&x[lKey]===l);
-    $('routeOut').innerHTML=renderTable(routeFields,hits);
+  $('routeShow').onclick = ()=>{
+    const r = $('routeRegion').value;
+    const l = $('routeLocation').value;
+    if(!r || !l) return;
+
+    const hits = routeRows.filter(x=>x[regionKey]===r && x[locationKey]===l);
+    $('routeOut').innerHTML = renderTable(routeFields, hits);
   };
 }
 
-/* ===== EV Spot Finder ===== */
+/* ================= EV SPOT FINDER ================= */
 function initEV(){
-  const rKey=evFields[0], evKey=evFields[1];
-  [...new Set(evRows.map(r=>r[rKey]))].forEach(v=>{
-    $('evRegion').add(new Option(v,v));
-  });
+  const regionKey = evFields[0];
+  const evKey = evFields[1];
 
-  $('evRegion').onchange=()=>{
+  [...new Set(evRows.map(r=>r[regionKey]).filter(Boolean))]
+    .forEach(v => $('evRegion').add(new Option(v,v)));
+
+  $('evRegion').onchange = ()=>{
     $('evStat').innerHTML='<option value="">Select EV</option>';
-    $('evStat').disabled=true;
-    const r=$('evRegion').value;
-    if(!r)return;
-    [...new Set(evRows.filter(x=>x[rKey]===r).map(x=>x[evKey]))]
-      .forEach(v=>$('evStat').add(new Option(v,v)));
-    $('evStat').disabled=false;
+    $('evStat').disabled = true;
+    const r = $('evRegion').value;
+    if(!r) return;
+
+    [...new Set(evRows.filter(x=>x[regionKey]===r).map(x=>x[evKey]))]
+      .forEach(v => $('evStat').add(new Option(v,v)));
+
+    $('evStat').disabled = false;
   };
 
-  $('evShow').onclick=()=>{
-    const r=$('evRegion').value,e=$('evStat').value;
-    if(!r||!e)return;
-    const hits=evRows.filter(x=>x[rKey]===r&&x[evKey]===e);
-    const displayFields=evFields.slice(2); // ohne Region + EV
-    $('evOut').innerHTML=renderTable(displayFields,hits);
+  $('evShow').onclick = ()=>{
+    const r = $('evRegion').value;
+    const e = $('evStat').value;
+    if(!r || !e) return;
+
+    const hits = evRows.filter(x=>x[regionKey]===r && x[evKey]===e);
+    const displayFields = evFields.slice(2); // hide Region + EV
+    $('evOut').innerHTML = renderTable(displayFields, hits);
   };
 }
 
-/* ===== Table ===== */
-function renderTable(fields,data){
+/* ================= TABLE ================= */
+function renderTable(fields, data){
   if(!data.length) return '<p class="muted">No results.</p>';
-  let h='<table><thead><tr>';
-  fields.forEach(f=>h+=`<th>${esc(f)}</th>`);
-  h+='</tr></thead><tbody>';
+
+  let h = '<table><thead><tr>';
+  fields.forEach(f => h += `<th>${esc(f)}</th>`);
+  h += '</tr></thead><tbody>';
+
   data.forEach(r=>{
-    h+='<tr>';
-    fields.forEach(f=>h+=`<td>${esc(r[f])}</td>`);
-    h+='</tr>';
+    h += '<tr>';
+    fields.forEach(f => h += `<td>${esc(r[f])}</td>`);
+    h += '</tr>';
   });
-  return h+'</tbody></table>';
+
+  return h + '</tbody></table>';
 }
 
-/* ===== Dark Mode ===== */
-$('darkToggle').onclick=()=>{
+/* ================= DARK MODE ================= */
+$('darkToggle').onclick = ()=>{
   document.body.classList.toggle('dark');
-  $('darkToggle').textContent=document.body.classList.contains('dark')
-    ? '☀️ Light Mode' : '🌙 Dark Mode';
+  $('darkToggle').textContent =
+    document.body.classList.contains('dark')
+      ? '☀️ Light Mode'
+      : '🌙 Dark Mode';
 };
 </script>
 
