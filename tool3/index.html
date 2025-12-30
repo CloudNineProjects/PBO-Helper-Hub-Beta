@@ -42,12 +42,6 @@ select{
 .results{
   margin-top:12px;
 }
-pre.expl{
-  background:#1A252C;
-  padding:10px;
-  border-radius:6px;
-  white-space:pre-wrap;
-}
 table{
   width:100%;
   border-collapse:collapse;
@@ -196,7 +190,7 @@ $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
   const m=faqRows.filter(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
   $("faqOut").innerHTML=m.length
-    ? m.map(r=>`<pre class="expl">${esc(r[faqFields[2]])}</pre>`).join("")
+    ? m.map(r=>`<div class="content-box">${esc(r[faqFields[2]])}</pre>`).join("")
     : "No results.";
 };
 
