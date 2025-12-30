@@ -100,17 +100,27 @@ const res=await fetch(url);
 return (await res.text()).split("\n").map(r=>r.split(",").map(c=>c.trim()));
 }
 
-loadDataBtn.onclick=async()=>{
-loadingText.textContent="Loading…";
-const spawnLoads=Object.entries(spawnSheets).map(([r,u])=>fetchCSV(u).then(d=>spawnData[r]=d));
-chestData=await fetchCSV(chestSheet);
-await Promise.all(spawnLoads);
+loadDataBtn.onclick = async () => {
+  loadDataBtn.disabled = true;
+  loadingText.textContent = "Loading…";
 
-Object.keys(spawnSheets).forEach(r=>regionSelect.add(new Option(r,r)));
-[...new Set(chestData.slice(1).map(r=>r[0]))].forEach(t=>chestSelect.add(new Option(t,t)));
+  const spawnLoads = Object.entries(spawnSheets).map(
+    ([region, url]) =>
+      fetchCSV(url).then(data => spawnData[region] = data)
+  );
 
-loading-screen.style.display="none";
-app.style.display="block";
+  chestData = await fetchCSV(chestSheet);
+  await Promise.all(spawnLoads);
+
+  Object.keys(spawnSheets).forEach(region =>
+    regionSelect.add(new Option(region, region))
+  );
+
+  [...new Set(chestData.slice(1).map(r => r[0]))]
+    .forEach(type => chestSelect.add(new Option(type, type)));
+
+  loadingScreen.style.display = "none";
+  app.style.display = "block";
 };
 
 /* ========= ENTER FIX ========= */
