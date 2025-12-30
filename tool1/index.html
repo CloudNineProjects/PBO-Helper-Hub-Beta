@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokemon Finder</title>
+<title>Pokemon Finder Tool</title>
 
 <style>
 body {
@@ -85,6 +85,7 @@ th,td {
 
 <div id="app">
 
+  <!-- Pokemon Finder -->
   <div class="section highlight">
     <h2>Pokemon Finder</h2>
     <input id="pokemonInput" placeholder="Enter Pokémon name">
@@ -96,6 +97,7 @@ th,td {
     <div id="pokemonResults"></div>
   </div>
 
+  <!-- Spawn Check -->
   <div class="section">
     <h2>Spawn Check</h2>
     <select id="regionSelect">
@@ -107,6 +109,17 @@ th,td {
     <button id="spawnSearch">Search</button>
     <button id="spawnReset">Reset</button>
     <div id="spawnResults"></div>
+  </div>
+
+  <!-- Chest Finder -->
+  <div class="section highlight">
+    <h2>Chest Finder</h2>
+    <select id="chestSelect">
+      <option value="">Select Chest Type</option>
+    </select><br><br>
+    <button id="chestSearch">Search</button>
+    <button id="chestReset">Reset</button>
+    <div id="chestResults"></div>
   </div>
 
 </div>
@@ -128,6 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const regionSelect = document.getElementById("regionSelect");
   const locationSelect = document.getElementById("locationSelect");
   const spawnResults = document.getElementById("spawnResults");
+
+  const chestSelect = document.getElementById("chestSelect");
+  const chestResults = document.getElementById("chestResults");
 
   /* ---------- DARK MODE ---------- */
   darkToggle.onclick = () => {
@@ -171,11 +187,20 @@ document.addEventListener("DOMContentLoaded", () => {
     spawns.forEach(([r,d]) => spawnData[r] = d);
     chestData = chest;
 
+    /* populate region select */
     Object.keys(spawnSheets).forEach(r => {
       const o = document.createElement("option");
       o.value = r;
       o.textContent = r;
       regionSelect.appendChild(o);
+    });
+
+    /* populate chest select */
+    [...new Set(chestData.slice(1).map(r => r[0]))].forEach(type => {
+      const o = document.createElement("option");
+      o.value = type;
+      o.textContent = type;
+      chestSelect.appendChild(o);
     });
   }
 
@@ -269,6 +294,22 @@ document.addEventListener("DOMContentLoaded", () => {
     locationSelect.innerHTML = "<option value=''>Select Location</option>";
     locationSelect.disabled = true;
     spawnResults.innerHTML = "";
+  };
+
+  /* ---------- CHEST FINDER ---------- */
+  document.getElementById("chestSearch").onclick = () => {
+    const type = chestSelect.value;
+    if (!type)
+      return chestResults.innerHTML = "<p>Please select a chest type.</p>";
+
+    const headers = chestData[0];
+    const rows = chestData.slice(1).filter(r => r[0] === type);
+    chestResults.innerHTML = renderTable(headers, rows);
+  };
+
+  document.getElementById("chestReset").onclick = () => {
+    chestSelect.value = "";
+    chestResults.innerHTML = "";
   };
 
 });
