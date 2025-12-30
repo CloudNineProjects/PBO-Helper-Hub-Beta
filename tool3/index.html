@@ -65,8 +65,15 @@ th,td{
 }
 #app{ display:none; }
 
-.dark body{ background:#1A252C; }
-.dark .card{ background:#023804; }
+/* ===== DARK MODE ===== */
+body.dark{
+  background:#1A252C;
+  color:#f1f1f1;
+}
+
+body.dark .card{
+  background:#023804;
+}
 </style>
 </head>
 
@@ -77,7 +84,11 @@ th,td{
 </header>
 
 <div id="loading">
-  <h2>FAQ Tool</h2>
+  <img
+    src="https://i.imgur.com/XZcfQzw.png"
+    alt="FAQ Logo"
+    style="max-width:220px; margin-bottom:20px;"
+  >
   <button id="loadBtn">Load Data</button>
   <p id="loadingText" style="display:none">Loading...</p>
 </div>
