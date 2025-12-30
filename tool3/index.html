@@ -23,6 +23,7 @@ button{
   border:none;
   border-radius:6px;
   cursor:pointer;
+  margin:4px;
 }
 .card{
   background:#02491D;
@@ -30,19 +31,30 @@ button{
   padding:15px;
   margin:20px;
 }
+.controls{
+  max-width:420px;
+}
 select{
   padding:6px;
-  margin:5px 0;
+  margin:4px 0;
   width:100%;
 }
 .results{
-  margin-top:10px;
+  margin-top:12px;
 }
 pre.expl{
   background:#1A252C;
   padding:10px;
   border-radius:6px;
   white-space:pre-wrap;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #999;
+  padding:6px;
 }
 #loading{
   height:100vh;
@@ -75,29 +87,38 @@ pre.expl{
   <!-- FAQ -->
   <div class="card">
     <h2>FAQ</h2>
-    <label>Choose Type</label>
-    <select id="typeSel"></select>
+    <div class="controls">
+      <label>Choose Type</label>
+      <select id="typeSel"></select>
 
-    <label>Choose Subtype</label>
-    <select id="subSel" disabled></select>
+      <label>Choose Subtype</label>
+      <select id="subSel" disabled></select>
 
-    <button id="showFaq">Show</button>
+      <button id="showFaq">Show</button>
+      <button id="resetFaq">Reset</button>
+    </div>
     <div id="faqOut" class="results"></div>
   </div>
 
   <!-- Regi Trio -->
   <div class="card">
     <h2>Regi Trio Check</h2>
-    <label>Choose Time</label>
-    <select id="regiTime"></select>
-    <button id="regiShow">Show</button>
+    <div class="controls">
+      <label>Choose Time</label>
+      <select id="regiTime"></select>
+      <button id="regiShow">Show</button>
+      <button id="regiReset">Reset</button>
+    </div>
     <div id="regiOut" class="results"></div>
   </div>
 
   <!-- Shoal Cave -->
   <div class="card">
     <h2>Shoal Cave Check</h2>
-    <button id="shoalBtn">Check Tide</button>
+    <div class="controls">
+      <button id="shoalBtn">Check Tide</button>
+      <button id="shoalReset">Reset</button>
+    </div>
     <div id="shoalOut" class="results"></div>
   </div>
 
@@ -106,38 +127,30 @@ pre.expl{
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-/* ---------- helpers ---------- */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
-/* ---------- dark ---------- */
+/* dark */
 $("darkBtn").onclick=()=>{
   document.body.classList.toggle("dark");
   $("darkBtn").textContent=document.body.classList.contains("dark")?"☀️ Light":"🌙 Dark";
 };
 
-/* ---------- sheets ---------- */
+/* sheets */
 const FAQ_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
 const REGI_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnZTHT3SeW7VWywFDBWhvjor0NqrwEcXPyBPOH53FD_Z5GHPNhO4NlGfpzniRjpuJBHna8vZJ1Ndia/pub?output=csv";
 
 let faqRows=[], faqFields=[];
 let regiRows=[], regiFields=[];
 
-/* ---------- load ---------- */
+/* load */
 $("loadBtn").onclick=async()=>{
   $("loadBtn").disabled=true;
   $("loadingText").style.display="block";
 
   const loadCSV=url=>new Promise(res=>{
-    Papa.parse(url,{
-      download:true,
-      header:true,
-      skipEmptyLines:true,
-      complete:r=>res({
-        rows:r.data,
-        fields:r.meta.fields
-      })
-    });
+    Papa.parse(url,{ download:true, header:true, skipEmptyLines:true,
+      complete:r=>res({ rows:r.data, fields:r.meta.fields })});
   });
 
   const [faq,regi]=await Promise.all([loadCSV(FAQ_CSV),loadCSV(REGI_CSV)]);
@@ -151,64 +164,74 @@ $("loadBtn").onclick=async()=>{
   $("app").style.display="block";
 };
 
-/* ---------- FAQ ---------- */
-const keyType=()=>faqFields[0];
-const keySub =()=>faqFields[1];
-const keyTxt =()=>faqFields[2];
-
+/* FAQ */
 function initFAQ(){
-  const tSel=$("typeSel");
-  tSel.innerHTML='<option value="">-- choose --</option>';
-  [...new Set(faqRows.map(r=>r[keyType()]))]
-    .filter(Boolean)
-    .forEach(v=>tSel.appendChild(new Option(v,v)));
+  const t=$("typeSel");
+  t.innerHTML='<option value="">-- choose --</option>';
+  [...new Set(faqRows.map(r=>r[faqFields[0]]))].filter(Boolean)
+    .forEach(v=>t.appendChild(new Option(v,v)));
 }
 
 $("typeSel").onchange=()=>{
-  const v=$("typeSel").value;
-  const sSel=$("subSel");
-  sSel.innerHTML='<option value="">-- choose --</option>';
-  if(!v){ sSel.disabled=true; return; }
-
-  [...new Set(faqRows.filter(r=>r[keyType()]===v).map(r=>r[keySub()]))]
-    .filter(Boolean)
-    .forEach(x=>sSel.appendChild(new Option(x,x)));
-  sSel.disabled=false;
+  const s=$("subSel"), v=$("typeSel").value;
+  s.innerHTML='<option value="">-- choose --</option>';
+  if(!v){ s.disabled=true; return; }
+  [...new Set(faqRows.filter(r=>r[faqFields[0]]===v).map(r=>r[faqFields[1]]))]
+    .filter(Boolean).forEach(x=>s.appendChild(new Option(x,x)));
+  s.disabled=false;
 };
 
 $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
-  const m=faqRows.filter(r=>r[keyType()]===t && r[keySub()]===s);
+  const m=faqRows.filter(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
   $("faqOut").innerHTML=m.length
-    ? m.map(r=>`<pre class="expl">${esc(r[keyTxt()])}</pre>`).join("")
+    ? m.map(r=>`<pre class="expl">${esc(r[faqFields[2]])}</pre>`).join("")
     : "No results.";
 };
 
-/* ---------- Regi ---------- */
+$("resetFaq").onclick=()=>{
+  $("typeSel").value="";
+  $("subSel").innerHTML='<option value="">-- choose --</option>';
+  $("subSel").disabled=true;
+  $("faqOut").innerHTML="";
+};
+
+/* Regi */
 function initRegi(){
-  const sel=$("regiTime");
-  sel.innerHTML='<option value="">-- choose --</option>';
-  [...new Set(regiRows.map(r=>r[regiFields[0]]))]
-    .filter(Boolean)
-    .forEach(v=>sel.appendChild(new Option(v,v)));
+  const s=$("regiTime");
+  s.innerHTML='<option value="">-- choose --</option>';
+  [...new Set(regiRows.map(r=>r[regiFields[0]]))].filter(Boolean)
+    .forEach(v=>s.appendChild(new Option(v,v)));
 }
 
 $("regiShow").onclick=()=>{
   const t=$("regiTime").value;
   if(!t) return;
   const rows=regiRows.filter(r=>r[regiFields[0]]===t);
-  $("regiOut").innerHTML=rows.length
-    ? `<table>${rows.map(r=>`<tr><td>${esc(r[regiFields[1]])}</td><td>${esc(r[regiFields[2]])}</td></tr>`).join("")}</table>`
+  $("regiOut").innerHTML = rows.length
+    ? `<table><thead><tr>
+        <th>${regiFields[1]}</th>
+        <th>${regiFields[2]}</th>
+      </tr></thead><tbody>${
+        rows.map(r=>`<tr><td>${esc(r[regiFields[1]])}</td><td>${esc(r[regiFields[2]])}</td></tr>`).join("")
+      }</tbody></table>`
     : "No results.";
 };
 
-/* ---------- Shoal ---------- */
-$("shoalBtn").onclick=()=>{
-  const now=new Date();
-  const m=now.getUTCHours()*60+now.getUTCMinutes();
-  const low=[[0,180],[360,540],[720,900],[1080,1260]].some(([a,b])=>m>=a&&m<b);
-  $("shoalOut").innerHTML=`UTC ${now.toISOString().slice(11,16)} — <b>${low?"Low Tide":"High Tide"}</b>`;
+$("regiReset").onclick=()=>{
+  $("regiTime").value="";
+  $("regiOut").innerHTML="";
 };
+
+/* Shoal */
+$("shoalBtn").onclick=()=>{
+  const n=new Date();
+  const m=n.getUTCHours()*60+n.getUTCMinutes();
+  const low=[[0,180],[360,540],[720,900],[1080,1260]].some(([a,b])=>m>=a&&m<b);
+  $("shoalOut").innerHTML=`UTC ${n.toISOString().slice(11,16)} — <b>${low?"Low Tide":"High Tide"}</b>`;
+};
+
+$("shoalReset").onclick=()=>$("shoalOut").innerHTML="";
 
 });
 </script>
