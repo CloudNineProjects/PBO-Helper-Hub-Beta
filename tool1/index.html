@@ -1,78 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokemon Finder Tool</title>
+<title>Pokemon Finder</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #666769;
-  color: #F0F0F0;
-  margin: 0;
+  background:#666769;
+  color:#f0f0f0;
+  margin:0;
 }
 header {
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px;
+  display:flex;
+  justify-content:flex-end;
+  padding:10px;
 }
 button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin: 5px;
+  padding:10px 18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin:5px;
 }
 .section {
-  margin: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  margin:20px;
+  padding:15px;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
-.highlight {
-  background-color: #02491D;
-}
+.highlight { background:#02491D; }
 table {
-  border-collapse: collapse;
-  width: 100%;
+  width:100%;
+  border-collapse:collapse;
 }
-th, td {
-  border: 1px solid #999;
-  padding: 6px;
+th,td {
+  border:1px solid #999;
+  padding:6px;
 }
-#loading-screen {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-#app { display: none; }
 
-/* Dark Mode */
+/* loading */
+#loading-screen {
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+#app { display:none; }
+
+/* dark mode */
 .dark-mode {
-  background: #1A252C;
-  color: #f1f1f1;
+  background:#1A252C;
+  color:#f1f1f1;
 }
-.dark-mode .section {
-  border-color: #555;
-}
+.dark-mode .section { border-color:#555; }
 .dark-mode table,
 .dark-mode th,
-.dark-mode td {
-  border-color: #555;
-}
-.dark-mode .highlight {
-  background: #023804;
-}
+.dark-mode td { border-color:#555; }
+.dark-mode .highlight { background:#023804; }
 .dark-mode button {
-  background: #333;
-  color: #f1f1f1;
+  background:#333;
+  color:#f1f1f1;
 }
 .dark-mode .load-button {
-  background: #f0f0f0 !important;
-  color: #000 !important;
+  background:#f0f0f0 !important;
+  color:#000 !important;
 }
 </style>
 </head>
@@ -80,32 +74,28 @@ th, td {
 <body>
 
 <header>
-  <button id="darkModeToggle">🌙 Dark Mode</button>
+  <button id="darkToggle">🌙 Dark Mode</button>
 </header>
 
-<!-- Loading Screen -->
 <div id="loading-screen">
-  <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;">
-  <button id="loadDataBtn" class="load-button">Load Data</button>
+  <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px">
+  <button id="loadBtn" class="load-button">Load Data</button>
   <p id="loadingText"></p>
 </div>
 
-<!-- App -->
 <div id="app">
 
-  <!-- Pokemon Finder -->
   <div class="section highlight">
     <h2>Pokemon Finder</h2>
-    <input type="text" id="pokemonInput" placeholder="Enter Pokémon name">
+    <input id="pokemonInput" placeholder="Enter Pokémon name">
     <label>
       <input type="checkbox" id="optimizedHunt"> Optimized Hunt
     </label><br><br>
-    <button id="pokemonSearchBtn">Search</button>
-    <button id="pokemonResetBtn">Reset</button>
+    <button id="pokemonSearch">Search</button>
+    <button id="pokemonReset">Reset</button>
     <div id="pokemonResults"></div>
   </div>
 
-  <!-- Spawn Check -->
   <div class="section">
     <h2>Spawn Check</h2>
     <select id="regionSelect">
@@ -114,156 +104,174 @@ th, td {
     <select id="locationSelect" disabled>
       <option value="">Select Location</option>
     </select><br><br>
-    <button id="spawnSearchBtn">Search</button>
-    <button id="spawnResetBtn">Reset</button>
+    <button id="spawnSearch">Search</button>
+    <button id="spawnReset">Reset</button>
     <div id="spawnResults"></div>
   </div>
 
 </div>
 
 <script>
-/* ---------- DARK MODE ---------- */
-darkModeToggle.onclick = () => {
-  document.body.classList.toggle("dark-mode");
-  darkModeToggle.textContent =
-    document.body.classList.contains("dark-mode")
-    ? "☀️ Light Mode"
-    : "🌙 Dark Mode";
-};
+document.addEventListener("DOMContentLoaded", () => {
 
-/* ---------- LOADING ---------- */
-const loadBtn = document.getElementById("loadDataBtn");
-const loadingText = document.getElementById("loadingText");
-const loadingScreen = document.getElementById("loading-screen");
-const app = document.getElementById("app");
+  /* ---------- DOM ---------- */
+  const darkToggle = document.getElementById("darkToggle");
+  const loadBtn = document.getElementById("loadBtn");
+  const loadingText = document.getElementById("loadingText");
+  const loadingScreen = document.getElementById("loading-screen");
+  const app = document.getElementById("app");
 
-loadBtn.addEventListener("click", async () => {
-  loadBtn.disabled = true;
-  loadingText.textContent = "Loading...";
-  await loadData();
-  loadingScreen.style.display = "none";
-  app.style.display = "block";
-};
+  const pokemonInput = document.getElementById("pokemonInput");
+  const optimizedHunt = document.getElementById("optimizedHunt");
+  const pokemonResults = document.getElementById("pokemonResults");
 
-/* ---------- SHEETS ---------- */
-const spawnSheets = {
-  Sinnoh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=0&single=true&output=csv",
-  Jvaloh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
-  Hoenn: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
-  Kanto: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv"
-};
+  const regionSelect = document.getElementById("regionSelect");
+  const locationSelect = document.getElementById("locationSelect");
+  const spawnResults = document.getElementById("spawnResults");
 
-const chestSheet =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vT9NXQeF7_DUFs-GSpxYU5QsufA6Vtwi_n5O6ytErPYQAssIC4zen99a23uPvYQXzjARPvF0XbXIiOn/pub?output=csv";
+  /* ---------- DARK MODE ---------- */
+  darkToggle.onclick = () => {
+    document.body.classList.toggle("dark-mode");
+    darkToggle.textContent =
+      document.body.classList.contains("dark-mode")
+      ? "☀️ Light Mode"
+      : "🌙 Dark Mode";
+  };
 
-let spawnData = {};
-let chestData = [];
+  /* ---------- DATA ---------- */
+  const spawnSheets = {
+    Sinnoh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=0&single=true&output=csv",
+    Jvaloh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
+    Hoenn: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
+    Kanto: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv"
+  };
 
-/* ---------- HELPERS ---------- */
-async function fetchCSV(url) {
-  const res = await fetch(url);
-  return (await res.text())
-    .split("\n")
-    .map(r => r.split(",").map(c => c.trim()));
-}
+  const chestSheet =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9NXQeF7_DUFs-GSpxYU5QsufA6Vtwi_n5O6ytErPYQAssIC4zen99a23uPvYQXzjARPvF0XbXIiOn/pub?output=csv";
 
-async function loadData() {
-  const spawnPromises = Object.entries(spawnSheets)
-    .map(([r,u]) => fetchCSV(u).then(d => [r,d]));
+  let spawnData = {};
+  let chestData = [];
 
-  const [spawns, chest] = await Promise.all([
-    Promise.all(spawnPromises),
-    fetchCSV(chestSheet)
-  ]);
-
-  spawns.forEach(([r,d]) => spawnData[r] = d);
-  chestData = chest;
-
-  Object.keys(spawnSheets).forEach(r => {
-    const o = document.createElement("option");
-    o.value = r; o.textContent = r;
-    regionSelect.appendChild(o);
-  });
-}
-
-function renderTable(headers, rows) {
-  if (!rows.length) return "<p>No results found.</p>";
-  return `
-  <table>
-    <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
-    <tbody>
-      ${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
-    </tbody>
-  </table>`;
-}
-
-/* ---------- POKEMON FINDER ---------- */
-pokemonSearchBtn.onclick = () => {
-  const q = pokemonInput.value.toLowerCase();
-  const optimized = optimizedHunt.checked;
-  let results = [];
-
-  for (const [region,data] of Object.entries(spawnData)) {
-    let rows = data.slice(1).filter(r => r[2]?.toLowerCase().includes(q));
-    if (optimized) {
-      rows = rows.filter(r =>
-        data.slice(1).some(o =>
-          o[1]===r[1] && o[5]===r[5] && o[3]==="Ultra Rare"
-        )
-      );
-    }
-    if (rows.length)
-      results.push({ region, headers:data[0], rows });
+  async function fetchCSV(url) {
+    const res = await fetch(url);
+    return (await res.text())
+      .split("\n")
+      .map(r => r.split(",").map(c => c.trim()));
   }
 
-  const chestRows = chestData.slice(1)
-    .filter(r => r[2]?.toLowerCase().includes(q));
-  if (chestRows.length)
-    results.push({ region:"Chests", headers:chestData[0], rows:chestRows });
+  async function loadData() {
+    const spawnPromises = Object.entries(spawnSheets)
+      .map(([r,u]) => fetchCSV(u).then(d => [r,d]));
 
-  pokemonResults.innerHTML = results.length
-    ? results.map(r=>`<h3>${r.region}</h3>`+renderTable(r.headers,r.rows)).join("")
-    : "<p>Currently not listed...</p>";
-};
+    const [spawns, chest] = await Promise.all([
+      Promise.all(spawnPromises),
+      fetchCSV(chestSheet)
+    ]);
 
-pokemonInput.onkeydown = e => {
-  if (e.key === "Enter") pokemonSearchBtn.click();
-};
+    spawns.forEach(([r,d]) => spawnData[r] = d);
+    chestData = chest;
 
-pokemonResetBtn.onclick = () => {
-  pokemonInput.value = "";
-  pokemonResults.innerHTML = "";
-};
-
-/* ---------- SPAWN CHECK ---------- */
-regionSelect.onchange = e => {
-  locationSelect.innerHTML = "<option value=''>Select Location</option>";
-  const region = e.target.value;
-  if (!region) return locationSelect.disabled = true;
-  [...new Set(spawnData[region].slice(1).map(r=>r[1]))]
-    .forEach(l => {
+    Object.keys(spawnSheets).forEach(r => {
       const o = document.createElement("option");
-      o.value = l; o.textContent = l;
-      locationSelect.appendChild(o);
+      o.value = r;
+      o.textContent = r;
+      regionSelect.appendChild(o);
     });
-  locationSelect.disabled = false;
-};
+  }
 
-spawnSearchBtn.onclick = () => {
-  const r = regionSelect.value;
-  const l = locationSelect.value;
-  if (!r || !l) return spawnResults.innerHTML = "<p>Select region and location.</p>";
-  const d = spawnData[r];
-  spawnResults.innerHTML =
-    renderTable(d[0], d.slice(1).filter(x => x[1] === l));
-};
+  /* ---------- LOADING ---------- */
+  loadBtn.onclick = async () => {
+    loadBtn.disabled = true;
+    loadingText.textContent = "Loading...";
+    await loadData();
+    loadingScreen.style.display = "none";
+    app.style.display = "block";
+  };
 
-spawnResetBtn.onclick = () => {
-  regionSelect.value = "";
-  locationSelect.innerHTML = "<option>Select Location</option>";
-  locationSelect.disabled = true;
-  spawnResults.innerHTML = "";
-};
+  /* ---------- HELPERS ---------- */
+  function renderTable(headers, rows) {
+    if (!rows.length) return "<p>No results found.</p>";
+    return `
+      <table>
+        <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  /* ---------- POKEMON FINDER ---------- */
+  document.getElementById("pokemonSearch").onclick = () => {
+    const q = pokemonInput.value.toLowerCase();
+    let results = [];
+
+    for (const [region,data] of Object.entries(spawnData)) {
+      let rows = data.slice(1).filter(r => r[2]?.toLowerCase().includes(q));
+      if (optimizedHunt.checked) {
+        rows = rows.filter(r =>
+          data.slice(1).some(o =>
+            o[1]===r[1] && o[5]===r[5] && o[3]==="Ultra Rare"
+          )
+        );
+      }
+      if (rows.length)
+        results.push({ region, headers:data[0], rows });
+    }
+
+    const chestRows = chestData.slice(1)
+      .filter(r => r[2]?.toLowerCase().includes(q));
+    if (chestRows.length)
+      results.push({ region:"Chests", headers:chestData[0], rows:chestRows });
+
+    pokemonResults.innerHTML = results.length
+      ? results.map(r=>`<h3>${r.region}</h3>`+renderTable(r.headers,r.rows)).join("")
+      : "<p>Currently not listed...</p>";
+  };
+
+  pokemonInput.onkeydown = e => {
+    if (e.key === "Enter")
+      document.getElementById("pokemonSearch").click();
+  };
+
+  document.getElementById("pokemonReset").onclick = () => {
+    pokemonInput.value = "";
+    pokemonResults.innerHTML = "";
+  };
+
+  /* ---------- SPAWN CHECK ---------- */
+  regionSelect.onchange = () => {
+    locationSelect.innerHTML = "<option value=''>Select Location</option>";
+    const r = regionSelect.value;
+    if (!r) return locationSelect.disabled = true;
+
+    [...new Set(spawnData[r].slice(1).map(x=>x[1]))]
+      .forEach(l => {
+        const o = document.createElement("option");
+        o.value = l;
+        o.textContent = l;
+        locationSelect.appendChild(o);
+      });
+    locationSelect.disabled = false;
+  };
+
+  document.getElementById("spawnSearch").onclick = () => {
+    const r = regionSelect.value;
+    const l = locationSelect.value;
+    if (!r || !l)
+      return spawnResults.innerHTML = "<p>Select region and location.</p>";
+    const d = spawnData[r];
+    spawnResults.innerHTML =
+      renderTable(d[0], d.slice(1).filter(x => x[1] === l));
+  };
+
+  document.getElementById("spawnReset").onclick = () => {
+    regionSelect.value = "";
+    locationSelect.innerHTML = "<option value=''>Select Location</option>";
+    locationSelect.disabled = true;
+    spawnResults.innerHTML = "";
+  };
+
+});
 </script>
 
 </body>
