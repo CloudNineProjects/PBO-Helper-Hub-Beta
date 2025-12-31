@@ -72,13 +72,15 @@ th,td{
 #app{ display:none; }
 
 /* ===== DARK MODE ===== */
-body.dark{
-  background:#1A252C;
+body.dark-mode{
+  --bg:#1A252C;
+  --card:#023804;
+  background:var(--bg);
   color:#f1f1f1;
 }
 
-body.dark .card{
-  background:#023804;
+body.dark-mode .card{
+  background:var(--card);
 }
 </style>
 </head>
@@ -149,16 +151,10 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
 /* dark */
-body.dark-mode{
-  --bg:#1A252C;
-  --card:#023804;
-  background:var(--bg);
-  color:#f1f1f1;
-}
-
-body.dark-mode .card{
-  background:var(--card);
-}
+$("darkBtn").onclick=()=>{
+  document.body.classList.toggle("dark-mode");
+  $("darkBtn").textContent=document.body.classList.contains("dark-mode")?"☀️ Light Mode":"🌙 Dark Mode";
+};
 
 /* sheets */
 const FAQ_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
