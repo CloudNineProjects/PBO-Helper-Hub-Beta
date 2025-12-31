@@ -134,7 +134,7 @@
           <option value="">Select Quest</option>
         </select>
 
-       /* <button id="showBtn">Show</button> */
+        <button id="showBtn">Show</button>
         <button id="resetBtn">Reset</button>
       </div>
 
@@ -206,33 +206,11 @@ function initUI(){
     quests.forEach(q => questSel.add(new Option(q,q)));
     questSel.disabled = false;
   };
-  
-  questSel.onchange = () => {
-  const quest = questSel.value;
-  const out = $('output');
 
-  out.innerHTML = '';
-  if (!region || !quest) return;
-
-  const contentKey = Object.keys(rows[0])[2];
-  const hit = rows.find(r => r[regionKey] === region && r[questKey] === quest);
-
-  if (!hit || !hit[contentKey]) {
-    out.innerHTML = '<p class="muted">No content found.</p>';
-    return;
-  }
-
-  out.innerHTML = `
-    <div class="content-box">
-${escapeHtml(hit[contentKey])}
-    </div>
-  `;
-};
-
-/*  $('showBtn').onclick = ()=>{
+  $('showBtn').onclick = ()=>{
     const region = regionSel.value;
     const quest  = $('questSelect').value;
-    const out    = $('output'); */
+    const out    = $('output');
 
   $('resetBtn').onclick = ()=>{
     $('regionSelect').value = '';
