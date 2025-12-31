@@ -135,6 +135,7 @@
         </select>
 
         <button id="showBtn">Show</button>
+        <button id="resetBtn">Reset</button>button>
       </div>
 
       <div id="output"></div>
@@ -210,6 +211,13 @@ function initUI(){
     const region = regionSel.value;
     const quest  = $('questSelect').value;
     const out    = $('output');
+
+  $('resetBtn').onclick = ()=>{
+    $('regionSelect').value = '';
+    $('questSelect').innerHTML = '<option value="">Select Quest</option>';
+    $('questSelect').disabled = true;
+    $('output').innerHTML = '';
+  };
 
     out.innerHTML = '';
     if(!region || !quest) return;
