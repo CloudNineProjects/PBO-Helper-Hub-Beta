@@ -4,152 +4,148 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PBO Seasonal Events</title>
-
 <style>
 :root {
   --bg-light: #666769;
   --bg-dark: #1A252C;
   --card-light: #02491D;
   --card-dark: #023804;
+  --text-light: #000;
   --text-dark: #F0F0F0;
   --btn-bg: #F0F0F0;
   --btn-text: #000;
 }
-
 body {
   font-family: Arial, sans-serif;
   background-color: var(--bg-light);
+  color: var(--text-light);
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s, color 0.3s;
 }
-
 .dark-mode {
   background-color: var(--bg-dark);
   color: var(--text-dark);
 }
-
-/* ---------- Loading ---------- */
-#loading-screen {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  color: #F0F0F0;
-  text-align: center;
-}
-
-#loading-screen img {
-  max-width: 200px;
-  margin-bottom: 10px;
-}
-
-#app {
-  display: none;
-}
-
-/* ---------- Layout ---------- */
 .container {
   max-width: 900px;
   margin: 40px auto;
   padding: 20px;
 }
-
 .card {
   background-color: var(--card-light);
   color: white;
   border-radius: 12px;
   padding: 15px 20px;
   margin-bottom: 20px;
+  transition: background-color 0.3s;
 }
-
 .dark-mode .card {
   background-color: var(--card-dark);
 }
-
 h1 {
   text-align: center;
   color: white;
+  margin-bottom: 20px;
 }
-
 button, select {
   padding: 8px 12px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  margin-right: 10px;
   margin-top: 5px;
   background: var(--btn-bg);
   color: var(--btn-text);
 }
-
-.dark-mode button,
-.dark-mode select {
+.dark-mode button, .dark-mode select {
   background: #000;
   color: white;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
   background: white;
   color: black;
+  border-radius: 8px;
+  overflow: hidden;
 }
-
-.dark-mode table {
-  background: #111;
-  color: white;
-}
-
 table th, table td {
   border: 1px solid #ddd;
   padding: 8px;
 }
-
+.dark-mode table {
+  background: #111;
+  color: white;
+}
 img.map {
   display: block;
   margin: 20px auto;
   width: 80%;
   border-radius: 10px;
   cursor: pointer;
+  transition: transform 0.3s;
+}
+img.map:hover {
+  transform: scale(1.02);
 }
 
-/* ---------- Overlay ---------- */
+/* Overlay */
 #overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0,0,0,0.85);
   display: none;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
+  overflow: hidden;
 }
-
 #overlay img {
   width: 1900px;
   height: 1900px;
+  display: block;
   cursor: grab;
   user-select: none;
 }
-
 #closeOverlay {
   position: fixed;
   top: 20px;
-  right: 30px;
+  right: 35px;
   font-size: 32px;
+  font-weight: bold;
   color: white;
   cursor: pointer;
   z-index: 1001;
 }
+#closeOverlay:hover {
+  color: #ff5050;
+}
 
-/* ---------- Toggle ---------- */
+/* Toggle */
 .toggle-container {
   position: fixed;
   top: 15px;
   right: 20px;
   z-index: 2000;
 }
-
+.toggle-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.dark-mode .toggle-btn {
+  background-color: #000;
+  color: white;
+}
 .footer {
   text-align: center;
   color: white;
@@ -157,128 +153,199 @@ img.map {
 }
 </style>
 </head>
-
 <body>
 
-<!-- Loading -->
-<div id="loading-screen">
-  <img src="https://i.imgur.com/XZcfQzw.png">
-  <p>Loading...</p>
-</div>
-
-<!-- App -->
-<div id="app">
-
-  <div class="toggle-container">
-    <button id="toggleMode">🌙 Dark Mode</button>
-  </div>
-
-  <div class="container">
-    <h1>❄️PBO Winter Event 2025 Map & Spawns❄️</h1>
-
-    <div class="card">
-      <h2>Filter by Location</h2>
-      <select id="locationSelect">
-        <option value="">Select Location</option>
-      </select>
-      <button id="resetLocation">Reset</button>
-      <div id="locationResult"></div>
-    </div>
-
-    <div class="card">
-      <h2>Filter by Pokemon</h2>
-      <select id="pokemonSelect">
-        <option value="">Select Pokemon</option>
-      </select>
-      <button id="resetPokemon">Reset</button>
-      <div id="pokemonResult"></div>
-    </div>
-
-    <div class="card" style="text-align:center;">
-      <h2>Event Map</h2>
-      <img src="https://i.imgur.com/Ygbn1Gn.jpeg" class="map" id="mapImage">
-    </div>
-
-    <div class="footer">@CloudNine</div>
+<!-- Loading Screen -->
+<div id="loadingScreen" style="
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  text-align:center;
+">
+  <img src="https://i.imgur.com/XZcfQzw.png"
+       alt="Loading Logo"
+       style="width:180px;height:180px;border-radius:50%;">
+  <div id="loadingText" style="color:white;font-size:16px;">
+    Loading...
   </div>
 </div>
 
-<!-- Overlay -->
+<div class="toggle-container" id="toggleContainer" style="display:none;">
+  <button id="toggleMode" class="toggle-btn">🌙 Dark Mode</button>
+</div>
+
+<div class="container" id="app" style="display:none;">
+  <h1>❄️PBO Winter Event 2025 Map & Spawns❄️</h1>
+
+  <div class="card">
+    <h2>Filter by Location</h2>
+    <select id="locationSelect">
+      <option value="">Select Location</option>
+    </select>
+    <button id="resetLocation">Reset</button>
+    <div id="locationResult"></div>
+  </div>
+
+  <div class="card">
+    <h2>Filter by Pokemon</h2>
+    <select id="pokemonSelect">
+      <option value="">Select Pokemon</option>
+    </select>
+    <button id="resetPokemon">Reset</button>
+    <div id="pokemonResult"></div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h2>Event Map</h2>
+    <img src="https://i.imgur.com/Ygbn1Gn.jpeg" alt="Event Map" class="map" id="mapImage">
+  </div>
+
+  <div class="footer">@CloudNine</div>
+</div>
+
 <div id="overlay">
   <span id="closeOverlay">&times;</span>
-  <img src="https://i.imgur.com/Ygbn1Gn.jpeg" id="overlayMap">
+  <img src="https://i.imgur.com/Ygbn1Gn.jpeg" alt="Full Map" id="overlayMap">
 </div>
 
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTD4tvzsc7wvpY9bKllI4AQJbz4fwO2jmHbw-lljQICTu21y56FBB64qFswzVeKgzjlU2y1rNOd9ewG/pub?output=csv";
 let data = [];
 
-/* ---------- Dark Mode ---------- */
-toggleMode.onclick = () => {
+// Dark Mode toggle
+const toggleBtn = document.getElementById("toggleMode");
+toggleBtn.addEventListener("click", () => {
   document.body.classList.toggle("dark-mode");
-};
-
-/* ---------- Load CSV ---------- */
-fetch(sheetUrl)
-  .then(r => r.text())
-  .then(txt => {
-    const rows = txt.split("\n").map(r => r.split(","));
-    rows.shift();
-    data = rows.map(r => ({ A: r[0]?.trim(), B: r[1]?.trim() }));
-    populate();
-    loading-screen.style.display = "none";
-    app.style.display = "block";
-  });
-
-function populate() {
-  [...new Set(data.map(r => r.A))].forEach(v => locationSelect.add(new Option(v,v)));
-  [...new Set(data.map(r => r.B))].forEach(v => pokemonSelect.add(new Option(v,v)));
-}
-
-function render(rows, id) {
-  if (!rows.length) return;
-  let h = "<table><tr><th>Location</th><th>Pokemon</th></tr>";
-  rows.forEach(r => h += `<tr><td>${r.A}</td><td>${r.B}</td></tr>`);
-  h += "</table>";
-  document.getElementById(id).innerHTML = h;
-}
-
-locationSelect.onchange = e => render(data.filter(r => r.A === e.target.value), "locationResult");
-pokemonSelect.onchange = e => render(data.filter(r => r.B === e.target.value), "pokemonResult");
-
-resetLocation.onclick = () => locationResult.innerHTML = locationSelect.value = "";
-resetPokemon.onclick = () => pokemonResult.innerHTML = pokemonSelect.value = "";
-
-/* ---------- Overlay + Drag ---------- */
-const overlay = document.getElementById("overlay");
-const overlayImg = document.getElementById("overlayMap");
-
-mapImage.onclick = () => overlay.style.display = "flex";
-closeOverlay.onclick = () => overlay.style.display = "none";
-overlay.onclick = e => { if (e.target === overlay) overlay.style.display = "none"; };
-
-let dragging = false;
-let startX, startY, offsetX = 0, offsetY = 0;
-
-overlayImg.addEventListener("mousedown", e => {
-  dragging = true;
-  startX = e.pageX - offsetX;
-  startY = e.pageY - offsetY;
-  overlayImg.style.cursor = "grabbing";
+  toggleBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
 });
 
-document.addEventListener("mousemove", e => {
-  if (!dragging) return;
+function updateToggleText() {
+  toggleBtn.textContent =
+    document.body.classList.contains("dark-mode")
+      ? "☀️ Light Mode"
+      : "🌙 Dark Mode";
+}
+updateToggleText();
+
+// Load CSV
+function loadData() {
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(txt => {
+      const rows = txt.split("\n").map(r => r.split(","));
+      rows.shift();
+      data = rows.map(r => ({ A: r[0]?.trim(), B: r[1]?.trim() }));
+
+      populateSelectors();
+
+      // Ladebildschirm ausblenden
+      document.getElementById("loadingScreen").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      document.getElementById("toggleContainer").style.display = "block";
+    })
+    .catch(err => {
+      document.getElementById("loadingText").textContent = "Error loading data";
+      console.error(err);
+    });
+}
+
+function populateSelectors() {
+  const locSet = [...new Set(data.map(r => r.A))];
+  const pokSet = [...new Set(data.map(r => r.B))];
+  const locSelect = document.getElementById("locationSelect");
+  const pokSelect = document.getElementById("pokemonSelect");
+  locSet.forEach(l => locSelect.add(new Option(l, l)));
+  pokSet.forEach(p => pokSelect.add(new Option(p, p)));
+}
+
+function displayTable(rows, targetId) {
+  if (!rows.length) return;
+  let html = "<table><tr><th>Location</th><th>Pokemon</th></tr>";
+  rows.forEach(r => { html += `<tr><td>${r.A}</td><td>${r.B}</td></tr>`; });
+  html += "</table>";
+  document.getElementById(targetId).innerHTML = html;
+}
+
+document.getElementById("locationSelect").addEventListener("change", e => {
+  const val = e.target.value;
+  const filtered = data.filter(r => r.A === val);
+  displayTable(filtered, "locationResult");
+});
+document.getElementById("pokemonSelect").addEventListener("change", e => {
+  const val = e.target.value;
+  const filtered = data.filter(r => r.B === val);
+  displayTable(filtered, "pokemonResult");
+});
+document.getElementById("resetLocation").onclick = () => {
+  document.getElementById("locationSelect").value = "";
+  document.getElementById("locationResult").innerHTML = "";
+};
+document.getElementById("resetPokemon").onclick = () => {
+  document.getElementById("pokemonSelect").value = "";
+  document.getElementById("pokemonResult").innerHTML = "";
+};
+
+// Overlay logic
+const overlay = document.getElementById("overlay");
+const overlayImg = document.getElementById("overlayMap");
+const closeBtn = document.getElementById("closeOverlay");
+const mapImg = document.getElementById("mapImage");
+
+mapImg.addEventListener("click", () => overlay.style.display = "flex");
+closeBtn.addEventListener("click", () => overlay.style.display = "none");
+overlay.addEventListener("click", e => { if (e.target === overlay) overlay.style.display = "none"; });
+
+// drag-to-pan logic
+let isDragging = false, startX, startY, scrollX = 0, scrollY = 0;
+let offsetX = 0, offsetY = 0;
+
+function startDrag(e) {
+  e.preventDefault();
+  isDragging = true;
+  overlayImg.style.cursor = "grabbing";
+  startX = e.pageX - offsetX;
+  startY = e.pageY - offsetY;
+}
+
+function onDrag(e) {
+  if (!isDragging) return;
+  e.preventDefault();
   offsetX = e.pageX - startX;
   offsetY = e.pageY - startY;
   overlayImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-});
+}
 
-document.addEventListener("mouseup", () => {
-  dragging = false;
+function endDrag() {
+  isDragging = false;
   overlayImg.style.cursor = "grab";
-});
-</script>
+}
 
+// Mouse events
+overlayImg.addEventListener("mousedown", startDrag);
+overlayImg.addEventListener("mousemove", onDrag);
+overlayImg.addEventListener("mouseup", endDrag);
+overlayImg.addEventListener("mouseleave", endDrag);
+
+// Touch events
+overlayImg.addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  isDragging = true;
+  startX = t.pageX - offsetX;
+  startY = t.pageY - offsetY;
+}, { passive: true });
+overlayImg.addEventListener("touchmove", e => {
+  if (!isDragging) return;
+  const t = e.touches[0];
+  offsetX = t.pageX - startX;
+  offsetY = t.pageY - startY;
+  overlayImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+}, { passive: true });
+overlayImg.addEventListener("touchend", endDrag);
+
+window.addEventListener("DOMContentLoaded", loadData);
+</script>
 </body>
 </html>
