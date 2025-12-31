@@ -38,11 +38,6 @@
       color:#000;
     }
 
-    button.secondary{
-      background:#1f2937;
-      color:#fff;
-    }
-
     main{
       max-width:900px;
       margin:0 auto;
@@ -80,16 +75,16 @@
     }
 
     .content-box{
-  margin-top:16px;
-  padding:14px;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:8px;
-  white-space:pre-wrap;
-  line-height:1.5;
-  max-height:400px;
-  overflow:auto;
-}
+      margin-top:16px;
+      padding:14px;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.15);
+      border-radius:8px;
+      white-space:pre-wrap;
+      line-height:1.5;
+      max-height:400px;
+      overflow:auto;
+    }
 
     .muted{
       opacity:0.8;
@@ -103,6 +98,9 @@
       --bg:#1A252C;
       --card:#023804;
     }
+
+    /* Dark toggle hidden until app is ready */
+    #darkToggle{display:none}
   </style>
 </head>
 <body>
@@ -117,10 +115,7 @@
   <div id="loading" class="loading">
     <div>
       <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
-      <div>
-        <button id="loadBtn">Load Data</button>
-      </div>
-      <div id="loadStatus" class="muted"></div>
+      <div class="muted" id="loadStatus">Loading...</div>
     </div>
   </div>
 
@@ -152,7 +147,6 @@
 <script>
 /* ===== Helpers ===== */
 const $ = id => document.getElementById(id);
-const normalize = s => (s||'').toString().trim().toLowerCase();
 const escapeHtml = s => (s||'')
   .replace(/&/g,'&amp;')
   .replace(/</g,'&lt;')
@@ -166,7 +160,6 @@ let rows = [];
 
 /* ===== Load ===== */
 function loadData(){
-  $('loadBtn').disabled = true;
   $('loadStatus').textContent = 'Loading...';
 
   Papa.parse(QUEST_CSV,{
@@ -180,18 +173,18 @@ function loadData(){
       initUI();
       $('loading').style.display='none';
       $('app').classList.remove('hidden');
+      $('darkToggle').style.display='inline-block';
     },
     error:()=>{
       $('loadStatus').textContent='Failed to load CSV';
-      $('loadBtn').disabled=false;
     }
   });
 }
 
 /* ===== UI Init ===== */
 function initUI(){
-  const regionKey = Object.keys(rows[0])[0]; // Spalte A
-  const questKey  = Object.keys(rows[0])[1]; // Spalte B
+  const regionKey = Object.keys(rows[0])[0];
+  const questKey  = Object.keys(rows[0])[1];
 
   const regions = [...new Set(rows.map(r => r[regionKey]).filter(Boolean))];
   const regionSel = $('regionSelect');
@@ -221,7 +214,7 @@ function initUI(){
     out.innerHTML = '';
     if(!region || !quest) return;
 
-    const contentKey = Object.keys(rows[0])[2]; // Spalte C
+    const contentKey = Object.keys(rows[0])[2];
     const hit = rows.find(r => r[regionKey] === region && r[questKey] === quest);
 
     if(!hit || !hit[contentKey]){
@@ -238,7 +231,8 @@ ${escapeHtml(hit[contentKey])}
 }
 
 /* ===== Events ===== */
-$('loadBtn').addEventListener('click', loadData);
+window.addEventListener('DOMContentLoaded', loadData);
+
 $('darkToggle').addEventListener('click',()=>{
   document.body.classList.toggle('dark-mode');
   $('darkToggle').textContent =
