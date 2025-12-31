@@ -38,9 +38,10 @@
       color:#000;
     }
 
+    /* secondary = optisch identisch zum Loading Button */
     button.secondary{
-      background:#1f2937;
-      color:#fff;
+      background:var(--accent);
+      color:#000;
     }
 
     main{
@@ -103,20 +104,18 @@
 </head>
 <body>
 
-<header>
+<!-- Header erscheint nur im Haupt-Tool -->
+<header id="mainHeader" class="hidden">
   <button id="darkToggle" class="secondary">🌙 Dark Mode</button>
 </header>
 
 <main>
 
-  <!-- Loading -->
+  <!-- Loading Screen -->
   <div id="loading" class="loading">
     <div>
       <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
-      <div>
-        <button id="loadBtn">Load Data</button>
-      </div>
-      <div id="loadStatus" class="muted"></div>
+      <div class="muted">Loading...</div>
     </div>
   </div>
 
@@ -167,9 +166,6 @@ let fields = [];
 
 /* ===== Load ===== */
 function loadData(){
-  $('loadBtn').disabled = true;
-  $('loadStatus').textContent = 'Loading...';
-
   Papa.parse(ITEM_CSV,{
     download:true,
     header:true,
@@ -180,19 +176,20 @@ function loadData(){
       initUI();
       $('loading').style.display='none';
       $('app').classList.remove('hidden');
+      $('mainHeader').classList.remove('hidden');
     },
     error:()=>{
-      $('loadStatus').textContent='Failed to load CSV';
-      $('loadBtn').disabled=false;
+      document.querySelector('#loading .muted').textContent = 'Failed to load CSV';
     }
   });
 }
 
 /* ===== UI Init ===== */
 function initUI(){
-  const regionKey   = fields[0];
-  const locationKey = fields[1];
-  const itemKey     = fields[2];
+  // neue Sheet-Struktur
+  const itemKey     = fields[0]; // A Item
+  const locationKey = fields[2]; // C Location
+  const regionKey   = fields[3]; // D Region
 
   const regions = [...new Set(rows.map(r => r[regionKey]).filter(Boolean))];
   regions.forEach(r => $('regionSelect').add(new Option(r,r)));
@@ -221,7 +218,7 @@ function initUI(){
     $('itemSelect').disabled = false;
   };
 
-  // manual search
+  // manual search (fuzzy)
   $('manualBtn').onclick = ()=>{
     const q = normalize($('manualInput').value);
     const out = $('manualOut');
@@ -270,7 +267,6 @@ function renderTable(data){
 }
 
 /* ===== Events ===== */
-$('loadBtn').addEventListener('click', loadData);
 $('darkToggle').addEventListener('click',()=>{
   document.body.classList.toggle('dark-mode');
   $('darkToggle').textContent =
@@ -278,9 +274,13 @@ $('darkToggle').addEventListener('click',()=>{
       ? '☀️ Light Mode'
       : '🌙 Dark Mode';
 });
+
 $('manualInput').addEventListener('keydown',e=>{
   if(e.key==='Enter'){ e.preventDefault(); $('manualBtn').click(); }
 });
+
+/* ===== Auto Load ===== */
+loadData();
 </script>
 
 </body>
