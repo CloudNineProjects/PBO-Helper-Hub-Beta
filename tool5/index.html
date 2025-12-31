@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-/* ========= ORIGINAL ROUTE PLANNER STYLES ========= */
 :root{
   --bg-light:#666769;
   --bg-dark:#1A252C;
@@ -21,6 +20,7 @@
 html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif}
 body{background:var(--bg-light);color:var(--text-light)}
 body.dark{background:var(--bg-dark)}
+
 .mode-toggle{
   position:fixed;top:12px;right:12px;z-index:2000;
   background:rgba(255,255,255,0.9);color:#111;
@@ -35,11 +35,7 @@ body.dark .mode-toggle{background:rgba(0,0,0,0.6);color:#F0F0F0}
 .loader img.logo{
   width:220px;height:220px;border-radius:50%;object-fit:cover
 }
-.load-btn{
-  padding:10px 18px;border-radius:8px;border:none;
-  background:var(--accent);color:#000;
-  font-size:16px;cursor:pointer;width:auto
-}
+.loading-text{opacity:.85}
 
 .wrap{max-width:940px;margin:26px auto;padding:16px}
 .card{
@@ -77,19 +73,19 @@ th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
 </head>
 
 <body>
-<div id="modeToggle" class="mode-toggle">🌙 Dark Mode</div>
+
+<!-- Dark Mode Toggle (nur im Haupt-Tool sichtbar) -->
+<div id="modeToggle" class="mode-toggle" style="display:none">🌙 Dark Mode</div>
 
 <!-- ========= LOADING ========= -->
 <div id="loading" class="loader">
   <img class="logo" src="https://i.imgur.com/XZcfQzw.png">
-  <button id="loadBtn" class="load-btn">Load Data</button>
-  <div id="loadingText" class="muted" style="display:none">Loading…</div>
+  <div class="loading-text">Loading…</div>
 </div>
 
 <!-- ========= APP ========= -->
 <div id="app" class="wrap" style="display:none">
 
-<!-- ROUTE PLANNER (UNVERÄNDERT) -->
 <div class="card">
   <label>Region</label>
   <select id="regionSelect"></select>
@@ -106,7 +102,6 @@ th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
   <div id="imagePreview" class="preview" style="display:none"></div>
 </div>
 
-<!-- EV SPOT FINDER -->
 <div class="card" style="margin-top:16px">
   <h3>EV Spot Finder</h3>
 
@@ -128,12 +123,15 @@ th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
 <div id="modal" class="modal"><img id="modalImg"></div>
 
 <script>
-/* ========= ROUTE PLANNER LOGIC (ORIGINAL) ========= */
 const ROUTE_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vR1exPBTlYsrTJ0U4eLuFycLc6Vwwj3jtKgc6s4jZZa7UbSJLB_LJkcnIigkaJIYtBNHsicju6cv3FJ/pub?output=csv";
+const EV_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3s-al3s9rwdhK0FHls7J368zMl0Hdryc_y6MVwwXaiWLpgzImXs_9YsC5lXkwRdi_aPMi_gRHfsei/pub?output=csv";
+
 let rows=[],fields=[],keyRegion,keyLocation,keyTeleport,keyDirection,keyMap;
+let evRows=[],evFields=[];
 
 function findKey(c){return fields.find(f=>f.toLowerCase().includes(c))}
 
+/* ---------- LOAD ROUTES ---------- */
 function loadRoute(){
 return new Promise(res=>{
 Papa.parse(ROUTE_CSV,{
@@ -147,8 +145,7 @@ keyDirection=findKey("direction");
 keyMap=findKey("map");
 populateRegions();
 res();
-}});
-});
+}});});
 }
 
 function populateRegions(){
@@ -195,10 +192,7 @@ h+="</tr>";
 return h+"</tbody></table>";
 }
 
-/* ========= EV SPOT FINDER (FIXED) ========= */
-const EV_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3s-al3s9rwdhK0FHls7J368zMl0Hdryc_y6MVwwXaiWLpgzImXs_9YsC5lXkwRdi_aPMi_gRHfsei/pub?output=csv";
-let evRows=[],evFields=[];
-
+/* ---------- EV ---------- */
 function loadEv(){
 return new Promise(res=>{
 Papa.parse(EV_CSV,{
@@ -207,8 +201,7 @@ complete:r=>{
 evRows=r.data;evFields=r.meta.fields;
 populateEvRegions();
 res();
-}});
-});
+}});});
 }
 
 function populateEvRegions(){
@@ -253,18 +246,18 @@ h+="</tr>";
 return h+"</tbody></table>";
 }
 
-/* ========= SHARED ========= */
+/* ---------- SHARED ---------- */
 function openModal(src){modal.style.display="flex";modalImg.src=src}
 modal.onclick=()=>modal.style.display="none";
 modeToggle.onclick=()=>document.body.classList.toggle("dark");
 
-/* ========= LOAD ========= */
-loadBtn.onclick=async()=>{
-loadingText.style.display="block";
+/* ---------- AUTO LOAD ---------- */
+(async()=>{
 await Promise.all([loadRoute(),loadEv()]);
 loading.style.display="none";
 app.style.display="block";
-};
+modeToggle.style.display="block";
+})();
 </script>
 </body>
 </html>
