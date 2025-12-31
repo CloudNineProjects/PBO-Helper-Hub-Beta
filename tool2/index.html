@@ -125,25 +125,42 @@
     <section class="card">
       <h2>Special Item Finder</h2>
 
-      <!-- Fuzzy Search -->
-      <div class="row">
-        <input id="manualInput" type="text" placeholder="Search item (e.g. TM070, Trick Room)" />
-        <button id="manualBtn">Search</button>
-        <button id="manualReset" class="secondary">Reset</button>
-      </div>
-      <div id="manualOut"></div>
+  <!-- Fuzzy Search -->
+  <div class="row">
+    <input id="manualInput" type="text"
+         placeholder="Search item (e.g. TM070, Trick Room)" />
+  </div>
+
+  <div class="row">
+    <button id="manualBtn">Search</button>
+    <button id="manualReset" class="secondary">Reset</button>
+  </div>
+
+  <div id="manualOut"></div>
 
       <hr style="margin:18px 0;opacity:0.2">
 
       <!-- Filtered Search -->
-      <div class="row">
-        <select id="regionSelect"><option value="">Select Region</option></select>
-        <select id="locationSelect" disabled><option value="">Select Location</option></select>
-        <select id="itemSelect" disabled><option value="">Select Item</option></select>
-        <button id="filterBtn">Search</button>
-        <button id="filterReset" class="secondary">Reset</button>
-      </div>
-      <div id="filterOut"></div>
+  <div class="row">
+    <select id="regionSelect">
+      <option value="">Select Region</option>
+    </select>
+
+    <select id="locationSelect" disabled>
+      <option value="">Select Location</option>
+    </select>
+
+    <select id="itemSelect" disabled>
+      <option value="">Select Item</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <button id="filterBtn">Search</button>
+    <button id="filterReset" class="secondary">Reset</button>
+  </div>
+
+  <div id="filterOut"></div>
 
     </section>
 
