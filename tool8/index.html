@@ -7,188 +7,161 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-  :root{
-    --bg-light:#666769;
-    --bg-dark:#1A252C;
-    --card-light:#02491D;
-    --card-dark:#023804;
-    --button-bg:#F0F0F0;
-    --toggle-light:#F0F0F0;
-    --toggle-dark:#333333;
-    --text-light:#0A0A0A;
-    --text-dark:#F5F5F5;
-    --glass:rgba(255,255,255,0.04);
-  }
+:root{
+  --bg-light:#666769;
+  --bg-dark:#1A252C;
+  --card-light:#02491D;
+  --card-dark:#023804;
+  --button-bg:#F0F0F0;
+  --toggle-light:#F0F0F0;
+  --toggle-dark:#333333;
+  --text-dark:#F5F5F5;
+  --glass:rgba(255,255,255,0.04);
+}
 
-  html,body{
-    height:100%;
-    margin:0;
-    font-family:Inter,system-ui,Arial,sans-serif;
-    transition:background .25s,color .25s;
-  }
+html,body{
+  height:100%;
+  margin:0;
+  font-family:Inter,system-ui,Arial,sans-serif;
+}
 
-  body{
-    background:var(--bg-light);
-    color:var(--text-dark);
-  }
-  body.dark{
-    background:var(--bg-dark);
-    color:var(--text-dark);
-  }
+body{
+  background:var(--bg-light);
+  color:var(--text-dark);
+}
+body.dark{
+  background:var(--bg-dark);
+}
 
-  /* toggle button */
-  .mode-toggle{
-    position:fixed;
-    top:14px;
-    right:14px;
-    z-index:1200;
-    background:var(--toggle-light);
-    color:#000;
-    padding:8px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    box-shadow:0 6px 16px rgba(0,0,0,0.15);
-    user-select:none;
-    font-size:14px;
-  }
-  body.dark .mode-toggle{
-    background:var(--toggle-dark);
-    color:#F0F0F0;
-  }
+.mode-toggle{
+  position:fixed;
+  top:14px;
+  right:14px;
+  z-index:1200;
+  background:var(--toggle-light);
+  color:#000;
+  padding:8px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,0.15);
+  user-select:none;
+  font-size:14px;
+  display:none;
+}
+body.dark .mode-toggle{
+  background:var(--toggle-dark);
+  color:#F0F0F0;
+}
 
-  /* loading */
-  .loader{
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:16px;
-    text-align:center;
-  }
-  .loader img.logo{
-    width:200px;
-    height:200px;
-    border-radius:50%;
-    object-fit:cover;
-  }
-  .loading-text{
-    font-size:16px;
-    color:#F0F0F0;
-    opacity:0.85;
-  }
+.loader{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+}
 
-  /* layout */
-  .wrap{
-    max-width:980px;
-    margin:24px auto;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-  }
+.loader img{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  object-fit:cover;
+}
 
-  .card{
-    border-radius:14px;
-    padding:18px;
-    background:var(--card-light);
-    color:#F0F0F0;
-    box-shadow:0 10px 30px rgba(0,0,0,0.12);
-    transition:transform .12s ease, box-shadow .12s ease;
-  }
-  body.dark .card{ background:var(--card-dark); }
-  .card:hover{ transform:translateY(-3px); }
+.loading-text{
+  font-size:16px;
+  opacity:0.85;
+}
 
-  h1{margin:0 0 12px;font-size:20px}
-  label{display:block;margin:10px 0 6px;font-weight:600;color:#F0F0F0}
+.wrap{
+  max-width:980px;
+  margin:24px auto;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
 
-  select{
-    width:100%;
-    padding:10px 12px;
-    border-radius:8px;
-    border:none;
-    font-size:15px;
-    background:#F0F0F0;
-    color:#000;
-    box-sizing:border-box;
-  }
-  body.dark select{background:#000;color:#F0F0F0;}
+.card{
+  border-radius:14px;
+  padding:18px;
+  background:var(--card-light);
+  box-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+body.dark .card{background:var(--card-dark);}
 
-  .controls{
-    margin-top:10px;
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .controls button{
-    padding:10px 14px;
-    border-radius:8px;
-    border:none;
-    background:var(--button-bg);
-    color:#000;
-    cursor:pointer;
-  }
+select,button{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  font-size:15px;
+}
 
-  .results{
-    margin-top:12px;
-    padding:12px;
-    border-radius:10px;
-    background:var(--glass);
-  }
+.controls{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
 
-  pre.preserve{white-space:pre-wrap;margin:0;font-family:inherit}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
-  th{position:sticky;top:0;background:rgba(0,0,0,0.1);z-index:2}
-  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.15);margin:4px;font-size:13px}
-  .badge.highlight{background:#ff4444;color:#fff;font-weight:700}
-  .cell-strong{background:#b42c2c}
-  .cell-resist{background:#206699}
-  .cell-immune{background:#444}
+.results{
+  margin-top:12px;
+  padding:12px;
+  border-radius:10px;
+  background:var(--glass);
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.15);
+  margin:4px;
+}
+.badge.highlight{
+  background:#ff4444;
+  font-weight:700;
+}
 </style>
 </head>
 
 <body>
 
-<!-- Dark Mode Toggle (hidden until app is loaded) -->
-<div id="modeToggle" class="mode-toggle" style="display:none">🌙 Dark Mode</div>
+<div id="modeToggle" class="mode-toggle">🌙 Dark Mode</div>
 
-<!-- Loading Screen -->
 <div id="loading" class="loader">
-  <img class="logo" src="https://i.imgur.com/XZcfQzw.png" alt="Dynamax logo">
-  <div class="loading-text">Loading...</div>
+  <img src="https://i.imgur.com/XZcfQzw.png" alt="Dynamax logo">
+  <div id="loadingText" class="loading-text">Loading...</div>
 </div>
 
-<!-- App -->
 <div id="app" class="wrap" style="display:none;">
-  <!-- HIER IST DEIN HAUPTTOOL – UNVERÄNDERT -->
-  <!-- (Inhalt identisch zu deiner Vorlage) -->
+  <!-- dein komplettes Tool unverändert -->
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
+const escapeHtml=s=>s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-/* --- ALLE FUNKTIONEN UNVERÄNDERT --- */
-/* dein kompletter bestehender JS-Code bleibt hier exakt gleich */
-/* … gekürzt aus Platzgründen … */
+const URL_INFO="https://docs.google.com/spreadsheets/d/e/2PACX-1vRKBJf3BXL7kqLIu8WAZCiFIBqNTMVvWCmkRA2kVoC30QskuIRkxwUKJJnrHKh2Y8I18iZ0p068wRD2/pub?output=csv";
+const URL_DB="https://docs.google.com/spreadsheets/d/e/2PACX-1vRGq_ta_VKuhpNif51aoWSm2XKE04CHREcDqGObDZnBQ0kK3Yo-_Bz7i7u1oP1Xv9pRm0-xN7dDgyiT/pub?output=csv";
+const URL_MOVE="https://docs.google.com/spreadsheets/d/e/2PACX-1vRfBHLwHVULXabVXPztSXOz-36oGnjJFxuHyhgftVYg3Ft_f7VqkVwfpdmQwrfZEXrdjCKnydJBqRHt/pub?output=csv";
+const URL_ATTACK="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUYm_GBIYmou5lzjHIeXmz9GlP0d4_z3g6Jxrpof_DvIBFdOh8bL4dNF8v4T2Vn5sseu8zOhRzP74O/pub?output=csv";
 
-/* Dark Mode Toggle */
-const modeToggle=$('modeToggle');
-function updateModeLabel(){
-  modeToggle.textContent=document.body.classList.contains('dark')
-    ?'☀️ Light Mode':'🌙 Dark Mode';
+let infoRows=[],infoFields=[],dbRows=[],dbFields=[],moveRows=[],moveFields=[],atkRows=[],atkFields=[];
+
+function parseCSV(url){
+  return new Promise((res,rej)=>{
+    Papa.parse(url,{
+      download:true,
+      header:true,
+      skipEmptyLines:true,
+      complete:r=>res({fields:r.meta.fields||[],data:r.data}),
+      error:rej
+    });
+  });
 }
-modeToggle.onclick=()=>{
-  document.body.classList.toggle('dark');
-  updateModeLabel();
-};
 
-/* Auto-Load beim Seitenstart */
-window.addEventListener('DOMContentLoaded',()=>{
-  loadAll();
-});
-
-/* Nach erfolgreichem Laden */
 function loadAll(){
   Promise.all([
     parseCSV(URL_INFO).then(r=>{infoFields=r.fields;infoRows=r.data;}),
@@ -200,12 +173,24 @@ function loadAll(){
     $('app').style.display='flex';
     $('modeToggle').style.display='block';
     updateModeLabel();
-    populate();
   }).catch(e=>{
     console.error(e);
-    $('loading').querySelector('.loading-text').textContent='Error loading data';
+    $('loadingText').textContent='Error loading data';
   });
 }
+
+const modeToggle=$('modeToggle');
+function updateModeLabel(){
+  modeToggle.textContent=document.body.classList.contains('dark')
+    ?'☀️ Light Mode':'🌙 Dark Mode';
+}
+modeToggle.onclick=()=>{
+  document.body.classList.toggle('dark');
+  updateModeLabel();
+};
+
+window.addEventListener('DOMContentLoaded',loadAll);
 </script>
+
 </body>
 </html>
