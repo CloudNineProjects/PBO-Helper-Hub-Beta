@@ -42,11 +42,17 @@ select{
 .results{
   margin-top:12px;
 }
-pre.expl{
-  background:#1A252C;
-  padding:10px;
-  border-radius:6px;
+
+.content-box{
+  margin-top:16px;
+  padding:14px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:8px;
   white-space:pre-wrap;
+  line-height:1.5;
+  max-height:400px;
+  overflow:auto;
 }
 table{
   width:100%;
@@ -143,10 +149,16 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
 /* dark */
-$("darkBtn").onclick=()=>{
-  document.body.classList.toggle("dark");
-  $("darkBtn").textContent=document.body.classList.contains("dark")?"☀️ Light":"🌙 Dark";
-};
+body.dark-mode{
+  --bg:#1A252C;
+  --card:#023804;
+  background:var(--bg);
+  color:#f1f1f1;
+}
+
+body.dark-mode .card{
+  background:var(--card);
+}
 
 /* sheets */
 const FAQ_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
@@ -194,9 +206,9 @@ $("typeSel").onchange=()=>{
 $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
   const m=faqRows.filter(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
-  $("faqOut").innerHTML=m.length
-    ? m.map(r=>`<pre class="expl">${esc(r[faqFields[2]])}</pre>`).join("")
-    : "No results.";
+  $("faqOut").innerHTML = m.length
+  ? `<div class="content-box">${esc(m[0][faqFields[2]])}</div>`
+  : '<p class="muted">No results.</p>';
 };
 
 $("resetFaq").onclick=()=>{
