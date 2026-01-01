@@ -2,89 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CloudNine Project — PBO Tools Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>CloudNine — Blaze Tools Hub</title>
+
 <style>
-  body {
-    font-family: Inter, system-ui, Arial, sans-serif;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: #1A232C;
-    color: #F0F0F0;
-    text-align: center;
+:root {
+  --bg-main: #0e141a;
+  --bg-soft: #1a232c;
+  --green-main: #1ea31e;
+  --green-dark: #0f6f0f;
+  --text-main: #f0f0f0;
+  --text-dim: #9aa4ad;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1f2b35, var(--bg-main));
+  font-family: Inter, system-ui, Arial, sans-serif;
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hub {
+  width: 100%;
+  max-width: 520px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+/* Logos */
+.logo-cloud {
+  width: 160px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+}
+
+.logo-blaze {
+  width: 260px;
+  margin-bottom: 10px;
+}
+
+.brand {
+  margin-bottom: 28px;
+}
+
+.brand .handle {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.brand .sub {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+/* Carousel */
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.nav {
+  background: none;
+  border: none;
+  color: var(--green-main);
+  font-size: 2.2rem;
+  cursor: pointer;
+  padding: 0 6px;
+}
+
+.nav:active {
+  transform: scale(0.9);
+}
+
+.viewport {
+  overflow: hidden;
+  width: 100%;
+  max-width: 360px;
+}
+
+.blocks {
+  display: flex;
+  transition: transform 0.35s ease;
+}
+
+.block {
+  min-width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 4px;
+}
+
+/* Tools */
+.tool {
+  background: linear-gradient(145deg, var(--green-main), var(--green-dark));
+  padding: 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  font-size: 1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.tool:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+
+/* Dots */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3a444d;
+  transition: background 0.25s;
+}
+
+.dot.active {
+  background: var(--green-main);
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .logo-blaze {
+    width: 220px;
   }
-  img.logo {
-    max-width: 220px;
-    margin-bottom: 20px;
-    border-radius: 50%;
-  }
-  h1 {
-    font-size: 2rem;
-    margin: 0 0 8px 0;
-  }
-  h2 {
-    font-size: 1.3rem;
-    margin: 0 0 20px 0;
-    color: #bbb;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 220px);
-    grid-gap: 12px 30px;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-  .btn {
-    display: block;
-    padding: 14px 22px;
-    background: #035F02;
-    color: #F0F0F0;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    transition: background 0.2s;
-  }
-  .btn:hover {
-    background: #095bb0;
-  }
-  .vs-btn {
-    margin-top: 15px;
-    padding: 14px 22px;
-    background: #035F02;
-    color: #F0F0F0;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    border: none;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .vs-btn:hover {
-    background: #095bb0;
-  }
+}
 </style>
 </head>
-<body>
-  <img class="logo" src="https://i.imgur.com/gtzIEvm.png" alt="CloudNine Logo"/>
-  <h1>CloudNine Project</h1>
-  <h2>Blaze Tools Hub</h2>
 
-  <div class="grid">
-    <a class="btn" href="tool1/">Pokemon Search</a>
-    <a class="btn" href="tool3/">❓ FAQ</a>
-    <a class="btn" href="tool2/">🔧 Item Finder</a>
-    <a class="btn" href="tool4/">⚔️ Team Database</a>
-    <a class="btn" href="tool8/">🔎 Dynamax Helper</a>
-    <a class="btn" href="tool5/">🗺️ Route Planner</a>
-    <a class="btn" href="tool7/">📋 Checklist</a>
-    <a class="btn" href="tool6/">❄️Winter Event</a>
-    <a class="btn" href="tool9/">PVP Check</a>
-    <a class="btn" href="tool10">Quests</a>
+<body>
+
+<div class="hub">
+
+  <!-- CloudNine Logo -->
+  <img class="logo-cloud" src="https://i.imgur.com/gtzIEvm.png" alt="CloudNine Logo">
+
+  <!-- Blaze Tools Logo -->
+  <img class="logo-blaze" src="https://i.imgur.com/irx1VWe.png" alt="Blaze Tools">
+
+  <div class="brand">
+    <span class="handle">@CloudNine</span>
+    <span class="sub">CloudNine Project Tools</span>
   </div>
+
+  <div class="carousel">
+    <button class="nav left" onclick="prev()">‹</button>
+
+    <div class="viewport" id="viewport">
+      <div class="blocks" id="blocks">
+
+        <div class="block">
+          <a class="tool" href="tool1/">Pokemon Search</a>
+          <a class="tool" href="tool2/">🔧 Item Finder</a>
+          <a class="tool" href="tool8/">🔎 Dynamax Helper</a>
+          <a class="tool" href="tool5/">🗺️ Route Planner</a>
+        </div>
+
+        <div class="block">
+          <a class="tool" href="tool7/">📋 Checklist</a>
+          <a class="tool" href="tool6/">❄️ Winter Event</a>
+          <a class="tool" href="tool9/">⚔️ PvP Check</a>
+          <a class="tool" href="tool10/">📜 Quests</a>
+        </div>
+
+        <div class="block">
+          <a class="tool" href="tool3/">❓ FAQ</a>
+          <a class="tool" href="tool4/">🧠 Team Database</a>
+        </div>
+
+      </div>
+    </div>
+
+    <button class="nav right" onclick="next()">›</button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+</div>
+
+<script>
+const blocks = document.getElementById('blocks');
+const total = document.querySelectorAll('.block').length;
+const dotsContainer = document.getElementById('dots');
+let index = 0;
+
+/* Create dots */
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  dotsContainer.appendChild(d);
+}
+
+function update() {
+  blocks.style.transform = `translateX(-${index * 100}%)`;
+  document.querySelectorAll('.dot').forEach((d, i) =>
+    d.classList.toggle('active', i === index)
+  );
+}
+
+function next() {
+  index = (index + 1) % total;
+  update();
+}
+
+function prev() {
+  index = (index - 1 + total) % total;
+  update();
+}
+
+/* Touch swipe */
+let startX = 0;
+const viewport = document.getElementById('viewport');
+
+viewport.addEventListener('touchstart', e => {
+  startX = e.touches[0].clientX;
+});
+
+viewport.addEventListener('touchend', e => {
+  const endX = e.changedTouches[0].clientX;
+  if (startX - endX > 50) next();
+  if (endX - startX > 50) prev();
+});
+</script>
 
 </body>
 </html>
