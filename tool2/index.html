@@ -142,9 +142,13 @@
 
       <!-- Filtered Search -->
   <div class="row">
-    <select id="categorySelect">
-		<option value="">Select Category</option>
-	</select>
+    <select id="regionSelect">
+      <option value="">Select Region</option>
+    </select>
+
+    <select id="locationSelect" disabled>
+      <option value="">Select Location</option>
+    </select>
 
   </div>
 
@@ -174,8 +178,6 @@ const ITEM_CSV =
 let rows = [];
 let fields = [];
 
-const OUTPUT_COLUMNS = ["Item", "How", "Where"];
-
 /* ===== Load ===== */
 function loadData(){
   Papa.parse(ITEM_CSV,{
@@ -199,16 +201,22 @@ function loadData(){
 /* ===== UI Init ===== */
 function initUI(){
   // neue Sheet-Struktur
-  const itemKey     = "Item";
-  const categoryKey = "Category";
+  const itemKey     = fields[0]; // A Item
+  const locationKey = fields[2]; // C Location
+  const regionKey   = fields[3]; // D Region
 
-  const categories = [...new Set(
-	rows.map(r => r[categoryKey]).filter(Boolean)
-  )];
+  const regions = [...new Set(rows.map(r => r[regionKey]).filter(Boolean))];
+  regions.forEach(r => $('regionSelect').add(new Option(r,r)));
 
-  categories.forEach(c =>
-	$('categorySelect').add(new Option(c, c))
-  );
+  $('regionSelect').onchange = ()=>{
+  $('locationSelect').innerHTML =
+    '<option value="">Select Location</option>';
+
+  const region = $('regionSelect').value;
+  if(!region){
+    $('locationSelect').disabled = true;
+    return;
+  }
 
   const locs = [...new Set(
     rows
@@ -239,16 +247,18 @@ function initUI(){
   };
 
   $('filterBtn').onclick = ()=>{
-  const c = $('categorySelect').value;
+  const r = $('regionSelect').value;
+  const l = $('locationSelect').value;
   const out = $('filterOut');
 
-  if(!c){
-    out.innerHTML = '<p class="muted">Select a category.</p>';
+  if(!r || !l){
+    out.innerHTML = '<p class="muted">Select region and location.</p>';
     return;
   }
 
   const hits = rows.filter(row =>
-    row[categoryKey] === c
+    row[regionKey] === r &&
+    row[locationKey] === l
   );
 
   out.innerHTML = hits.length
@@ -257,7 +267,10 @@ function initUI(){
 };
 
   $('filterReset').onclick = ()=>{
-  $('categorySelect').selectedIndex = 0;
+  $('regionSelect').selectedIndex = 0;
+  $('locationSelect').innerHTML =
+    '<option value="">Select Location</option>';
+  $('locationSelect').disabled = true;
   $('filterOut').innerHTML = '';
 };
 }
@@ -265,22 +278,14 @@ function initUI(){
 /* ===== Render ===== */
 function renderTable(data){
   let html = '<table><thead><tr>';
-
-  OUTPUT_COLUMNS.forEach(col =>
-    html += `<th>${escapeHtml(col)}</th>`
-  );
-
+  fields.forEach(f => html+=`<th>${escapeHtml(f)}</th>`);
   html += '</tr></thead><tbody>';
-
   data.forEach(r=>{
-    html += '<tr>';
-    OUTPUT_COLUMNS.forEach(col =>
-      html += `<td>${escapeHtml(String(r[col] || ''))}</td>`
-    );
-    html += '</tr>';
+    html+='<tr>';
+    fields.forEach(f=>html+=`<td>${escapeHtml(String(r[f]||''))}</td>`);
+    html+='</tr>';
   });
-
-  html += '</tbody></table>';
+  html+='</tbody></table>';
   return html;
 }
 
