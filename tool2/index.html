@@ -209,17 +209,28 @@ function initUI(){
   regions.forEach(r => $('regionSelect').add(new Option(r,r)));
 
   $('regionSelect').onchange = ()=>{
-    $('locationSelect').innerHTML = '<option value="">Select Location</option>';
-    $('itemSelect').innerHTML = '<option value="">Select Item</option>';
-    $('itemSelect').disabled = true;
+  $('locationSelect').innerHTML =
+    '<option value="">Select Location</option>';
 
-    const region = $('regionSelect').value;
-    if(!region){ $('locationSelect').disabled=true; return; }
+  const region = $('regionSelect').value;
+  if(!region){
+    $('locationSelect').disabled = true;
+    return;
+  }
 
-    const locs = [...new Set(rows.filter(r => r[regionKey]===region).map(r => r[locationKey]))];
-    locs.forEach(l => $('locationSelect').add(new Option(l,l)));
-    $('locationSelect').disabled = false;
-  };
+  const locs = [...new Set(
+    rows
+      .filter(r => r[regionKey] === region)
+      .map(r => r[locationKey])
+      .filter(Boolean)
+  )];
+
+  locs.forEach(l =>
+    $('locationSelect').add(new Option(l, l))
+  );
+
+  $('locationSelect').disabled = false;
+};
 
   // manual search (fuzzy)
   $('manualBtn').onclick = ()=>{
