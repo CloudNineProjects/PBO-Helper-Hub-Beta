@@ -150,9 +150,6 @@
       <option value="">Select Location</option>
     </select>
 
-    <select id="itemSelect" disabled>
-      <option value="">Select Item</option>
-    </select>
   </div>
 
   <div class="row">
@@ -224,17 +221,6 @@ function initUI(){
     $('locationSelect').disabled = false;
   };
 
-  $('locationSelect').onchange = ()=>{
-    $('itemSelect').innerHTML = '<option value="">Select Item</option>';
-    const region = $('regionSelect').value;
-    const loc    = $('locationSelect').value;
-    if(!region || !loc){ $('itemSelect').disabled=true; return; }
-
-    const items = [...new Set(rows.filter(r => r[regionKey]===region && r[locationKey]===loc).map(r => r[itemKey]))];
-    items.forEach(i => $('itemSelect').add(new Option(i,i)));
-    $('itemSelect').disabled = false;
-  };
-
   // manual search (fuzzy)
   $('manualBtn').onclick = ()=>{
     const q = normalize($('manualInput').value);
@@ -250,23 +236,32 @@ function initUI(){
   };
 
   $('filterBtn').onclick = ()=>{
-    const r = $('regionSelect').value;
-    const l = $('locationSelect').value;
-    const i = $('itemSelect').value;
-    const out = $('filterOut');
-    if(!r||!l||!i){ out.innerHTML='<p class="muted">Select region, location and item.</p>'; return; }
-    const hits = rows.filter(row => row[regionKey]===r && row[locationKey]===l && row[itemKey]===i);
-    out.innerHTML = hits.length ? renderTable(hits) : '<p class="muted">No results.</p>';
-  };
+  const r = $('regionSelect').value;
+  const l = $('locationSelect').value;
+  const out = $('filterOut');
+
+  if(!r || !l){
+    out.innerHTML = '<p class="muted">Select region and location.</p>';
+    return;
+  }
+
+  const hits = rows.filter(row =>
+    row[regionKey] === r &&
+    row[locationKey] === l
+  );
+
+  out.innerHTML = hits.length
+    ? renderTable(hits)
+    : '<p class="muted">No results.</p>';
+};
 
   $('filterReset').onclick = ()=>{
-    $('regionSelect').selectedIndex=0;
-    $('locationSelect').innerHTML='<option value="">Select Location</option>';
-    $('locationSelect').disabled=true;
-    $('itemSelect').innerHTML='<option value="">Select Item</option>';
-    $('itemSelect').disabled=true;
-    $('filterOut').innerHTML='';
-  };
+  $('regionSelect').selectedIndex = 0;
+  $('locationSelect').innerHTML =
+    '<option value="">Select Location</option>';
+  $('locationSelect').disabled = true;
+  $('filterOut').innerHTML = '';
+};
 }
 
 /* ===== Render ===== */
