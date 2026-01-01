@@ -13,7 +13,6 @@
   --green-main: #1ea31e;
   --green-dark: #0f6f0f;
   --text-main: #f0f0f0;
-  --text-dim: #9aa4ad;
 }
 
 * {
@@ -38,31 +37,22 @@ body {
   text-align: center;
 }
 
-/* Logos */
+/* Branding */
 .logo-cloud {
-  width: 160px;
+  width: 190px;
   border-radius: 50%;
-  margin-bottom: 12px;
-}
-
-.logo-blaze {
-  width: 260px;
   margin-bottom: 10px;
 }
 
-.brand {
-  margin-bottom: 28px;
-}
-
-.brand .handle {
+.handle {
   font-weight: 600;
-  opacity: 0.95;
+  margin-bottom: 14px;
+  opacity: 0.9;
 }
 
-.brand .sub {
-  display: block;
-  font-size: 0.9rem;
-  color: var(--text-dim);
+.logo-blaze {
+  width: 230px;
+  margin-bottom: 28px;
 }
 
 /* Carousel */
@@ -71,7 +61,6 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  position: relative;
 }
 
 .nav {
@@ -81,10 +70,6 @@ body {
   font-size: 2.2rem;
   cursor: pointer;
   padding: 0 6px;
-}
-
-.nav:active {
-  transform: scale(0.9);
 }
 
 .viewport {
@@ -101,7 +86,8 @@ body {
 .block {
   min-width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 72px);
   gap: 14px;
   padding: 4px;
 }
@@ -109,19 +95,29 @@ body {
 /* Tools */
 .tool {
   background: linear-gradient(145deg, var(--green-main), var(--green-dark));
-  padding: 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   text-decoration: none;
   color: white;
-  font-weight: 500;
-  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
+  line-height: 1.2;
   box-shadow: 0 6px 18px rgba(0,0,0,.35);
   transition: transform .15s ease, box-shadow .15s ease;
+  font-size: clamp(0.75rem, 2.5vw, 1rem);
 }
 
 .tool:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+
+.tool.placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Dots */
@@ -137,18 +133,16 @@ body {
   height: 9px;
   border-radius: 50%;
   background: #3a444d;
-  transition: background 0.25s;
 }
 
 .dot.active {
   background: var(--green-main);
 }
 
-/* Mobile tweaks */
+/* Mobile fine-tuning */
 @media (max-width: 480px) {
-  .logo-blaze {
-    width: 220px;
-  }
+  .logo-cloud { width: 170px; }
+  .logo-blaze { width: 210px; }
 }
 </style>
 </head>
@@ -157,23 +151,17 @@ body {
 
 <div class="hub">
 
-  <!-- CloudNine Logo -->
   <img class="logo-cloud" src="https://i.imgur.com/gtzIEvm.png" alt="CloudNine Logo">
-
-  <!-- Blaze Tools Logo -->
+  <div class="handle">@CloudNine</div>
   <img class="logo-blaze" src="https://i.imgur.com/irx1VWe.png" alt="Blaze Tools">
 
-  <div class="brand">
-    <span class="handle">@CloudNine</span>
-    <span class="sub">CloudNine Project Tools</span>
-  </div>
-
   <div class="carousel">
-    <button class="nav left" onclick="prev()">‹</button>
+    <button class="nav" onclick="prev()">‹</button>
 
     <div class="viewport" id="viewport">
       <div class="blocks" id="blocks">
 
+        <!-- Block 1 -->
         <div class="block">
           <a class="tool" href="tool1/">Pokemon Search</a>
           <a class="tool" href="tool2/">🔧 Item Finder</a>
@@ -181,6 +169,7 @@ body {
           <a class="tool" href="tool5/">🗺️ Route Planner</a>
         </div>
 
+        <!-- Block 2 -->
         <div class="block">
           <a class="tool" href="tool7/">📋 Checklist</a>
           <a class="tool" href="tool6/">❄️ Winter Event</a>
@@ -188,15 +177,18 @@ body {
           <a class="tool" href="tool10/">📜 Quests</a>
         </div>
 
+        <!-- Block 3 (nur 2 Tools, gleiche Größe dank Platzhalter) -->
         <div class="block">
           <a class="tool" href="tool3/">❓ FAQ</a>
           <a class="tool" href="tool4/">🧠 Team Database</a>
+          <div class="tool placeholder"></div>
+          <div class="tool placeholder"></div>
         </div>
 
       </div>
     </div>
 
-    <button class="nav right" onclick="next()">›</button>
+    <button class="nav" onclick="next()">›</button>
   </div>
 
   <div class="dots" id="dots"></div>
@@ -206,14 +198,14 @@ body {
 <script>
 const blocks = document.getElementById('blocks');
 const total = document.querySelectorAll('.block').length;
-const dotsContainer = document.getElementById('dots');
+const dots = document.getElementById('dots');
 let index = 0;
 
 /* Create dots */
 for (let i = 0; i < total; i++) {
   const d = document.createElement('div');
   d.className = 'dot' + (i === 0 ? ' active' : '');
-  dotsContainer.appendChild(d);
+  dots.appendChild(d);
 }
 
 function update() {
@@ -233,7 +225,7 @@ function prev() {
   update();
 }
 
-/* Touch swipe */
+/* Swipe support */
 let startX = 0;
 const viewport = document.getElementById('viewport');
 
