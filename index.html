@@ -196,36 +196,46 @@ body {
 </div>
 
 <script>
-const blocks = document.getElementById('blocks');
-const total = document.querySelectorAll('.block').length;
+const blocksContainer = document.getElementById('blocks');
+const blocks = document.querySelectorAll('.block');
 const dots = document.getElementById('dots');
 let index = 0;
 
+/* Auto-fill blocks to 4 items */
+blocks.forEach(block => {
+  const count = block.querySelectorAll('.tool').length;
+  for (let i = count; i < 4; i++) {
+    const filler = document.createElement('div');
+    filler.className = 'tool placeholder';
+    block.appendChild(filler);
+  }
+});
+
 /* Create dots */
-for (let i = 0; i < total; i++) {
+blocks.forEach((_, i) => {
   const d = document.createElement('div');
   d.className = 'dot' + (i === 0 ? ' active' : '');
   dots.appendChild(d);
-}
+});
 
 function update() {
-  blocks.style.transform = `translateX(-${index * 100}%)`;
+  blocksContainer.style.transform = `translateX(-${index * 100}%)`;
   document.querySelectorAll('.dot').forEach((d, i) =>
     d.classList.toggle('active', i === index)
   );
 }
 
 function next() {
-  index = (index + 1) % total;
+  index = (index + 1) % blocks.length;
   update();
 }
 
 function prev() {
-  index = (index - 1 + total) % total;
+  index = (index - 1 + blocks.length) % blocks.length;
   update();
 }
 
-/* Swipe support */
+/* Swipe */
 let startX = 0;
 const viewport = document.getElementById('viewport');
 
