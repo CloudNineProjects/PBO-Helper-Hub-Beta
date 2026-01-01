@@ -233,14 +233,22 @@ document.addEventListener("DOMContentLoaded", () => {
           )
         );
       }
-      if (rows.length)
-        results.push({ region, headers:data[0], rows });
+    if (rows.length)
+      results.push({
+        region,                       // bleibt für <h3>Sinnoh</h3>
+        headers: data[0].slice(1),    // Location → Time
+        rows: rows.map(r => r.slice(1))
+      });
     }
 
     const chestRows = chestData.slice(1)
       .filter(r => r[2]?.toLowerCase().includes(q));
     if (chestRows.length)
-      results.push({ region:"Chests", headers:chestData[0], rows:chestRows });
+      results.push({
+        region: "Chests",
+        headers: chestData[0].slice(1),
+        rows: chestRows.map(r => r.slice(1))
+      });
 
     pokemonResults.innerHTML = results.length
       ? results.map(r=>`<h3>${r.region}</h3>`+renderTable(r.headers,r.rows)).join("")
@@ -279,8 +287,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!r || !l)
       return spawnResults.innerHTML = "<p>Select region and location.</p>";
     const d = spawnData[r];
-    spawnResults.innerHTML =
-      renderTable(d[0], d.slice(1).filter(x => x[1] === l));
+   spawnResults.innerHTML = renderTable(
+    d[0].slice(1), // Header: Location → Time
+    d.slice(1)
+    .filter(x => x[1] === l)
+    .map(x => x.slice(1)) // Daten: Location → Time
+  );
   };
 
   document.getElementById("spawnReset").onclick = () => {
@@ -296,8 +308,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!type)
       return chestResults.innerHTML = "<p>Please select a chest type.</p>";
 
-    const headers = chestData[0];
-    const rows = chestData.slice(1).filter(r => r[0] === type);
+    const headers = chestData[0].slice(1); // Location, Pokemon, Method
+    const rows = chestData
+      .slice(1)
+      .filter(r => r[0] === type)
+      .map(r => r.slice(1)); // Location, Pokemon, Method
+
     chestResults.innerHTML = renderTable(headers, rows);
   };
 
