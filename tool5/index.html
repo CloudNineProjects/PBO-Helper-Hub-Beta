@@ -182,7 +182,18 @@ imagePreview.appendChild(img);
 imagePreview.style.display="flex";
 };
 
-resetBtn.onclick=()=>location.reload();
+resetBtn.onclick = () => {
+  // Selects zurücksetzen
+  regionSelect.selectedIndex = 0;
+  locationSelect.innerHTML = '<option value="">-- choose location --</option>';
+  locationSelect.disabled = true;
+
+  // Ausgabe & Bilder ausblenden
+  out.style.display = "none";
+  out.innerHTML = "";
+  imagePreview.style.display = "none";
+  imagePreview.innerHTML = "";
+};
 
 function renderTable(rs){
 if(!rs.length)return"<p>No results.</p>";
@@ -232,10 +243,12 @@ evOutput.innerHTML=renderEv(rows);
 evOutput.style.display="block";
 };
 
-evReset.onclick=()=>{
-evRegion.selectedIndex=0;
-evSelect.innerHTML='';
-evOutput.style.display="none";
+evReset.onclick = () => {
+  evRegion.selectedIndex = 0;
+  evSelect.innerHTML = '<option value="">-- choose EV --</option>';
+  evSelect.disabled = true;
+  evOutput.style.display = "none";
+  evOutput.innerHTML = "";
 };
 
 function renderEv(rs){
