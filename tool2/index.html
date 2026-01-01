@@ -38,7 +38,6 @@
       color:#000;
     }
 
-    /* secondary = optisch identisch zum Loading Button */
     button.secondary{
       background:var(--accent);
       color:#000;
@@ -95,7 +94,6 @@
     .muted{opacity:0.8;margin-top:12px}
     .hidden{display:none}
 
-    /* Dark mode */
     .dark-mode{
       --bg:#1A252C;
       --card:#023804;
@@ -104,14 +102,12 @@
 </head>
 <body>
 
-<!-- Header erscheint nur im Haupt-Tool -->
 <header id="mainHeader" class="hidden">
   <button id="darkToggle" class="secondary">🌙 Dark Mode</button>
 </header>
 
 <main>
 
-  <!-- Loading Screen -->
   <div id="loading" class="loading">
     <div>
       <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
@@ -119,66 +115,55 @@
     </div>
   </div>
 
-  <!-- App -->
   <div id="app" class="hidden">
 
     <section class="card">
       <h2>Item Finder</h2>
 
-  <!-- Fuzzy Search -->
-  <div class="row">
-    <input id="manualInput" type="text"
-         placeholder="Search item (e.g. TM070, Trick Room)" />
-  </div>
+      <!-- Fuzzy Search -->
+      <div class="row">
+        <input id="manualInput" type="text"
+          placeholder="Search item (e.g. TM070, Trick Room)" />
+      </div>
 
-  <div class="row">
-    <button id="manualBtn">Search</button>
-    <button id="manualReset" class="secondary">Reset</button>
-  </div>
+      <div class="row">
+        <button id="manualBtn">Search</button>
+        <button id="manualReset" class="secondary">Reset</button>
+      </div>
 
-  <div id="manualOut"></div>
+      <div id="manualOut"></div>
 
       <hr style="margin:18px 0;opacity:0.2">
 
       <!-- Filtered Search -->
-  <div class="row">
-    <select id="regionSelect">
-      <option value="">Select Region</option>
-    </select>
+      <div class="row">
+        <select id="categorySelect">
+          <option value="">Select Category</option>
+        </select>
+      </div>
 
-    <select id="locationSelect" disabled>
-      <option value="">Select Location</option>
-    </select>
+      <div class="row">
+        <button id="filterBtn">Search</button>
+        <button id="filterReset" class="secondary">Reset</button>
+      </div>
 
-  </div>
-
-  <div class="row">
-    <button id="filterBtn">Search</button>
-    <button id="filterReset" class="secondary">Reset</button>
-  </div>
-
-  <div id="filterOut"></div>
+      <div id="filterOut"></div>
 
     </section>
-
   </div>
-
 </main>
 
 <script>
-/* ===== Helpers ===== */
 const $ = id => document.getElementById(id);
 const normalize = s => (s||'').toString().trim().toLowerCase();
 const escapeHtml = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-/* ===== CSV ===== */
 const ITEM_CSV =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7A6OIMzNiZSJJxLyi3ybt1LKsuwLq02IJSHdzt5eRHG8FEr0PJu6e8dlTK-XeeRAZZYL13JRv0Gk0/pub?output=csv';
 
 let rows = [];
 let fields = [];
 
-/* ===== Load ===== */
 function loadData(){
   Papa.parse(ITEM_CSV,{
     download:true,
@@ -191,54 +176,33 @@ function loadData(){
       $('loading').style.display='none';
       $('app').classList.remove('hidden');
       $('mainHeader').classList.remove('hidden');
-    },
-    error:()=>{
-      document.querySelector('#loading .muted').textContent = 'Failed to load CSV';
     }
   });
 }
 
-/* ===== UI Init ===== */
 function initUI(){
-  // neue Sheet-Struktur
   const itemKey     = fields[0]; // A Item
-  const locationKey = fields[2]; // C Location
-  const regionKey   = fields[3]; // D Region
+  const howKey      = fields[1]; // B How
+  const whereKey    = fields[2]; // C Where
+  const categoryKey = fields[3]; // D Category
 
-  const regions = [...new Set(rows.map(r => r[regionKey]).filter(Boolean))];
-  regions.forEach(r => $('regionSelect').add(new Option(r,r)));
+  /* ===== Category Filter Init ===== */
+  const categories = [...new Set(rows.map(r => r[categoryKey]).filter(Boolean))];
+  categories.forEach(c => $('categorySelect').add(new Option(c,c)));
 
-  $('regionSelect').onchange = ()=>{
-  $('locationSelect').innerHTML =
-    '<option value="">Select Location</option>';
-
-  const region = $('regionSelect').value;
-  if(!region){
-    $('locationSelect').disabled = true;
-    return;
-  }
-
-  const locs = [...new Set(
-    rows
-      .filter(r => r[regionKey] === region)
-      .map(r => r[locationKey])
-      .filter(Boolean)
-  )];
-
-  locs.forEach(l =>
-    $('locationSelect').add(new Option(l, l))
-  );
-
-  $('locationSelect').disabled = false;
-};
-
-  // manual search (fuzzy)
+  /* ===== Fuzzy Search ===== */
   $('manualBtn').onclick = ()=>{
     const q = normalize($('manualInput').value);
     const out = $('manualOut');
-    if(!q){ out.innerHTML='<p class="muted">Enter search term.</p>'; return; }
+    if(!q){
+      out.innerHTML='<p class="muted">Enter search term.</p>';
+      return;
+    }
+
     const hits = rows.filter(r => normalize(r[itemKey]).includes(q));
-    out.innerHTML = hits.length ? renderTable(hits) : '<p class="muted">No results.</p>';
+    out.innerHTML = hits.length
+      ? renderTable(hits,[itemKey,howKey,whereKey])
+      : '<p class="muted">No results.</p>';
   };
 
   $('manualReset').onclick = ()=>{
@@ -246,50 +210,43 @@ function initUI(){
     $('manualOut').innerHTML='';
   };
 
+  /* ===== Filtered Search ===== */
   $('filterBtn').onclick = ()=>{
-  const r = $('regionSelect').value;
-  const l = $('locationSelect').value;
-  const out = $('filterOut');
+    const c = $('categorySelect').value;
+    const out = $('filterOut');
 
-  if(!r || !l){
-    out.innerHTML = '<p class="muted">Select region and location.</p>';
-    return;
-  }
+    if(!c){
+      out.innerHTML = '<p class="muted">Select category.</p>';
+      return;
+    }
 
-  const hits = rows.filter(row =>
-    row[regionKey] === r &&
-    row[locationKey] === l
-  );
-
-  out.innerHTML = hits.length
-    ? renderTable(hits)
-    : '<p class="muted">No results.</p>';
-};
+    const hits = rows.filter(r => r[categoryKey] === c);
+    out.innerHTML = hits.length
+      ? renderTable(hits,[itemKey,howKey,whereKey])
+      : '<p class="muted">No results.</p>';
+  };
 
   $('filterReset').onclick = ()=>{
-  $('regionSelect').selectedIndex = 0;
-  $('locationSelect').innerHTML =
-    '<option value="">Select Location</option>';
-  $('locationSelect').disabled = true;
-  $('filterOut').innerHTML = '';
-};
+    $('categorySelect').selectedIndex = 0;
+    $('filterOut').innerHTML='';
+  };
 }
 
-/* ===== Render ===== */
-function renderTable(data){
+function renderTable(data, cols){
   let html = '<table><thead><tr>';
-  fields.forEach(f => html+=`<th>${escapeHtml(f)}</th>`);
+  cols.forEach(c => html+=`<th>${escapeHtml(c)}</th>`);
   html += '</tr></thead><tbody>';
+
   data.forEach(r=>{
     html+='<tr>';
-    fields.forEach(f=>html+=`<td>${escapeHtml(String(r[f]||''))}</td>`);
+    cols.forEach(c => html+=`<td>${escapeHtml(String(r[c]||''))}</td>`);
     html+='</tr>';
   });
+
   html+='</tbody></table>';
   return html;
 }
 
-/* ===== Events ===== */
 $('darkToggle').addEventListener('click',()=>{
   document.body.classList.toggle('dark-mode');
   $('darkToggle').textContent =
@@ -299,10 +256,12 @@ $('darkToggle').addEventListener('click',()=>{
 });
 
 $('manualInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){ e.preventDefault(); $('manualBtn').click(); }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    $('manualBtn').click();
+  }
 });
 
-/* ===== Auto Load ===== */
 loadData();
 </script>
 
