@@ -55,13 +55,16 @@ select{
   overflow:auto;
 }
 
-/* === neu: saubere Video-Darstellung === */
-.content-box iframe{
-  width:100%;
-  aspect-ratio:16/9;
+/* ★ FAQ VIDEO PREVIEW */
+.content-box .yt-preview{
+  max-width:360px;
   margin:10px 0;
-  border-radius:8px;
+}
+.content-box .yt-preview iframe{
+  width:100%;
+  height:200px;
   border:none;
+  border-radius:8px;
 }
 
 table{
@@ -81,6 +84,7 @@ th,td{
 }
 #app{ display:none; }
 
+/* ===== DARK MODE ===== */
 body.dark-mode{
   --bg:#1A252C;
   --card:#023804;
@@ -106,6 +110,7 @@ body.dark-mode .card{
 
 <div id="app">
 
+  <!-- FAQ -->
   <div class="card">
     <h2>FAQ</h2>
     <div class="controls">
@@ -121,6 +126,28 @@ body.dark-mode .card{
     <div id="faqOut" class="results"></div>
   </div>
 
+  <!-- Regi Trio (UNVERÄNDERT) -->
+  <div class="card">
+    <h2>Regi Rotation</h2>
+    <div class="controls">
+      <label>Choose Time</label>
+      <select id="regiTime"></select>
+      <button id="regiShow">Show</button>
+      <button id="regiReset">Reset</button>
+    </div>
+    <div id="regiOut" class="results"></div>
+  </div>
+
+  <!-- Shoal Cave (UNVERÄNDERT) -->
+  <div class="card">
+    <h2>Shoal Cave Time</h2>
+    <div class="controls">
+      <button id="shoalBtn">Check Tide</button>
+      <button id="shoalReset">Reset</button>
+    </div>
+    <div id="shoalOut" class="results"></div>
+  </div>
+
 </div>
 
 <script>
@@ -129,40 +156,55 @@ document.addEventListener("DOMContentLoaded",()=>{
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
-/* === NEU: Text + YouTube Inline Renderer === */
+/* ★ FAQ VIDEO: Zeilenweise Rendering */
 function renderFaqContent(raw){
   return raw.split(/\n+/).map(line=>{
-    const yt=line.match(
-      /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+))/
-    );
-    if(yt){
-      return `<iframe src="https://www.youtube.com/embed/${yt[2]}" allowfullscreen></iframe>`;
+    const m=line.match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    if(m){
+      return `
+        <div class="yt-preview">
+          <iframe
+            src="https://www.youtube.com/embed/${m[1]}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>`;
     }
     return esc(line);
   }).join("\n");
 }
 
+/* dark */
 $("darkBtn").onclick=()=>{
   document.body.classList.toggle("dark-mode");
 };
 
-const FAQ_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
+const FAQ_CSV  ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
+const REGI_CSV ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnZTHT3SeW7VWywFDBWhvjor0NqrwEcXPyBPOH53FD_Z5GHPNhO4NlGfpzniRjpuJBHna8vZJ1Ndia/pub?output=csv";
 
 let faqRows=[], faqFields=[];
+let regiRows=[], regiFields=[];
 
-Papa.parse(FAQ_CSV,{
-  download:true,
-  header:true,
-  complete:r=>{
-    faqRows=r.data;
-    faqFields=r.meta.fields;
-    initFAQ();
-    $("loading").style.display="none";
-    $("app").style.display="block";
-    $("mainHeader").style.display="block";
-  }
-});
+/* auto load */
+async function loadAll(){
+  const loadCSV=url=>new Promise(res=>{
+    Papa.parse(url,{ download:true, header:true, skipEmptyLines:true,
+      complete:r=>res({ rows:r.data, fields:r.meta.fields })});
+  });
 
+  const [faq,regi]=await Promise.all([loadCSV(FAQ_CSV),loadCSV(REGI_CSV)]);
+  faqRows=faq.rows; faqFields=faq.fields;
+  regiRows=regi.rows; regiFields=regi.fields;
+
+  initFAQ();
+  initRegi();
+
+  $("loading").style.display="none";
+  $("app").style.display="block";
+  $("mainHeader").style.display="block";
+}
+
+/* FAQ */
 function initFAQ(){
   const t=$("typeSel");
   t.innerHTML='<option value="">-- choose --</option>';
@@ -179,7 +221,6 @@ $("typeSel").onchange=()=>{
   s.disabled=false;
 };
 
-/* === GEÄNDERT: FAQ-Ausgabe mit Video-Support === */
 $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
   const m=faqRows.find(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
@@ -194,6 +235,44 @@ $("resetFaq").onclick=()=>{
   $("subSel").disabled=true;
   $("faqOut").innerHTML="";
 };
+
+/* Regi (UNVERÄNDERT) */
+function initRegi(){
+  const s=$("regiTime");
+  s.innerHTML='<option value="">-- choose --</option>';
+  [...new Set(regiRows.map(r=>r[regiFields[0]]))].filter(Boolean)
+    .forEach(v=>s.appendChild(new Option(v,v)));
+}
+
+$("regiShow").onclick=()=>{
+  const t=$("regiTime").value;
+  if(!t) return;
+  const rows=regiRows.filter(r=>r[regiFields[0]]===t);
+  $("regiOut").innerHTML = rows.length
+    ? `<table><thead><tr>
+        <th>${regiFields[1]}</th>
+        <th>${regiFields[2]}</th>
+      </tr></thead><tbody>${
+        rows.map(r=>`<tr><td>${esc(r[regiFields[1]])}</td><td>${esc(r[regiFields[2]])}</td></tr>`).join("")
+      }</tbody></table>`
+    : "No results.";
+};
+
+$("regiReset").onclick=()=>{
+  $("regiTime").value="";
+  $("regiOut").innerHTML="";
+};
+
+/* Shoal (UNVERÄNDERT) */
+$("shoalBtn").onclick=()=>{
+  const n=new Date();
+  const m=n.getUTCHours()*60+n.getUTCMinutes();
+  const low=[[0,180],[360,540],[720,900],[1080,1260]].some(([a,b])=>m>=a&&m<b);
+  $("shoalOut").innerHTML=`UTC ${n.toISOString().slice(11,16)} — <b>${low?"Low Tide":"High Tide"}</b>`;
+};
+$("shoalReset").onclick=()=>$("shoalOut").innerHTML="";
+
+loadAll();
 
 });
 </script>
