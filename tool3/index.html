@@ -50,17 +50,25 @@ select{
   border:1px solid rgba(255,255,255,0.15);
   border-radius:8px;
   white-space:pre-wrap;
-  line-height:1.5;
+  line-height:1.45;
   max-height:400px;
   overflow:auto;
 }
 
-/* ★ FAQ VIDEO PREVIEW */
-.content-box .yt-preview{
-  max-width:360px;
-  margin:10px 0;
+/* ★ FAQ VIDEO TOGGLE + KOMPAKTER ABSTAND */
+.yt-toggle{
+  cursor:pointer;
+  color:#9fe6b8;
+  font-size:0.9em;
+  margin:4px 0;
+  display:inline-block;
 }
-.content-box .yt-preview iframe{
+.yt-preview{
+  display:none;
+  max-width:360px;
+  margin:4px 0;
+}
+.yt-preview iframe{
   width:100%;
   height:200px;
   border:none;
@@ -84,7 +92,6 @@ th,td{
 }
 #app{ display:none; }
 
-/* ===== DARK MODE ===== */
 body.dark-mode{
   --bg:#1A252C;
   --card:#023804;
@@ -126,7 +133,7 @@ body.dark-mode .card{
     <div id="faqOut" class="results"></div>
   </div>
 
-  <!-- Regi Trio (UNVERÄNDERT) -->
+  <!-- Regi Rotation -->
   <div class="card">
     <h2>Regi Rotation</h2>
     <div class="controls">
@@ -138,7 +145,7 @@ body.dark-mode .card{
     <div id="regiOut" class="results"></div>
   </div>
 
-  <!-- Shoal Cave (UNVERÄNDERT) -->
+  <!-- Shoal Cave -->
   <div class="card">
     <h2>Shoal Cave Time</h2>
     <div class="controls">
@@ -156,22 +163,30 @@ document.addEventListener("DOMContentLoaded",()=>{
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
-/* ★ FAQ VIDEO: Zeilenweise Rendering */
+/* ★ FAQ CONTENT RENDERER (kompakt + toggle) */
 function renderFaqContent(raw){
+  let vid=0;
   return raw.split(/\n+/).map(line=>{
     const m=line.match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
     if(m){
+      const id=`yt_${vid++}`;
       return `
-        <div class="yt-preview">
-          <iframe
-            src="https://www.youtube.com/embed/${m[1]}"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>
-        </div>`;
+<span class="yt-toggle" onclick="
+  const v=document.getElementById('${id}');
+  const t=this;
+  const open=v.style.display==='block';
+  v.style.display=open?'none':'block';
+  t.textContent=open?'▶ Show Video':'▼ Hide Video';
+">▶ Show Video</span>
+<div id="${id}" class="yt-preview">
+  <iframe
+    src="https://www.youtube.com/embed/${m[1]}"
+    allowfullscreen>
+  </iframe>
+</div>`;
     }
     return esc(line);
-  }).join("\n");
+  }).join("");
 }
 
 /* dark */
@@ -236,7 +251,7 @@ $("resetFaq").onclick=()=>{
   $("faqOut").innerHTML="";
 };
 
-/* Regi (UNVERÄNDERT) */
+/* Regi & Shoal unverändert */
 function initRegi(){
   const s=$("regiTime");
   s.innerHTML='<option value="">-- choose --</option>';
@@ -263,7 +278,6 @@ $("regiReset").onclick=()=>{
   $("regiOut").innerHTML="";
 };
 
-/* Shoal (UNVERÄNDERT) */
 $("shoalBtn").onclick=()=>{
   const n=new Date();
   const m=n.getUTCHours()*60+n.getUTCMinutes();
