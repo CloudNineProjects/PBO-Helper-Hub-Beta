@@ -69,10 +69,12 @@ th,td {
 
 <body>
 
+<!-- Header NUR fürs Haupt-Tool -->
 <header id="mainHeader" style="display:none">
   <button id="darkToggle">🌙 Dark Mode</button>
 </header>
 
+<!-- Loading Screen -->
 <div id="loading-screen">
   <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px">
   <p id="loadingText">Loading...</p>
@@ -110,7 +112,7 @@ th,td {
   <div class="section highlight">
     <h2>Pokemon Chest Finder</h2>
     <select id="chestSelect">
-      <option value="">Select Category</option>
+      <option value="">Select Chest Type</option>
     </select><br><br>
     <button id="chestSearch">Search</button>
     <button id="chestReset">Reset</button>
@@ -122,6 +124,7 @@ th,td {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  /* ---------- DOM ---------- */
   const darkToggle = document.getElementById("darkToggle");
   const loadingScreen = document.getElementById("loading-screen");
   const app = document.getElementById("app");
@@ -137,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chestSelect = document.getElementById("chestSelect");
   const chestResults = document.getElementById("chestResults");
 
+  /* ---------- DARK MODE ---------- */
   darkToggle.onclick = () => {
     document.body.classList.toggle("dark-mode");
     darkToggle.textContent =
@@ -145,17 +149,18 @@ document.addEventListener("DOMContentLoaded", () => {
       : "🌙 Dark Mode";
   };
 
+  /* ---------- DATA ---------- */
   const spawnSheets = {
     "Sinnoh": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=0&single=true&output=csv",
-    "Jvaloh": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
-    "Hoenn": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
-    "Kanto": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv",
-    "Event": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=867555265&single=true&output=csv",
-    "Crew Wars Island": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=277236296&single=true&output=csv"
+      "Jvaloh": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1888700837&single=true&output=csv",
+      "Hoenn": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=1008140095&single=true&output=csv",
+      "Kanto": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=963744340&single=true&output=csv",
+      "Event": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=867555265&single=true&output=csv",
+      "Crew Wars Island": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3eHdgBkA2DHukT5irO5O38RuYUZ3BDYfM0TCz9LATz0URiiKCSkyKtNFbfQkKR2pEzLbCeMh7saZe/pub?gid=277236296&single=true&output=csv"
   };
 
   const chestSheet =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVyz5OEsZPTtyz8HuFXQ6-a4n1s_ZHAIAsL6u_gUu6z-x-QDbAMaHu6nJTEgSGTncOBaVpibG0XDG8/pub?output=csv";
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9NXQeF7_DUFs-GSpxYU5QsufA6Vtwi_n5O6ytErPYQAssIC4zen99a23uPvYQXzjARPvF0XbXIiOn/pub?output=csv";
 
   let spawnData = {};
   let chestData = [];
@@ -186,14 +191,15 @@ document.addEventListener("DOMContentLoaded", () => {
       regionSelect.appendChild(o);
     });
 
-    [...new Set(chestData.slice(1).map(r => r[1]))].forEach(cat => {
+    [...new Set(chestData.slice(1).map(r => r[0]))].forEach(type => {
       const o = document.createElement("option");
-      o.value = cat;
-      o.textContent = cat;
+      o.value = type;
+      o.textContent = type;
       chestSelect.appendChild(o);
     });
   }
 
+  /* ---------- AUTO LOAD ---------- */
   async function startApp() {
     await loadData();
     loadingScreen.style.display = "none";
@@ -201,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("mainHeader").style.display = "flex";
   }
 
+  /* ---------- HELPERS ---------- */
   function renderTable(headers, rows) {
     if (!rows.length) return "<p>No results found.</p>";
     return `
@@ -212,42 +219,35 @@ document.addEventListener("DOMContentLoaded", () => {
       </table>`;
   }
 
-  /* ---------- POKEMON SEARCH (UPDATED) ---------- */
+  /* ---------- POKEMON FINDER ---------- */
   document.getElementById("pokemonSearch").onclick = () => {
     const q = pokemonInput.value.toLowerCase();
     let results = [];
 
     for (const [region,data] of Object.entries(spawnData)) {
-      let rows = data.slice(1).filter(r =>
-        r[0]?.toLowerCase().includes(q)
-      );
-
+      let rows = data.slice(1).filter(r => r[2]?.toLowerCase().includes(q));
       if (optimizedHunt.checked) {
         rows = rows.filter(r =>
           data.slice(1).some(o =>
-            o[1] === r[1] &&
-            o[5] === r[5] &&
-            o[3] === "Ultra Rare"
+            o[1]===r[1] && o[5]===r[5] && o[3]==="Ultra Rare"
           )
         );
       }
-
-      if (rows.length)
-        results.push({
-          region,
-          headers: data[0].slice(0,3),
-          rows: rows.map(r => r.slice(0,3))
-        });
+    if (rows.length)
+      results.push({
+        region,                       // bleibt für <h3>Sinnoh</h3>
+        headers: data[0].slice(1),    // Location → Time
+        rows: rows.map(r => r.slice(1))
+      });
     }
 
     const chestRows = chestData.slice(1)
-      .filter(r => r[0]?.toLowerCase().includes(q));
-
+      .filter(r => r[2]?.toLowerCase().includes(q));
     if (chestRows.length)
       results.push({
         region: "Chests",
-        headers: chestData[0].slice(0,3),
-        rows: chestRows.map(r => r.slice(0,3))
+        headers: chestData[0].slice(1),
+        rows: chestRows.map(r => r.slice(1))
       });
 
     pokemonResults.innerHTML = results.length
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pokemonResults.innerHTML = "";
   };
 
-  /* ---------- SPAWN CHECK (UNCHANGED) ---------- */
+  /* ---------- SPAWN CHECK ---------- */
   regionSelect.onchange = () => {
     locationSelect.innerHTML = "<option value=''>Select Location</option>";
     const r = regionSelect.value;
@@ -288,10 +288,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return spawnResults.innerHTML = "<p>Select region and location.</p>";
     const d = spawnData[r];
     spawnResults.innerHTML = renderTable(
-      d[0].slice(2),
+      d[0].slice(2), // Header: Pokemon → Time (C–G)
       d.slice(1)
         .filter(x => x[1] === l)
-        .map(x => x.slice(2))
+        .map(x => x.slice(2)) // Daten: Pokemon → Time
     );
   };
 
@@ -302,17 +302,17 @@ document.addEventListener("DOMContentLoaded", () => {
     spawnResults.innerHTML = "";
   };
 
-  /* ---------- CHEST FINDER (UPDATED) ---------- */
+  /* ---------- CHEST FINDER ---------- */
   document.getElementById("chestSearch").onclick = () => {
-    const category = chestSelect.value;
-    if (!category)
-      return chestResults.innerHTML = "<p>Please select a category.</p>";
+    const type = chestSelect.value;
+    if (!type)
+      return chestResults.innerHTML = "<p>Please select a chest type.</p>";
 
-    const headers = [chestData[0][0], chestData[0][2]];
+    const headers = chestData[0].slice(1); // Location, Pokemon, Method
     const rows = chestData
       .slice(1)
-      .filter(r => r[1] === category)
-      .map(r => [r[0], r[2]]);
+      .filter(r => r[0] === type)
+      .map(r => r.slice(1)); // Location, Pokemon, Method
 
     chestResults.innerHTML = renderTable(headers, rows);
   };
@@ -322,6 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chestResults.innerHTML = "";
   };
 
+  /* ---------- START ---------- */
   startApp();
 
 });
