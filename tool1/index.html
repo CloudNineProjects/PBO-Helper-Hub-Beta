@@ -186,7 +186,7 @@ async function loadData() {
     regionSelect.appendChild(o);
   });
 
-  [...new Set(chestData.slice(1).map(r => r[2]))].forEach(type => {
+  [...new Set(chestData.slice(1).map(r => r[1]))].forEach(type => {
     if (!type) return;
     const o = document.createElement("option");
     o.value = type;
@@ -302,7 +302,7 @@ document.getElementById("chestSearch").onclick = () => {
   const headers = [chestData[0][0], chestData[0][2]];
   const rows = chestData
     .slice(1)
-    .filter(r => r[2] === type)
+    .filter(r => r[1] === type)
     .map(r => [r[0], r[2]]);
 
   chestResults.innerHTML = renderTable(headers, rows);
