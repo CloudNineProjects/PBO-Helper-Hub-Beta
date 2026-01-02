@@ -93,13 +93,34 @@
 
     .hidden{display:none}
 
+    /* ===== QUEST VIDEO (NEU, ISOLIERT) ===== */
+    .yt-toggle{
+      cursor:pointer;
+      color:#9fe6b8;
+      font-size:0.9em;
+      margin:2px 0;
+      display:inline-block;
+    }
+
+    .yt-preview{
+      display:none;
+      max-width:360px;
+      margin:2px 0;
+    }
+
+    .yt-preview iframe{
+      width:100%;
+      height:200px;
+      border:none;
+      border-radius:8px;
+    }
+
     /* Dark Mode */
     .dark-mode{
       --bg:#1A252C;
       --card:#023804;
     }
 
-    /* Dark toggle hidden until app is ready */
     #darkToggle{display:none}
   </style>
 </head>
@@ -111,7 +132,6 @@
 
 <main>
 
-  <!-- Loading -->
   <div id="loading" class="loading">
     <div>
       <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px;margin-bottom:12px">
@@ -119,26 +139,25 @@
     </div>
   </div>
 
-  <!-- App -->
   <div id="app" class="hidden">
 
     <section class="card">
       <h2>Quests</h2>
 
-  <div class="row">
-    <select id="regionSelect">
-      <option value="">Select Region</option>
-    </select>
+      <div class="row">
+        <select id="regionSelect">
+          <option value="">Select Region</option>
+        </select>
 
-    <select id="questSelect" disabled>
-    <option value="">Select Quest</option>
-    </select>
-  </div>
+        <select id="questSelect" disabled>
+          <option value="">Select Quest</option>
+        </select>
+      </div>
 
-  <div class="row">
-    <button id="showBtn">Show</button>
-    <button id="resetBtn">Reset</button>
-  </div>
+      <div class="row">
+        <button id="showBtn">Show</button>
+        <button id="resetBtn">Reset</button>
+      </div>
 
       <div id="output"></div>
     </section>
@@ -154,6 +173,32 @@ const escapeHtml = s => (s||'')
   .replace(/&/g,'&amp;')
   .replace(/</g,'&lt;')
   .replace(/>/g,'&gt;');
+
+/* ===== QUEST CONTENT RENDERER (NEU) ===== */
+function renderQuestContent(raw){
+  let vid = 0;
+  return raw.split(/\n+/).map(line=>{
+    const m = line.match(
+      /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/
+    );
+
+    if(m){
+      const id = `qyt_${vid++}`;
+      return `
+<span class="yt-toggle" onclick="
+  const v=document.getElementById('${id}');
+  const open=v.style.display==='block';
+  v.style.display=open?'none':'block';
+  this.textContent=open?'▶ Show Video':'▼ Hide Video';
+">▶ Show Video</span>
+<div id="${id}" class="yt-preview">
+  <iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe>
+</div>`;
+    }
+
+    return escapeHtml(line);
+  }).join("\n");
+}
 
 /* ===== CSV ===== */
 const QUEST_CSV =
@@ -214,13 +259,6 @@ function initUI(){
     const quest  = $('questSelect').value;
     const out    = $('output');
 
-  $('resetBtn').onclick = ()=>{
-    $('regionSelect').value = '';
-    $('questSelect').innerHTML = '<option value="">Select Quest</option>';
-    $('questSelect').disabled = true;
-    $('output').innerHTML = '';
-  };
-
     out.innerHTML = '';
     if(!region || !quest) return;
 
@@ -234,9 +272,16 @@ function initUI(){
 
     out.innerHTML = `
       <div class="content-box">
-${escapeHtml(hit[contentKey])}
+${renderQuestContent(hit[contentKey])}
       </div>
     `;
+  };
+
+  $('resetBtn').onclick = ()=>{
+    $('regionSelect').value = '';
+    $('questSelect').innerHTML = '<option value="">Select Quest</option>';
+    $('questSelect').disabled = true;
+    $('output').innerHTML = '';
   };
 }
 
