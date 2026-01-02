@@ -54,6 +54,16 @@ select{
   max-height:400px;
   overflow:auto;
 }
+
+/* === neu: saubere Video-Darstellung === */
+.content-box iframe{
+  width:100%;
+  aspect-ratio:16/9;
+  margin:10px 0;
+  border-radius:8px;
+  border:none;
+}
+
 table{
   width:100%;
   border-collapse:collapse;
@@ -71,14 +81,12 @@ th,td{
 }
 #app{ display:none; }
 
-/* ===== DARK MODE ===== */
 body.dark-mode{
   --bg:#1A252C;
   --card:#023804;
   background:var(--bg);
   color:#f1f1f1;
 }
-
 body.dark-mode .card{
   background:var(--card);
 }
@@ -87,24 +95,17 @@ body.dark-mode .card{
 
 <body>
 
-<!-- Header (nur im Haupt-Tool sichtbar) -->
 <header id="mainHeader" style="display:none">
   <button id="darkBtn">🌙 Dark</button>
 </header>
 
-<!-- Loading Screen -->
 <div id="loading">
-  <img
-    src="https://i.imgur.com/XZcfQzw.png"
-    alt="FAQ Logo"
-    style="max-width:200px; margin-bottom:20px;"
-  >
-  <p id="loadingText">Loading...</p>
+  <img src="https://i.imgur.com/XZcfQzw.png" style="max-width:200px; margin-bottom:20px;">
+  <p>Loading...</p>
 </div>
 
 <div id="app">
 
-  <!-- FAQ -->
   <div class="card">
     <h2>FAQ</h2>
     <div class="controls">
@@ -120,28 +121,6 @@ body.dark-mode .card{
     <div id="faqOut" class="results"></div>
   </div>
 
-  <!-- Regi Trio -->
-  <div class="card">
-    <h2>Regi Rotation</h2>
-    <div class="controls">
-      <label>Choose Time</label>
-      <select id="regiTime"></select>
-      <button id="regiShow">Show</button>
-      <button id="regiReset">Reset</button>
-    </div>
-    <div id="regiOut" class="results"></div>
-  </div>
-
-  <!-- Shoal Cave -->
-  <div class="card">
-    <h2>Shoal Cave Time</h2>
-    <div class="controls">
-      <button id="shoalBtn">Check Tide</button>
-      <button id="shoalReset">Reset</button>
-    </div>
-    <div id="shoalOut" class="results"></div>
-  </div>
-
 </div>
 
 <script>
@@ -150,39 +129,40 @@ document.addEventListener("DOMContentLoaded",()=>{
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||"").replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
-/* dark */
-$("darkBtn").onclick=()=>{
-  document.body.classList.toggle("dark-mode");
-  $("darkBtn").textContent=document.body.classList.contains("dark-mode")?"☀️ Light Mode":"🌙 Dark Mode";
-};
-
-/* sheets */
-const FAQ_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
-const REGI_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnZTHT3SeW7VWywFDBWhvjor0NqrwEcXPyBPOH53FD_Z5GHPNhO4NlGfpzniRjpuJBHna8vZJ1Ndia/pub?output=csv";
-
-let faqRows=[], faqFields=[];
-let regiRows=[], regiFields=[];
-
-/* auto load */
-async function loadAll(){
-  const loadCSV=url=>new Promise(res=>{
-    Papa.parse(url,{ download:true, header:true, skipEmptyLines:true,
-      complete:r=>res({ rows:r.data, fields:r.meta.fields })});
-  });
-
-  const [faq,regi]=await Promise.all([loadCSV(FAQ_CSV),loadCSV(REGI_CSV)]);
-  faqRows=faq.rows; faqFields=faq.fields;
-  regiRows=regi.rows; regiFields=regi.fields;
-
-  initFAQ();
-  initRegi();
-
-  $("loading").style.display="none";
-  $("app").style.display="block";
-  $("mainHeader").style.display="block";
+/* === NEU: Text + YouTube Inline Renderer === */
+function renderFaqContent(raw){
+  return raw.split(/\n+/).map(line=>{
+    const yt=line.match(
+      /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+))/
+    );
+    if(yt){
+      return `<iframe src="https://www.youtube.com/embed/${yt[2]}" allowfullscreen></iframe>`;
+    }
+    return esc(line);
+  }).join("\n");
 }
 
-/* FAQ */
+$("darkBtn").onclick=()=>{
+  document.body.classList.toggle("dark-mode");
+};
+
+const FAQ_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
+
+let faqRows=[], faqFields=[];
+
+Papa.parse(FAQ_CSV,{
+  download:true,
+  header:true,
+  complete:r=>{
+    faqRows=r.data;
+    faqFields=r.meta.fields;
+    initFAQ();
+    $("loading").style.display="none";
+    $("app").style.display="block";
+    $("mainHeader").style.display="block";
+  }
+});
+
 function initFAQ(){
   const t=$("typeSel");
   t.innerHTML='<option value="">-- choose --</option>';
@@ -199,53 +179,13 @@ $("typeSel").onchange=()=>{
   s.disabled=false;
 };
 
+/* === GEÄNDERT: FAQ-Ausgabe mit Video-Support === */
 $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
-  const m=faqRows.filter(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
-  function renderFAQContent(text){
-  const safe = esc(text);
-
-  // YouTube URLs finden
-  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11}))/g;
-
-  let videos = [];
-  let content = safe.replace(ytRegex, (_, url, id) => {
-    videos.push(id);
-    return ""; // Link aus Text entfernen
-  });
-
-  return `
-    <div class="content-box">
-      ${content.trim()}
-      ${videos.map(id => `
-        <div style="margin-top:14px">
-          <iframe
-            width="100%"
-            height="315"
-            src="https://www.youtube.com/embed/${id}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-$("showFaq").onclick = () => {
-  const t = $("typeSel").value;
-  const s = $("subSel").value;
-  const m = faqRows.filter(r =>
-    r[faqFields[0]] === t &&
-    r[faqFields[1]] === s
-  );
-
-  $("faqOut").innerHTML = m.length
-    ? renderFAQContent(m[0][faqFields[2]])
-    : '<p class="muted">No results.</p>';
-};
-
+  const m=faqRows.find(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
+  $("faqOut").innerHTML = m
+    ? `<div class="content-box">${renderFaqContent(m[faqFields[2]])}</div>`
+    : '<p>No results.</p>';
 };
 
 $("resetFaq").onclick=()=>{
@@ -254,46 +194,6 @@ $("resetFaq").onclick=()=>{
   $("subSel").disabled=true;
   $("faqOut").innerHTML="";
 };
-
-/* Regi */
-function initRegi(){
-  const s=$("regiTime");
-  s.innerHTML='<option value="">-- choose --</option>';
-  [...new Set(regiRows.map(r=>r[regiFields[0]]))].filter(Boolean)
-    .forEach(v=>s.appendChild(new Option(v,v)));
-}
-
-$("regiShow").onclick=()=>{
-  const t=$("regiTime").value;
-  if(!t) return;
-  const rows=regiRows.filter(r=>r[regiFields[0]]===t);
-  $("regiOut").innerHTML = rows.length
-    ? `<table><thead><tr>
-        <th>${regiFields[1]}</th>
-        <th>${regiFields[2]}</th>
-      </tr></thead><tbody>${
-        rows.map(r=>`<tr><td>${esc(r[regiFields[1]])}</td><td>${esc(r[regiFields[2]])}</td></tr>`).join("")
-      }</tbody></table>`
-    : "No results.";
-};
-
-$("regiReset").onclick=()=>{
-  $("regiTime").value="";
-  $("regiOut").innerHTML="";
-};
-
-/* Shoal */
-$("shoalBtn").onclick=()=>{
-  const n=new Date();
-  const m=n.getUTCHours()*60+n.getUTCMinutes();
-  const low=[[0,180],[360,540],[720,900],[1080,1260]].some(([a,b])=>m>=a&&m<b);
-  $("shoalOut").innerHTML=`UTC ${n.toISOString().slice(11,16)} — <b>${low?"Low Tide":"High Tide"}</b>`;
-};
-
-$("shoalReset").onclick=()=>$("shoalOut").innerHTML="";
-
-/* start */
-loadAll();
 
 });
 </script>
