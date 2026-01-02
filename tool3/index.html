@@ -202,9 +202,50 @@ $("typeSel").onchange=()=>{
 $("showFaq").onclick=()=>{
   const t=$("typeSel").value, s=$("subSel").value;
   const m=faqRows.filter(r=>r[faqFields[0]]===t && r[faqFields[1]]===s);
+  function renderFAQContent(text){
+  const safe = esc(text);
+
+  // YouTube URLs finden
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11}))/g;
+
+  let videos = [];
+  let content = safe.replace(ytRegex, (_, url, id) => {
+    videos.push(id);
+    return ""; // Link aus Text entfernen
+  });
+
+  return `
+    <div class="content-box">
+      ${content.trim()}
+      ${videos.map(id => `
+        <div style="margin-top:14px">
+          <iframe
+            width="100%"
+            height="315"
+            src="https://www.youtube.com/embed/${id}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+$("showFaq").onclick = () => {
+  const t = $("typeSel").value;
+  const s = $("subSel").value;
+  const m = faqRows.filter(r =>
+    r[faqFields[0]] === t &&
+    r[faqFields[1]] === s
+  );
+
   $("faqOut").innerHTML = m.length
-  ? `<div class="content-box">${esc(m[0][faqFields[2]])}</div>`
-  : '<p class="muted">No results.</p>';
+    ? renderFAQContent(m[0][faqFields[2]])
+    : '<p class="muted">No results.</p>';
+};
+
 };
 
 $("resetFaq").onclick=()=>{
