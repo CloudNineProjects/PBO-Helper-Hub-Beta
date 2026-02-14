@@ -9,8 +9,12 @@
 <style>
 :root {
   --bg-main: #0a0f0d;
-  --green-main: #00ff99;
-  --green-dark: #00b36b;
+  --bg-soft: #0f2e1f;
+
+  /* Original Button Colors */
+  --green-main: #1ea31e;
+  --green-dark: #0f6f0f;
+
   --text-main: #e8fdf5;
 }
 
@@ -28,54 +32,21 @@ body {
   justify-content: center;
   align-items: center;
   overflow-x: hidden;
-  position: relative;
 }
 
-/* ================= BACKGROUND EFFECTS ================= */
-
-/* Animated Grid */
+/* Digital Grid Overlay */
 body::before{
   content:"";
   position:fixed;
   inset:0;
   background:
-    linear-gradient(rgba(0,255,150,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,150,0.06) 1px, transparent 1px);
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
   background-size:40px 40px;
-  animation: gridMove 8s linear infinite;
   pointer-events:none;
 }
 
-/* Scanlines */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.15) 0px,
-    rgba(0,0,0,0.15) 1px,
-    transparent 2px,
-    transparent 4px
-  );
-  pointer-events:none;
-  opacity:0.4;
-}
-
-/* Grid animation */
-@keyframes gridMove {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 40px 40px, 40px 40px; }
-}
-
-/* Subtle Matrix Flow */
-@keyframes matrixFlow {
-  0% { background-position-y: 0; }
-  100% { background-position-y: 200px; }
-}
-
-/* ================= HUB ================= */
-
+/* Ambient Glow behind Hub */
 .hub{
   position:relative;
   width: 100%;
@@ -85,20 +56,13 @@ body::after{
   z-index:1;
 }
 
-/* Pulsing Ambient Glow */
 .hub::before{
   content:"";
   position:absolute;
-  inset:-60px;
-  background: radial-gradient(circle, rgba(0,255,150,0.2), transparent 70%);
-  filter: blur(70px);
+  inset:-40px;
+  background: radial-gradient(circle, rgba(30,163,30,0.25), transparent 70%);
+  filter: blur(60px);
   z-index:-1;
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-@keyframes pulseGlow{
-  0%,100% { opacity:0.6; transform:scale(1); }
-  50% { opacity:1; transform:scale(1.08); }
 }
 
 /* Branding */
@@ -183,7 +147,7 @@ body::after{
 
 .tool:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 18px rgba(0,255,150,0.6);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
 }
 
 .tool.placeholder {
@@ -203,15 +167,14 @@ body::after{
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #1c2b24;
+  background: #3a444d;
 }
 
 .dot.active {
   background: var(--green-main);
-  box-shadow: 0 0 8px rgba(0,255,150,0.7);
 }
 
-/* Mobile */
+/* Mobile fine-tuning */
 @media (max-width: 480px) {
   .logo-cloud { width: 170px; }
   .logo-nexus { width: 210px; }
@@ -233,18 +196,44 @@ body::after{
     <div class="viewport" id="viewport">
       <div class="blocks" id="blocks">
 
+        <!-- Block 1 -->
         <div class="block">
-          <a class="tool" href="tool1/"><img src="assets/images/spawn_icon.png" class="tool-icon"><span>Digimon Spawns</span></a>
-          <a class="tool" href="tool2/"><img src="assets/images/item_icon.png" class="tool-icon"><span>Item Finder</span></a>
-          <a class="tool" href="tool3/"><img src="assets/images/egg_icon.png" class="tool-icon"><span>Egg Check</span></a>
-          <a class="tool" href="tool4/"><img src="assets/images/seal_icon.png" class="tool-icon"><span>Seals</span></a>
+          <a class="tool" href="tool1/">
+            <img src="assets/images/spawn_icon.png" alt="" class="tool-icon">
+            <span>Digimon Spawns</span>
+          </a>
+          <a class="tool" href="tool2/">
+            <img src="assets/images/item_icon.png" alt="" class="tool-icon">
+            <span>Item Finder</span>
+          </a>
+          <a class="tool" href="tool3/">
+            <img src="assets/images/egg_icon.png" alt="" class="tool-icon">
+            <span>Egg Check</span>
+          </a>
+          <a class="tool" href="tool4/">
+            <img src="assets/images/seal_icon.png" alt="" class="tool-icon">
+            <span>Seals</span>
+          </a>          
         </div>
 
+        <!-- Block 2 -->
         <div class="block">
-          <a class="tool" href="tool5/"><img src="assets/images/deck_icon.png" class="tool-icon"><span>Deck Buff</span></a>
-          <a class="tool" href="tool6/"><img src="assets/images/dungeon_icon.png" class="tool-icon"><span>Dungeon Finder</span></a>
-          <a class="tool" href="tool7/"><img src="assets/images/event_icon.png" class="tool-icon"><span>Event</span></a>
-          <a class="tool" href="tool8/"><img src="assets/images/changelog_icon.png" class="tool-icon"><span>Changelog</span></a>
+          <a class="tool" href="tool5/">
+            <img src="assets/images/deck_icon.png" alt="" class="tool-icon">
+            <span>Deck Buff</span>
+          </a>
+          <a class="tool" href="tool6/">
+            <img src="assets/images/dungeon_icon.png" alt="" class="tool-icon">
+            <span>Dungeon Finder</span>
+          </a>
+          <a class="tool" href="tool7/">
+            <img src="assets/images/event_icon.png" alt="" class="tool-icon">
+            <span>Event</span>
+          </a>
+          <a class="tool" href="tool8/">
+            <img src="assets/images/changelog_icon.png" alt="" class="tool-icon">
+            <span>Changelog</span>
+          </a>
         </div>
 
       </div>
@@ -263,6 +252,7 @@ const blocks = document.querySelectorAll('.block');
 const dots = document.getElementById('dots');
 let index = 0;
 
+/* Auto-fill blocks to 4 items */
 blocks.forEach(block => {
   const count = block.querySelectorAll('.tool').length;
   for (let i = count; i < 4; i++) {
@@ -272,6 +262,7 @@ blocks.forEach(block => {
   }
 });
 
+/* Create dots */
 blocks.forEach((_, i) => {
   const d = document.createElement('div');
   d.className = 'dot' + (i === 0 ? ' active' : '');
@@ -295,6 +286,7 @@ function prev() {
   update();
 }
 
+/* Swipe */
 let startX = 0;
 const viewport = document.getElementById('viewport');
 
