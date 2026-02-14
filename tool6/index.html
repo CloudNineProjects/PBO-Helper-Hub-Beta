@@ -8,44 +8,58 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
+
+/* ================= DIGITAL THEME (IDENTICAL TO EGG CHECK) ================= */
+
 :root{
-  --bg-dark:#0b0f14;
-  --card-dark:rgba(0,40,25,0.85);
-  --accent:#00ff99;
-  --btn:#d9d9d9;
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
 }
 
-/* ===== BODY ===== */
 html,body{
   margin:0;
+  height:100%;
   font-family:Inter,system-ui,Arial;
-  background-color:var(--bg-dark);
-  color:#F0F0F0;
-  background-image:
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
     linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
   background-size:40px 40px;
+  pointer-events:none;
 }
 
-/* ===== HOME BUTTON ===== */
 .home-btn{
   position:fixed;
-  top:20px;
-  left:20px;
-  font-size:28px;
-  cursor:pointer;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
   z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
 }
 
-/* ===== LOADER ===== */
 .loader{
   min-height:100vh;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  flex-direction:column;
   gap:20px;
-  text-align:center;
 }
 
 .logo-wrap{
@@ -60,119 +74,108 @@ html,body{
     0 0 100px rgba(0,255,150,0.3);
 }
 
-.logo-wrap img{
-  width:200px;
-  height:200px;
-  border-radius:50%;
+.loader img{
+  width:220px;
+  height:220px;
   object-fit:cover;
+  border-radius:50%;
 }
 
-/* ===== LAYOUT ===== */
 .wrap{
   max-width:1000px;
-  margin:100px auto 40px auto;
+  margin:60px auto;
   padding:20px;
+  display:none;
 }
 
 .card{
-  background:var(--card-dark);
-  border-radius:20px;
-  padding:30px;
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
   box-shadow:
-    0 0 25px rgba(0,255,150,0.2);
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
 }
 
-/* ===== ALPHABET ===== */
-.alphabet{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:25px;
-}
-
-.letter{
-  padding:8px 14px;
-  border-radius:10px;
-  background:#012d1c;
-  cursor:pointer;
-  transition:.2s;
-  user-select:none;
-}
-
-.letter:hover{
-  background:var(--accent);
-  color:black;
-}
-
-.letter.disabled{
-  opacity:.25;
-  cursor:default;
-}
-
-.letter.active{
-  background:var(--accent);
-  color:black;
-}
-
-/* ===== BUTTONS ===== */
-.controls{
-  display:flex;
-  gap:12px;
-  margin-bottom:25px;
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
 }
 
 button{
-  padding:10px 16px;
-  border-radius:10px;
+  padding:10px 14px;
   border:none;
-  background:var(--btn);
-  font-weight:600;
+  border-radius:10px;
   cursor:pointer;
-}
-
-/* ===== RESULTS ===== */
-.result-entry{
-  background:#013a25;
-  padding:18px;
-  border-radius:14px;
-  margin-bottom:18px;
-  box-shadow:0 0 15px rgba(0,255,150,0.1);
-  transition:.2s;
-}
-
-.result-entry:hover{
-  box-shadow:0 0 25px rgba(0,255,150,0.25);
-}
-
-.entry-title{
-  font-size:20px;
+  background:var(--button);
   font-weight:600;
-  margin-bottom:10px;
-  color:var(--accent);
 }
 
-.entry-field{
-  margin-bottom:6px;
-  opacity:.9;
+.controls{
+  margin-top:15px;
+  display:flex;
+  gap:10px;
 }
+
+/* Alphabet */
+
+.alphabet{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.alphabet button{
+  width:38px;
+  height:38px;
+  padding:0;
+}
+
+.alphabet button.disabled{
+  opacity:0.25;
+  cursor:default;
+}
+
+/* Results */
+
+.results{
+  margin-top:20px;
+}
+
+.dungeon-entry{
+  background:rgba(0,0,0,0.4);
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+.dungeon-name{
+  font-weight:600;
+  font-size:16px;
+  margin-bottom:6px;
+  color:var(--card-glow);
+}
+
 </style>
 </head>
-
 <body>
 
-<div class="home-btn" onclick="location.href='../index.html'">🏠</div>
+<a href="../index.html" class="home-btn">🏠</a>
 
-<!-- ===== LOADING ===== -->
+<!-- Loading Screen -->
 <div id="loading" class="loader">
   <div class="logo-wrap">
-    <img src="../assets/images/placeholder-loading.png">
+    <img src="../assets/images/load_screen.png">
   </div>
-  <div>Connecting to DigiWorld...</div>
+  <div>Loading Dungeon Database...</div>
 </div>
 
-<!-- ===== APP ===== -->
-<div id="app" class="wrap" style="display:none">
+<div id="app" class="wrap">
+
   <div class="card">
+    <h2>Dungeon Finder</h2>
 
     <div class="alphabet" id="alphabet"></div>
 
@@ -181,94 +184,85 @@ button{
       <button id="resetBtn">Reset</button>
     </div>
 
-    <div id="results"></div>
-
+    <div id="results" class="results"></div>
   </div>
+
 </div>
 
 <script>
+
 const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUHR19ADVPMMcDfJ1kf3Cdo63TpCsn6kMwT_i9vr4IFwWvcLrU1C504TvYwQluoqQ9ZJ0DDSSscRl/pub?output=csv";
 const $=id=>document.getElementById(id);
 let rows=[];
-let activeLetter=null;
 
-/* LOAD DATA */
-function loadData(){
- Papa.parse(CSV_URL,{
-  download:true,
-  header:true,
-  skipEmptyLines:true,
-  complete:r=>{
-    rows=r.data;
-    initAlphabet();
-    $('loading').style.display='none';
-    $('app').style.display='block';
-  }
- });
-}
+/* LOAD */
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initAlphabet();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
+});
 
-/* INIT ALPHABET */
+/* ALPHABET */
 function initAlphabet(){
  const container=$('alphabet');
  const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
  letters.forEach(letter=>{
-   const hasEntry=rows.some(r=>r.Name && r.Name.toUpperCase().startsWith(letter));
-   const div=document.createElement("div");
-   div.textContent=letter;
-   div.className="letter"+(hasEntry?"":" disabled");
+   const hasEntry=rows.some(r=>r.Name?.toUpperCase().startsWith(letter));
+   const btn=document.createElement("button");
+   btn.textContent=letter;
 
-   if(hasEntry){
-     div.onclick=()=>{
-       document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
-       div.classList.add('active');
-       activeLetter=letter;
-       filterByLetter(letter);
-     };
+   if(!hasEntry){
+     btn.classList.add("disabled");
+   }else{
+     btn.onclick=()=>showByLetter(letter);
    }
 
-   container.appendChild(div);
+   container.appendChild(btn);
  });
 }
 
-/* FILTER */
-function filterByLetter(letter){
- const filtered=rows.filter(r=>r.Name && r.Name.toUpperCase().startsWith(letter));
- renderResults(filtered);
+/* RENDER */
+function renderList(list){
+ let html="";
+
+ list.forEach(r=>{
+   html+=`
+     <div class="dungeon-entry">
+       <div class="dungeon-name">${r.Name}</div>
+       <div><strong>Location:</strong> ${r.Location}</div>
+       <div><strong>Ticket Based:</strong> ${r["Ticket Based"]}</div>
+       <div><strong>Recommended Digimon:</strong> ${r["Recommended Digimon"]}</div>
+       <div><strong>Purpose:</strong> ${r.Purpose}</div>
+     </div>
+   `;
+ });
+
+ $('results').innerHTML=html || "No entries.";
+}
+
+/* LETTER VIEW */
+function showByLetter(letter){
+ const filtered=rows.filter(r=>r.Name?.toUpperCase().startsWith(letter));
+ renderList(filtered);
 }
 
 /* SHOW ALL */
 $('showAllBtn').onclick=()=>{
- document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
- activeLetter=null;
- renderResults(rows);
+ renderList(rows);
 };
 
 /* RESET */
 $('resetBtn').onclick=()=>{
- activeLetter=null;
- document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
  $('results').innerHTML="";
 };
 
-/* RENDER */
-function renderResults(data){
- let html="";
- data.forEach(r=>{
-   html+=`
-    <div class="result-entry">
-      <div class="entry-title">${r.Name}</div>
-      <div class="entry-field"><strong>Location:</strong> ${r.Location}</div>
-      <div class="entry-field"><strong>Ticket Based:</strong> ${r["Ticket Based"]}</div>
-      <div class="entry-field"><strong>Recommended Digimon:</strong> ${r["Recommended Digimon"]}</div>
-      <div class="entry-field"><strong>Purpose:</strong> ${r.Purpose}</div>
-    </div>
-   `;
- });
- $('results').innerHTML=html;
-}
-
-loadData();
 </script>
 </body>
 </html>
