@@ -1,327 +1,304 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAQ Tool</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Egg Check</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-body{
-  font-family:Arial, sans-serif;
-  background:#666769;
-  color:#f0f0f0;
+
+/* ================= DIGITAL THEME ================= */
+
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
+}
+
+html,body{
   margin:0;
-}
-header{
-  padding:10px;
-  text-align:right;
-}
-button{
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  margin:4px;
-}
-.card{
-  background:#02491D;
-  border-radius:10px;
-  padding:15px;
-  margin:20px;
-}
-.controls{
-  max-width:420px;
-}
-select{
-  padding:6px;
-  margin:4px 0;
-  width:100%;
-}
-.results{
-  margin-top:12px;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
 }
 
-.content-box{
-  margin-top:16px;
-  padding:14px;
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
   background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:8px;
-  white-space:pre-wrap;   /* WICHTIG: Textfluss */
-  line-height:1.45;
-  max-height:400px;
-  overflow:auto;
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
 }
 
-/* ===== FAQ VIDEO (nur Video-Abstand angepasst) ===== */
-.yt-toggle{
-  cursor:pointer;
-  color:#9fe6b8;
-  font-size:0.9em;
-  margin:2px 0;
-  display:inline-block;
-}
-
-.yt-preview{
-  display:none;
-  max-width:360px;
-  margin:2px 0;
-}
-
-.yt-preview iframe{
-  width:100%;
-  height:200px;
-  border:none;
-  border-radius:8px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #999;
-  padding:6px;
-}
-
-#loading{
-  height:100vh;
+.loader{
+  min-height:100vh;
   display:flex;
   flex-direction:column;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
+  gap:20px;
 }
 
-#app{ display:none; }
-
-/* ===== DARK MODE ===== */
-body.dark-mode{
-  --bg:#1A252C;
-  --card:#023804;
-  background:var(--bg);
-  color:#f1f1f1;
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
 }
-body.dark-mode .card{
+
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
+
+.card{
   background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
 }
+
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  margin-top:15px;
+}
+
+/* Alphabet */
+
+.alphabet{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.alphabet button{
+  width:38px;
+  height:38px;
+  padding:0;
+}
+
+/* Results */
+
+.results{
+  margin-top:20px;
+}
+
+.egg-entry{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  background:rgba(0,0,0,0.4);
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.egg-info{
+  flex:1;
+}
+
+.egg-name{
+  font-weight:600;
+  font-size:16px;
+}
+
+input[type="checkbox"]{
+  transform:scale(1.3);
+  margin-top:5px;
+  cursor:pointer;
+}
+
+.checked{
+  opacity:0.5;
+  text-decoration:line-through;
+}
+
 </style>
 </head>
-
 <body>
 
-<header id="mainHeader" style="display:none">
-  <button id="darkBtn">🌙 Dark</button>
-</header>
+<a href="../index.html" class="home-btn">🏠</a>
 
-<div id="loading">
-  <img src="../assets/images/load-logo.png" style="max-width:200px; margin-bottom:20px;">
-  <p>Loading...</p>
+<!-- Loading Screen -->
+<div id="loading" class="loader">
+  <div class="logo-wrap">
+    <img src="../assets/images/load_screen.png">
+  </div>
+  <div>Loading Egg Database...</div>
 </div>
 
-<div id="app">
+<div id="app" class="wrap">
 
-  <!-- FAQ -->
   <div class="card">
-    <h2>FAQ</h2>
+    <h2>Egg Check</h2>
+
+    <div class="alphabet" id="alphabet"></div>
+
     <div class="controls">
-      <label>Choose Type</label>
-      <select id="typeSel"></select>
-
-      <label>Choose Subtype</label>
-      <select id="subSel" disabled></select>
-
-      <button id="showFaq">Show</button>
-      <button id="resetFaq">Reset</button>
+      <button id="resetBtn">Reset</button>
+      <button id="clearDataBtn">Clear User Data</button>
     </div>
-    <div id="faqOut" class="results"></div>
-  </div>
 
-  <!-- Regi Rotation -->
-  <div class="card">
-    <h2>Regi Rotation</h2>
-    <div class="controls">
-      <label>Choose Time</label>
-      <select id="regiTime"></select>
-      <button id="regiShow">Show</button>
-      <button id="regiReset">Reset</button>
-    </div>
-    <div id="regiOut" class="results"></div>
-  </div>
-
-  <!-- Shoal Cave -->
-  <div class="card">
-    <h2>Shoal Cave Time</h2>
-    <div class="controls">
-      <button id="shoalBtn">Check Tide</button>
-      <button id="shoalReset">Reset</button>
-    </div>
-    <div id="shoalOut" class="results"></div>
+    <div id="results" class="results"></div>
   </div>
 
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
 
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRPHSeHac1ESyCg7JSwz2zSg4u_ryr95xyUEgjlsHdKpy1MZWg5Y1eQY2Q5xm3N19qQgsyJcHTjt0NJ/pub?output=csv";
 const $=id=>document.getElementById(id);
-const esc=s=>String(s||"").replace(/[&<>]/g,m=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;"
-}[m]));
+let rows=[];
+const STORAGE_KEY="eggCheckData";
 
-/* ===== FAQ CONTENT RENDERER (FINAL) ===== */
-function renderFaqContent(raw){
-  let vid=0;
-  return raw.split(/\n+/).map(line=>{
-    const m=line.match(
-      /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/
-    );
+/* ================= LOAD ================= */
 
-    if(m){
-      const id=`yt_${vid++}`;
-      return `
-<span class="yt-toggle" onclick="
-  const v=document.getElementById('${id}');
-  const open=v.style.display==='block';
-  v.style.display=open?'none':'block';
-  this.textContent=open?'▶ Show Video':'▼ Hide Video';
-">▶ Show Video</span>
-<div id="${id}" class="yt-preview">
-  <iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe>
-</div>`;
-    }
-
-    return esc(line);
-  }).join("\n");  // Zeilenumbrüche bewusst beibehalten
-}
-
-/* dark mode */
-$("darkBtn").onclick=()=>{
-  document.body.classList.toggle("dark-mode");
-  $("darkBtn").textContent =
-    document.body.classList.contains("dark-mode")
-    ? "☀️ Light"
-    : "🌙 Dark";
-};
-
-/* CSV URLs */
-const FAQ_CSV  ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSfISqMJoPKSFFO4tRUY1V_L7J5C02XG7xbs_T0y7dcWdPjvAKX4064cVGHGgYJ7PFkiOHoy74j7KyU/pub?output=csv";
-const REGI_CSV ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSnZTHT3SeW7VWywFDBWhvjor0NqrwEcXPyBPOH53FD_Z5GHPNhO4NlGfpzniRjpuJBHna8vZJ1Ndia/pub?output=csv";
-
-let faqRows=[], faqFields=[];
-let regiRows=[], regiFields=[];
-
-/* load */
-async function loadAll(){
-  const loadCSV=url=>new Promise(res=>{
-    Papa.parse(url,{
-      download:true,
-      header:true,
-      skipEmptyLines:true,
-      complete:r=>res({ rows:r.data, fields:r.meta.fields })
-    });
-  });
-
-  const [faq,regi]=await Promise.all([
-    loadCSV(FAQ_CSV),
-    loadCSV(REGI_CSV)
-  ]);
-
-  faqRows=faq.rows; faqFields=faq.fields;
-  regiRows=regi.rows; regiFields=regi.fields;
-
-  initFAQ();
-  initRegi();
-
-  $("loading").style.display="none";
-  $("app").style.display="block";
-  $("mainHeader").style.display="block";
-}
-
-/* FAQ */
-function initFAQ(){
-  const t=$("typeSel");
-  t.innerHTML='<option value="">-- choose --</option>';
-  [...new Set(faqRows.map(r=>r[faqFields[0]]))]
-    .filter(Boolean)
-    .forEach(v=>t.appendChild(new Option(v,v)));
-}
-
-$("typeSel").onchange=()=>{
-  const s=$("subSel"), v=$("typeSel").value;
-  s.innerHTML='<option value="">-- choose --</option>';
-  if(!v){ s.disabled=true; return; }
-  [...new Set(
-    faqRows.filter(r=>r[faqFields[0]]===v).map(r=>r[faqFields[1]])
-  )].filter(Boolean)
-   .forEach(x=>s.appendChild(new Option(x,x)));
-  s.disabled=false;
-};
-
-$("showFaq").onclick=()=>{
-  const t=$("typeSel").value, s=$("subSel").value;
-  const m=faqRows.find(
-    r=>r[faqFields[0]]===t && r[faqFields[1]]===s
-  );
-  $("faqOut").innerHTML = m
-    ? `<div class="content-box">${renderFaqContent(m[faqFields[2]])}</div>`
-    : "<p>No results.</p>";
-};
-
-$("resetFaq").onclick=()=>{
-  $("typeSel").value="";
-  $("subSel").innerHTML='<option value="">-- choose --</option>';
-  $("subSel").disabled=true;
-  $("faqOut").innerHTML="";
-};
-
-/* Regi */
-function initRegi(){
-  const s=$("regiTime");
-  s.innerHTML='<option value="">-- choose --</option>';
-  [...new Set(regiRows.map(r=>r[regiFields[0]]))]
-    .filter(Boolean)
-    .forEach(v=>s.appendChild(new Option(v,v)));
-}
-
-$("regiShow").onclick=()=>{
-  const t=$("regiTime").value;
-  if(!t) return;
-  const rows=regiRows.filter(r=>r[regiFields[0]]===t);
-  $("regiOut").innerHTML = rows.length
-    ? `<table><thead><tr>
-        <th>${regiFields[1]}</th>
-        <th>${regiFields[2]}</th>
-      </tr></thead><tbody>${
-        rows.map(r=>`<tr><td>${esc(r[regiFields[1]])}</td><td>${esc(r[regiFields[2]])}</td></tr>`).join("")
-      }</tbody></table>`
-    : "No results.";
-};
-
-$("regiReset").onclick=()=>{
-  $("regiTime").value="";
-  $("regiOut").innerHTML="";
-};
-
-/* Shoal */
-$("shoalBtn").onclick=()=>{
-  const n=new Date();
-  const m=n.getUTCHours()*60+n.getUTCMinutes();
-  const low=[[0,180],[360,540],[720,900],[1080,1260]]
-    .some(([a,b])=>m>=a&&m<b);
-  $("shoalOut").innerHTML =
-    `UTC ${n.toISOString().slice(11,16)} — <b>${low?"Low Tide":"High Tide"}</b>`;
-};
-
-$("shoalReset").onclick=()=>{
-  $("shoalOut").innerHTML="";
-};
-
-loadAll();
-
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initAlphabet();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
 });
-</script>
 
+/* ================= LOCAL STORAGE ================= */
+
+function getStored(){
+ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+}
+
+function saveStored(data){
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+/* ================= ALPHABET ================= */
+
+function initAlphabet(){
+ const container=$('alphabet');
+ const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+ letters.forEach(letter=>{
+   const btn=document.createElement("button");
+   btn.textContent=letter;
+   btn.onclick=()=>showByLetter(letter);
+   container.appendChild(btn);
+ });
+}
+
+/* ================= SHOW RESULTS ================= */
+
+function showByLetter(letter){
+ const stored=getStored();
+ const filtered=rows.filter(r=>r.Name?.toUpperCase().startsWith(letter));
+
+ let html="";
+
+ filtered.forEach(r=>{
+   const isChecked=stored[r.Name]===true;
+   html+=`
+     <div class="egg-entry ${isChecked?'checked':''}">
+       <input type="checkbox" ${isChecked?'checked':''} data-name="${r.Name}">
+       <div class="egg-info">
+         <div class="egg-name">${r.Name}</div>
+         Obtainment: ${r.Obtainment}
+       </div>
+     </div>
+   `;
+ });
+
+ $('results').innerHTML=html || "No entries.";
+
+ /* Checkbox Logic */
+ document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+   cb.onchange=e=>{
+     const name=e.target.dataset.name;
+     const data=getStored();
+
+     if(e.target.checked){
+       data[name]=true;
+     }else{
+       delete data[name];
+     }
+
+     saveStored(data);
+     showByLetter(letter);
+   };
+ });
+}
+
+/* ================= RESET ================= */
+
+$('resetBtn').onclick=()=>{
+ $('results').innerHTML="";
+};
+
+/* ================= CLEAR USER DATA ================= */
+
+$('clearDataBtn').onclick=()=>{
+ if(confirm("Clear all saved egg data?")){
+   localStorage.removeItem(STORAGE_KEY);
+   $('results').innerHTML="";
+ }
+};
+
+</script>
 </body>
 </html>
