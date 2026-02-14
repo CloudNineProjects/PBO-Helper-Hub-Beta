@@ -3,200 +3,302 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Team Database</title>
+<title>Seals</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{
-  --bg-light:#666769;
-  --bg-dark:#1A252C;
-  --card-light:#02491D;
-  --card-dark:#023804;
-  --title-color:#ffffff;
-}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif}
-body{background:var(--bg-light);color:#F0F0F0}
-body.dark{background:var(--bg-dark)}
 
-.mode-toggle{
-  position:fixed;top:12px;right:12px;z-index:1200;
-  background:rgba(255,255,255,0.9);color:#111;
-  padding:6px 10px;border-radius:8px;cursor:pointer;
+/* ================= DIGITAL THEME ================= */
+
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
 }
-body.dark .mode-toggle{background:rgba(0,0,0,0.7);color:#F0F0F0}
+
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
+
+/* ===== Loader ===== */
 
 .loader{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:14px;text-align:center;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
 }
-.loader img.logo{
-  width:200px;height:200px;object-fit:cover;border-radius:50%;
-  box-shadow:0 8px 24px rgba(0,0,0,0.25)
-}
-.loading-text{opacity:.85;font-size:.95rem}
 
-.wrap{max-width:860px;margin:28px auto;padding:18px}
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
+
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
+
+/* ===== Card ===== */
+
 .card{
-  border-radius:12px;padding:18px;
-  background:var(--card-light);
-}
-body.dark .card{background:var(--card-dark)}
-
-label{display:block;margin-top:10px;margin-bottom:6px}
-select,button{
-  width:100%;padding:10px;border-radius:8px;font-size:15px;
-}
-select{background:#F0F0F0}
-body.dark select{background:#000;color:#fff}
-
-.controls{display:flex;gap:10px;flex-wrap:wrap}
-.controls button{width:auto}
-
-.results{margin-top:14px;background:rgba(255,255,255,0.06);padding:14px;border-radius:8px}
-
-.section-title{font-weight:600;margin:14px 0 6px}
-.preview-img{
-  max-width:220px;border-radius:8px;cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,0.3)
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
 }
 
-#imgOverlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.9);
-  display:none;align-items:center;justify-content:center;
-  z-index:2000;
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
 }
-#imgOverlay img{max-width:90%;max-height:90%}
-#imgOverlay .close{
-  position:absolute;top:20px;right:20px;
-  font-size:28px;cursor:pointer;color:#fff;
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
 }
-iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:8px}
+
+/* ===== Type Buttons ===== */
+
+.type-container{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+/* ===== Results ===== */
+
+.results{
+  margin-top:20px;
+}
+
+.seal-entry{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  background:rgba(0,0,0,0.4);
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.seal-info{
+  flex:1;
+}
+
+.seal-name{
+  font-weight:600;
+  font-size:16px;
+}
+
+input[type="checkbox"]{
+  transform:scale(1.3);
+  margin-top:5px;
+  cursor:pointer;
+}
+
+.checked{
+  opacity:0.5;
+  text-decoration:line-through;
+}
+
+.controls{
+  margin-top:15px;
+}
+
 </style>
 </head>
-
 <body>
 
-<!-- Dark Mode Toggle (nur im Haupt-Tool sichtbar) -->
-<div id="modeToggle" class="mode-toggle" style="display:none">🌙 Dark Mode</div>
+<a href="../index.html" class="home-btn">🏠</a>
 
 <!-- Loading Screen -->
 <div id="loading" class="loader">
-  <img class="logo" src="../assets/images/load-logo.png">
-  <div id="loadingText" class="loading-text">Loading…</div>
+  <div class="logo-wrap">
+    <img src="../assets/images/loading.png">
+  </div>
+  <div>Loading Seal Database...</div>
 </div>
 
-<div id="app" class="wrap" style="display:none">
-  <div class="card">
-    <label>Content</label>
-    <select id="contentSelect">
-      <option value="">-- choose --</option>
-    </select>
+<div id="app" class="wrap">
 
-    <label>Team</label>
-    <select id="teamSelect" disabled>
-      <option value="">-- choose --</option>
-    </select>
+  <div class="card">
+    <h2>Seals</h2>
+
+    <div class="type-container" id="typeContainer"></div>
 
     <div class="controls">
-      <button id="showBtn">Show</button>
       <button id="resetBtn">Reset</button>
+      <button id="clearDataBtn">Clear User Data</button>
     </div>
 
-    <div id="out" class="results" style="display:none"></div>
+    <div id="results" class="results"></div>
   </div>
-</div>
 
-<div id="imgOverlay">
-  <span class="close">✕</span>
-  <img id="overlayImg">
 </div>
 
 <script>
-const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTQXPCtdQMlebYXnrAn2uTY1o0Qkn9h1tZyOvVk0xPwL2Ig9p3XMGmKDqEfeJjpyQ97e8UrpaTzmnN3/pub?output=csv";
+
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3MFntjG5aYHNkVYDl3kTKarpryHu6Kxu1ZD5aCWR2qGPs53VD4Fue-20d_QmDVUButAUj5h8e1n4/pub?output=csv";
 const $=id=>document.getElementById(id);
 let rows=[];
+const STORAGE_KEY="sealCheckData";
 
-/* ---------- LOAD DATA ---------- */
-function loadData(){
- Papa.parse(CSV_URL,{
-  download:true,header:true,skipEmptyLines:true,
-  complete:r=>{
-    rows=r.data;
-    const contents=[...new Set(rows.map(x=>x.Content))];
-    contents.forEach(c=>$('contentSelect').add(new Option(c,c)));
-    $('loading').style.display='none';
-    $('app').style.display='block';
-    $('modeToggle').style.display='block';
-  }
+/* ================= LOAD ================= */
+
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initTypes();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
+});
+
+/* ================= STORAGE ================= */
+
+function getStored(){
+ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+}
+
+function saveStored(data){
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+/* ================= TYPE BUTTONS ================= */
+
+function initTypes(){
+ const container=$('typeContainer');
+ const types=[...new Set(rows.map(r=>r.Type))];
+
+ types.forEach(type=>{
+   const btn=document.createElement("button");
+   btn.textContent=type;
+   btn.onclick=()=>showByType(type);
+   container.appendChild(btn);
  });
 }
 
-/* ---------- SELECT HANDLING ---------- */
-$('contentSelect').onchange=()=>{
- const val=$('contentSelect').value;
- const teamSel=$('teamSelect');
- teamSel.innerHTML='<option value="">-- choose --</option>';
- teamSel.disabled=!val;
- rows.filter(r=>r.Content===val)
-     .forEach(r=>teamSel.add(new Option(r.Team,r.Team)));
-};
+/* ================= SHOW RESULTS ================= */
 
-function youtubeEmbed(url){
- try{
-  const id=url.includes('youtu.be')
-   ? url.split('/').pop()
-   : new URL(url).searchParams.get('v');
-  return id
-   ? `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`
-   : `<a href="${url}" target="_blank">${url}</a>`;
- }catch{return ''}
+function showByType(type){
+ const stored=getStored();
+ const filtered=rows.filter(r=>r.Type===type);
+
+ let html="";
+
+ filtered.forEach(r=>{
+   const key=r.Seal;
+   const isChecked=stored[key]===true;
+
+   html+=`
+     <div class="seal-entry ${isChecked?'checked':''}">
+       <input type="checkbox" ${isChecked?'checked':''} data-name="${key}">
+       <div class="seal-info">
+         <div class="seal-name">${r.Seal}</div>
+         Value: ${r.Value}<br>
+         Obtainment: ${r.Obtainment}
+       </div>
+     </div>
+   `;
+ });
+
+ $('results').innerHTML=html || "No entries.";
+
+ document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+   cb.onchange=e=>{
+     const name=e.target.dataset.name;
+     const data=getStored();
+
+     if(e.target.checked){
+       data[name]=true;
+     }else{
+       delete data[name];
+     }
+
+     saveStored(data);
+     showByType(type);
+   };
+ });
 }
 
-/* ---------- SHOW ---------- */
-$('showBtn').onclick=()=>{
- const c=$('contentSelect').value;
- const t=$('teamSelect').value;
- const r=rows.find(x=>x.Content===c && x.Team===t);
- if(!r)return alert('Please select Content and Team');
- $('out').innerHTML=`
-  <div class="section-title">Content</div>${r.Content}
-  <div class="section-title">Preview</div>
-  <img class="preview-img" src="${r.Preview}">
-  <div class="section-title">Showcase</div>
-  ${r.Showcase?youtubeEmbed(r.Showcase):''}
- `;
- $('out').style.display='block';
+/* ================= RESET ================= */
 
- document.querySelector('.preview-img').onclick=()=>{
-  $('overlayImg').src=r.Preview;
-  $('imgOverlay').style.display='flex';
- };
-};
-
-/* ---------- RESET ---------- */
 $('resetBtn').onclick=()=>{
- $('contentSelect').selectedIndex=0;
- $('teamSelect').innerHTML='<option value="">-- choose --</option>';
- $('teamSelect').disabled=true;
- $('out').style.display='none';
+ $('results').innerHTML="";
 };
 
-/* ---------- IMAGE OVERLAY ---------- */
-$('imgOverlay').onclick=e=>{
- if(e.target.id==='imgOverlay'||e.target.className==='close')
-  $('imgOverlay').style.display='none';
+/* ================= CLEAR DATA ================= */
+
+$('clearDataBtn').onclick=()=>{
+ if(confirm("Clear all saved seal data?")){
+   localStorage.removeItem(STORAGE_KEY);
+   $('results').innerHTML="";
+ }
 };
 
-/* ---------- DARK MODE ---------- */
-$('modeToggle').onclick=()=>{
- document.body.classList.toggle('dark');
- $('modeToggle').textContent=
-  document.body.classList.contains('dark')?'☀️ Light Mode':'🌙 Dark Mode';
-};
-
-/* ---------- AUTO START ---------- */
-loadData();
 </script>
 </body>
 </html>
