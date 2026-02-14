@@ -1,281 +1,314 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PBO Route Planner</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Deck Buff</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{
-  --bg-light:#666769;
-  --bg-dark:#1A252C;
-  --card-light:#02491D;
-  --card-dark:#023804;
-  --accent:#F0F0F0;
-  --text-light:#F0F0F0;
-  --muted:rgba(255,255,255,0.85);
-}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif}
-body{background:var(--bg-light);color:var(--text-light)}
-body.dark{background:var(--bg-dark)}
 
-.mode-toggle{
-  position:fixed;top:12px;right:12px;z-index:2000;
-  background:rgba(255,255,255,0.9);color:#111;
-  padding:6px 10px;border-radius:8px;cursor:pointer
+/* ================= DIGITAL THEME ================= */
+
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
 }
-body.dark .mode-toggle{background:rgba(0,0,0,0.6);color:#F0F0F0}
+
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
+
+/* ===== Loader ===== */
 
 .loader{
-  min-height:100vh;display:flex;align-items:center;
-  justify-content:center;flex-direction:column;gap:14px
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
 }
-.loader img.logo{
-  width:200px;height:200px;border-radius:50%;object-fit:cover
-}
-.loading-text{opacity:.85}
 
-.wrap{max-width:940px;margin:26px auto;padding:16px}
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
+
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
+
+/* ===== Card ===== */
+
 .card{
-  border-radius:12px;padding:18px;
-  background:var(--card-light);
-  box-shadow:0 10px 30px rgba(0,0,0,0.08)
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
 }
-body.dark .card{background:var(--card-dark)}
 
-label{display:block;margin-top:10px;margin-bottom:6px}
-select,button{
-  padding:10px 12px;border-radius:8px;font-size:15px;
-  width:100%;box-sizing:border-box;margin-bottom:10px
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
 }
-select{background:#F0F0F0;color:#000}
-.controls{display:flex;gap:10px}
-.controls button{width:auto}
 
-.results{margin-top:14px;background:rgba(255,255,255,0.04);padding:12px;border-radius:8px}
-table{width:100%;border-collapse:collapse}
-th,td{
+select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+  font-size:15px;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  margin-top:15px;
+}
+
+/* ===== Results ===== */
+
+.results{
+  margin-top:20px;
+}
+
+.effect-box{
+  background:rgba(0,0,0,0.4);
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  font-weight:600;
+}
+
+.digimon-entry{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  background:rgba(0,0,0,0.4);
   padding:10px;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  text-align:center;
-  vertical-align:middle;
+  border-radius:10px;
+  margin-bottom:8px;
 }
 
-.preview img{
-  max-width:360px;border-radius:8px;
-  cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,0.25)
+.digimon-name{
+  flex:1;
 }
 
-.modal{
-  position:fixed;inset:0;display:none;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.75);z-index:3000
+input[type="checkbox"]{
+  transform:scale(1.3);
+  margin-top:3px;
+  cursor:pointer;
 }
-.modal img{max-width:95%;max-height:95%}
+
+.checked{
+  opacity:0.5;
+  text-decoration:line-through;
+}
+
 </style>
 </head>
-
 <body>
 
-<!-- Dark Mode Toggle (nur im Haupt-Tool sichtbar) -->
-<div id="modeToggle" class="mode-toggle" style="display:none">🌙 Dark Mode</div>
+<a href="../index.html" class="home-btn">🏠</a>
 
-<!-- ========= LOADING ========= -->
+<!-- Loading -->
 <div id="loading" class="loader">
-  <img class="logo" src="../assets/images/load-logo.png">
-  <div class="loading-text">Loading…</div>
+  <div class="logo-wrap">
+    <img src="../assets/images/loading.png">
+  </div>
+  <div>Loading Deck Buff Database...</div>
 </div>
 
-<!-- ========= APP ========= -->
-<div id="app" class="wrap" style="display:none">
+<div id="app" class="wrap">
 
-<div class="card">
-  <label>Region</label>
-  <select id="regionSelect"></select>
+  <div class="card">
+    <h2>Deck Buff</h2>
 
-  <label>Location</label>
-  <select id="locationSelect" disabled></select>
+    <select id="buffSelect">
+      <option value="">-- Select Deck Buff --</option>
+    </select>
 
-  <div class="controls">
-    <button id="showBtn">Show</button>
-    <button id="resetBtn">Reset</button>
+    <div class="controls">
+      <button id="resetBtn">Reset</button>
+      <button id="clearDataBtn">Clear User Data</button>
+    </div>
+
+    <div id="results" class="results"></div>
   </div>
 
-  <div id="out" class="results" style="display:none"></div>
-  <div id="imagePreview" class="preview" style="display:none"></div>
 </div>
-
-<div class="card" style="margin-top:16px">
-  <h3>EV Spot Finder</h3>
-
-  <label>Region</label>
-  <select id="evRegion"></select>
-
-  <label>EV</label>
-  <select id="evSelect" disabled></select>
-
-  <div class="controls">
-    <button id="evShow">Show</button>
-    <button id="evReset">Reset</button>
-  </div>
-
-  <div id="evOutput" class="results" style="display:none"></div>
-</div>
-</div>
-
-<div id="modal" class="modal"><img id="modalImg"></div>
 
 <script>
-const ROUTE_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vSpF6ds_mTMYqWpGN_NelEH8nBO-7fymhdu2AmOJEfstro2SJgjLSNswlFnJeNPkC_XEHJc3bqL06uC/pub?output=csv";
-const EV_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3s-al3s9rwdhK0FHls7J368zMl0Hdryc_y6MVwwXaiWLpgzImXs_9YsC5lXkwRdi_aPMi_gRHfsei/pub?output=csv";
 
-let rows=[],fields=[],keyRegion,keyLocation,keyTeleport,keyDirection,keyMap;
-let evRows=[],evFields=[];
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZAJc-uAVldWNPEDMszFrgqV-matmTsvkQCrgF-Jo-zbAPrA2MVo812XSXVE4UOtM2Hz7kcxnixkso/pub?output=csv";
+const $=id=>document.getElementById(id);
+let rows=[];
+const STORAGE_KEY="deckBuffDigimonData";
 
-function findKey(c){return fields.find(f=>f.toLowerCase().includes(c))}
+/* ================= LOAD ================= */
 
-/* ---------- LOAD ROUTES ---------- */
-function loadRoute(){
-return new Promise(res=>{
-Papa.parse(ROUTE_CSV,{
-download:true,header:true,
-complete:r=>{
-rows=r.data;fields=r.meta.fields;
-keyRegion=findKey("region");
-keyLocation=findKey("location");
-keyTeleport=findKey("teleport");
-keyDirection=findKey("direction");
-keyMap=findKey("map");
-populateRegions();
-res();
-}});});
-}
-
-function populateRegions(){
-regionSelect.innerHTML='<option value="">-- choose region --</option>';
-[...new Set(rows.map(r=>r[keyRegion]).filter(Boolean))]
-.forEach(v=>regionSelect.add(new Option(v,v)));
-}
-
-regionSelect.onchange=()=>{
-locationSelect.innerHTML='<option value="">-- choose location --</option>';
-locationSelect.disabled=true;
-rows.filter(r=>r[keyRegion]===regionSelect.value)
-.forEach(r=>locationSelect.add(new Option(r[keyLocation],r[keyLocation])));
-locationSelect.disabled=false;
-};
-
-showBtn.onclick=()=>{
-const matched=rows.filter(r=>r[keyRegion]===regionSelect.value&&r[keyLocation]===locationSelect.value);
-out.innerHTML=renderTable(matched);
-out.style.display="block";
-imagePreview.innerHTML="";
-matched.forEach(r=>{
-if(r[keyMap]){
-const img=document.createElement("img");
-img.src=r[keyMap];
-img.onclick=()=>openModal(r[keyMap]);
-imagePreview.appendChild(img);
-}});
-imagePreview.style.display="flex";
-};
-
-resetBtn.onclick = () => {
-  // Selects zurücksetzen
-  regionSelect.selectedIndex = 0;
-  locationSelect.innerHTML = '<option value="">-- choose location --</option>';
-  locationSelect.disabled = true;
-
-  // Ausgabe & Bilder ausblenden
-  out.style.display = "none";
-  out.innerHTML = "";
-  imagePreview.style.display = "none";
-  imagePreview.innerHTML = "";
-};
-
-function renderTable(rs){
-if(!rs.length)return"<p>No results.</p>";
-let h="<table><thead><tr>";
-[keyRegion,keyLocation,keyTeleport,keyDirection].forEach(k=>h+=`<th>${k}</th>`);
-h+="</tr></thead><tbody>";
-rs.forEach(r=>{
-h+="<tr>";
-[keyRegion,keyLocation,keyTeleport,keyDirection].forEach(k=>h+=`<td>${r[k]||""}</td>`);
-h+="</tr>";
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initBuffs();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
 });
-return h+"</tbody></table>";
+
+/* ================= STORAGE ================= */
+
+function getStored(){
+ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 }
 
-/* ---------- EV ---------- */
-function loadEv(){
-return new Promise(res=>{
-Papa.parse(EV_CSV,{
-download:true,header:true,
-complete:r=>{
-evRows=r.data;evFields=r.meta.fields;
-populateEvRegions();
-res();
-}});});
+function saveStored(data){
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function populateEvRegions(){
-evRegion.innerHTML='<option value="">-- choose region --</option>';
-[...new Set(evRows.map(r=>r[evFields[0]]).filter(Boolean))]
-.forEach(v=>evRegion.add(new Option(v,v)));
+/* ================= INIT SELECT ================= */
+
+function initBuffs(){
+ const buffs=[...new Set(rows.map(r=>r.Name))];
+ buffs.forEach(b=>{
+   $('buffSelect').add(new Option(b,b));
+ });
 }
 
-evRegion.onchange=()=>{
-evSelect.innerHTML='<option value="">-- choose EV --</option>';
-evSelect.disabled=true;
-const evKey=evFields[2];
-[...new Set(evRows
-.filter(r=>r[evFields[0]]===evRegion.value)
-.map(r=>r[evKey]).filter(Boolean))]
-.forEach(v=>evSelect.add(new Option(v,v)));
-evSelect.disabled=false;
+/* ================= SHOW BUFF ================= */
+
+$('buffSelect').onchange=()=>{
+ const buff=$('buffSelect').value;
+ if(!buff){
+   $('results').innerHTML="";
+   return;
+ }
+
+ const stored=getStored();
+ const row=rows.find(r=>r.Name===buff);
+ if(!row) return;
+
+ let html=`<div class="effect-box">${row.Effect}</div>`;
+
+ /* Columns C–O = 1–13 */
+ for(let i=1;i<=13;i++){
+   const value=row[i.toString()];
+   if(value && value.trim()!==""){
+     const isChecked=stored[value]===true;
+     html+=`
+       <div class="digimon-entry ${isChecked?'checked':''}">
+         <input type="checkbox" ${isChecked?'checked':''} data-name="${value}">
+         <div class="digimon-name">${value}</div>
+       </div>
+     `;
+   }
+ }
+
+ $('results').innerHTML=html;
+
+ /* Checkbox logic */
+ document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+   cb.onchange=e=>{
+     const name=e.target.dataset.name;
+     const data=getStored();
+
+     if(e.target.checked){
+       data[name]=true;
+     }else{
+       delete data[name];
+     }
+
+     saveStored(data);
+
+     // Re-render current buff
+     $('buffSelect').dispatchEvent(new Event("change"));
+   };
+ });
 };
 
-evShow.onclick=()=>{
-const rows=evRows.filter(r=>r[evFields[0]]===evRegion.value&&r[evFields[2]]===evSelect.value);
-evOutput.innerHTML=renderEv(rows);
-evOutput.style.display="block";
+/* ================= RESET ================= */
+
+$('resetBtn').onclick=()=>{
+ $('buffSelect').selectedIndex=0;
+ $('results').innerHTML="";
 };
 
-evReset.onclick = () => {
-  evRegion.selectedIndex = 0;
-  evSelect.innerHTML = '<option value="">-- choose EV --</option>';
-  evSelect.disabled = true;
-  evOutput.style.display = "none";
-  evOutput.innerHTML = "";
+/* ================= CLEAR DATA ================= */
+
+$('clearDataBtn').onclick=()=>{
+ if(confirm("Clear all saved Digimon progress?")){
+   localStorage.removeItem(STORAGE_KEY);
+   $('results').innerHTML="";
+ }
 };
 
-function renderEv(rs){
-if(!rs.length)return"<p>No results.</p>";
-let h="<table><thead><tr>";
-evFields.slice(0,5).forEach(f=>h+=`<th>${f}</th>`);
-h+="</tr></thead><tbody>";
-rs.forEach(r=>{
-h+="<tr>";
-evFields.slice(0,5).forEach(f=>h+=`<td>${r[f]||""}</td>`);
-h+="</tr>";
-});
-return h+"</tbody></table>";
-}
-
-/* ---------- SHARED ---------- */
-function openModal(src){modal.style.display="flex";modalImg.src=src}
-modal.onclick=()=>modal.style.display="none";
-modeToggle.onclick=()=>document.body.classList.toggle("dark");
-
-/* ---------- AUTO LOAD ---------- */
-(async()=>{
-await Promise.all([loadRoute(),loadEv()]);
-loading.style.display="none";
-app.style.display="block";
-modeToggle.style.display="block";
-})();
 </script>
 </body>
 </html>
