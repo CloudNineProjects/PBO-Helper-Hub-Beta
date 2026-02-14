@@ -9,30 +9,35 @@
 
 <style>
 :root{
-  --bg:#0d1117;
-  --card:#0f2a1d;
+  --bg-dark:#0b0f14;
+  --card-dark:rgba(0,40,25,0.85);
   --accent:#00ff99;
   --btn:#d9d9d9;
 }
 
+/* ===== BODY ===== */
 html,body{
   margin:0;
   font-family:Inter,system-ui,Arial;
-  background:radial-gradient(circle at 20% 20%, #0f2a1d 0%, #0d1117 60%);
-  color:white;
+  background-color:var(--bg-dark);
+  color:#F0F0F0;
+  background-image:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
 }
 
-/* Home Button */
+/* ===== HOME BUTTON ===== */
 .home-btn{
   position:fixed;
-  top:15px;
-  left:15px;
-  font-size:22px;
+  top:20px;
+  left:20px;
+  font-size:28px;
   cursor:pointer;
   z-index:1000;
 }
 
-/* Loader */
+/* ===== LOADER ===== */
 .loader{
   min-height:100vh;
   display:flex;
@@ -40,6 +45,7 @@ html,body{
   justify-content:center;
   flex-direction:column;
   gap:20px;
+  text-align:center;
 }
 
 .logo-wrap{
@@ -61,33 +67,34 @@ html,body{
   object-fit:cover;
 }
 
-/* Layout */
+/* ===== LAYOUT ===== */
 .wrap{
   max-width:1000px;
-  margin:80px auto;
+  margin:100px auto 40px auto;
   padding:20px;
 }
 
 .card{
-  background:var(--card);
-  border-radius:18px;
-  padding:25px;
-  box-shadow:0 0 25px rgba(0,255,150,0.15);
+  background:var(--card-dark);
+  border-radius:20px;
+  padding:30px;
+  box-shadow:
+    0 0 25px rgba(0,255,150,0.2);
 }
 
-/* Alphabet */
+/* ===== ALPHABET ===== */
 .alphabet{
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
-  margin-bottom:20px;
+  gap:10px;
+  margin-bottom:25px;
 }
 
 .letter{
-  padding:8px 12px;
-  border-radius:8px;
+  padding:8px 14px;
+  border-radius:10px;
+  background:#012d1c;
   cursor:pointer;
-  background:#132f22;
   transition:.2s;
   user-select:none;
 }
@@ -98,47 +105,56 @@ html,body{
 }
 
 .letter.disabled{
-  background:#1a1a1a;
-  opacity:.3;
+  opacity:.25;
   cursor:default;
 }
 
+.letter.active{
+  background:var(--accent);
+  color:black;
+}
+
+/* ===== BUTTONS ===== */
 .controls{
   display:flex;
-  gap:10px;
-  margin-bottom:20px;
+  gap:12px;
+  margin-bottom:25px;
 }
 
 button{
-  padding:8px 14px;
-  border-radius:8px;
+  padding:10px 16px;
+  border-radius:10px;
   border:none;
   background:var(--btn);
-  cursor:pointer;
   font-weight:600;
+  cursor:pointer;
 }
 
-/* Results */
+/* ===== RESULTS ===== */
 .result-entry{
-  background:#132f22;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:15px;
+  background:#013a25;
+  padding:18px;
+  border-radius:14px;
+  margin-bottom:18px;
   box-shadow:0 0 15px rgba(0,255,150,0.1);
+  transition:.2s;
+}
+
+.result-entry:hover{
+  box-shadow:0 0 25px rgba(0,255,150,0.25);
 }
 
 .entry-title{
-  font-size:18px;
+  font-size:20px;
   font-weight:600;
-  margin-bottom:8px;
+  margin-bottom:10px;
   color:var(--accent);
 }
 
 .entry-field{
-  margin-bottom:5px;
+  margin-bottom:6px;
   opacity:.9;
 }
-
 </style>
 </head>
 
@@ -146,7 +162,7 @@ button{
 
 <div class="home-btn" onclick="location.href='../index.html'">🏠</div>
 
-<!-- LOADING -->
+<!-- ===== LOADING ===== -->
 <div id="loading" class="loader">
   <div class="logo-wrap">
     <img src="../assets/images/placeholder-loading.png">
@@ -154,7 +170,7 @@ button{
   <div>Connecting to DigiWorld...</div>
 </div>
 
-<!-- APP -->
+<!-- ===== APP ===== -->
 <div id="app" class="wrap" style="display:none">
   <div class="card">
 
@@ -172,9 +188,9 @@ button{
 
 <script>
 const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUHR19ADVPMMcDfJ1kf3Cdo63TpCsn6kMwT_i9vr4IFwWvcLrU1C504TvYwQluoqQ9ZJ0DDSSscRl/pub?output=csv";
-
 const $=id=>document.getElementById(id);
 let rows=[];
+let activeLetter=null;
 
 /* LOAD DATA */
 function loadData(){
@@ -193,7 +209,7 @@ function loadData(){
 
 /* INIT ALPHABET */
 function initAlphabet(){
- const alphabetContainer=$('alphabet');
+ const container=$('alphabet');
  const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
  letters.forEach(letter=>{
@@ -203,10 +219,15 @@ function initAlphabet(){
    div.className="letter"+(hasEntry?"":" disabled");
 
    if(hasEntry){
-     div.onclick=()=>filterByLetter(letter);
+     div.onclick=()=>{
+       document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
+       div.classList.add('active');
+       activeLetter=letter;
+       filterByLetter(letter);
+     };
    }
 
-   alphabetContainer.appendChild(div);
+   container.appendChild(div);
  });
 }
 
@@ -218,11 +239,15 @@ function filterByLetter(letter){
 
 /* SHOW ALL */
 $('showAllBtn').onclick=()=>{
+ document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
+ activeLetter=null;
  renderResults(rows);
 };
 
 /* RESET */
 $('resetBtn').onclick=()=>{
+ activeLetter=null;
+ document.querySelectorAll('.letter').forEach(l=>l.classList.remove('active'));
  $('results').innerHTML="";
 };
 
