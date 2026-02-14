@@ -257,8 +257,10 @@ function updateBuffSelect(){
    let total=0;
    let checked=0;
 
-   for(let i=1;i<=13;i++){
-     const value=row[i.toString()];
+   const values=Object.values(row);
+
+for(let i=2;i<=14;i++){   // C-O = Position 2 bis 14
+  const value=values[i];
      if(value && value.trim()!==""){
        total++;
        if(stored[value]===true){
@@ -294,8 +296,10 @@ $('buffSelect').onchange=()=>{
 
  let html=`<div class="effect-box">${row.Effect}</div>`;
 
- for(let i=1;i<=13;i++){
-   const value=row[i.toString()];
+ const values=Object.values(row);
+
+for(let i=2;i<=14;i++){
+  const value=values[i];
    if(value && value.trim()!==""){
      const isChecked=stored[value]===true;
      html+=`
