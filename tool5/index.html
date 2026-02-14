@@ -175,7 +175,6 @@ input[type="checkbox"]{
 
 <a href="../index.html" class="home-btn">🏠</a>
 
-<!-- Loading -->
 <div id="loading" class="loader">
   <div class="logo-wrap">
     <img src="../assets/images/load_screen.png">
@@ -233,6 +232,45 @@ function saveStored(data){
  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+/* ================= COUNT FUNCTION ================= */
+
+function getBuffCounts(buffName){
+ const stored=getStored();
+ const row=rows.find(r=>r.Name===buffName);
+ if(!row) return {checked:0,total:0};
+
+ let total=0;
+ let checked=0;
+
+ for(let i=1;i<=13;i++){
+   const value=row[i.toString()];
+   if(value && value.trim()!==""){
+     total++;
+     if(stored[value]===true){
+       checked++;
+     }
+   }
+ }
+
+ return {checked,total};
+}
+
+/* ================= UPDATE DROPDOWN ================= */
+
+function updateDropdownCounts(){
+ const select=$('buffSelect');
+ const currentValue=select.value;
+
+ [...select.options].forEach(opt=>{
+   if(!opt.value) return;
+
+   const {checked,total}=getBuffCounts(opt.value);
+   opt.text=`${opt.value} (${checked}/${total})`;
+ });
+
+ select.value=currentValue;
+}
+
 /* ================= INIT SELECT ================= */
 
 function initBuffs(){
@@ -240,6 +278,8 @@ function initBuffs(){
  buffs.forEach(b=>{
    $('buffSelect').add(new Option(b,b));
  });
+
+ updateDropdownCounts();
 }
 
 /* ================= SHOW BUFF ================= */
@@ -257,7 +297,6 @@ $('buffSelect').onchange=()=>{
 
  let html=`<div class="effect-box">${row.Effect}</div>`;
 
- /* Columns C–O = 1–13 */
  for(let i=1;i<=13;i++){
    const value=row[i.toString()];
    if(value && value.trim()!==""){
@@ -273,7 +312,6 @@ $('buffSelect').onchange=()=>{
 
  $('results').innerHTML=html;
 
- /* Checkbox logic */
  document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
    cb.onchange=e=>{
      const name=e.target.dataset.name;
@@ -287,7 +325,7 @@ $('buffSelect').onchange=()=>{
 
      saveStored(data);
 
-     // Re-render current buff
+     updateDropdownCounts();
      $('buffSelect').dispatchEvent(new Event("change"));
    };
  });
@@ -306,6 +344,7 @@ $('clearDataBtn').onclick=()=>{
  if(confirm("Clear all saved Digimon progress?")){
    localStorage.removeItem(STORAGE_KEY);
    $('results').innerHTML="";
+   updateDropdownCounts();
  }
 };
 
