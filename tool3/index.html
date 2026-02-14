@@ -229,7 +229,7 @@ function saveStored(data){
  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-/* ================= ALPHABET ================= */
+/* ================= ALPHABET + MISSING ================= */
 
 function initAlphabet(){
  const container=$('alphabet');
@@ -241,18 +241,28 @@ function initAlphabet(){
    btn.onclick=()=>showByLetter(letter);
    container.appendChild(btn);
  });
+
+ // Neuer Button nach Z
+ const missingBtn=document.createElement("button");
+ missingBtn.textContent="Missing Digimon";
+ missingBtn.style.width="auto";
+ missingBtn.style.padding="0 12px";
+ missingBtn.onclick=()=>showMissing();
+ container.appendChild(missingBtn);
 }
 
-/* ================= SHOW RESULTS ================= */
+/* ================= RENDER FUNCTION ================= */
 
-function showByLetter(letter){
+function renderList(list, mode="letter", letter=null){
  const stored=getStored();
- const filtered=rows.filter(r=>r.Name?.toUpperCase().startsWith(letter));
-
  let html="";
 
- filtered.forEach(r=>{
+ list.forEach(r=>{
    const isChecked=stored[r.Name]===true;
+
+   // In Missing nur NICHT abgehakte anzeigen
+   if(mode==="missing" && isChecked) return;
+
    html+=`
      <div class="egg-entry ${isChecked?'checked':''}">
        <input type="checkbox" ${isChecked?'checked':''} data-name="${r.Name}">
@@ -279,9 +289,28 @@ function showByLetter(letter){
      }
 
      saveStored(data);
-     showByLetter(letter);
+
+     // Nach Änderung korrekt neu rendern
+     if(mode==="letter"){
+       showByLetter(letter);
+     }else{
+       showMissing();
+     }
    };
  });
+}
+
+/* ================= LETTER VIEW ================= */
+
+function showByLetter(letter){
+ const filtered=rows.filter(r=>r.Name?.toUpperCase().startsWith(letter));
+ renderList(filtered,"letter",letter);
+}
+
+/* ================= MISSING VIEW ================= */
+
+function showMissing(){
+ renderList(rows,"missing");
 }
 
 /* ================= RESET ================= */
