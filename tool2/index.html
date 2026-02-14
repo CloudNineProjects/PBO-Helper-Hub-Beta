@@ -1,269 +1,318 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PBO Item Finder</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Item Finder</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <style>
-    :root{
-      --bg:#666769;
-      --card:#02491D;
-      --text:#ffffff;
-      --accent:#eef3fb;
-      --radius:10px;
-    }
+<style>
 
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-      background:var(--bg);
-      color:var(--text);
-    }
+/* ================= DIGITAL DIGIMON THEME ================= */
 
-    header{
-      display:flex;
-      justify-content:flex-end;
-      padding:12px;
-    }
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
+}
 
-    button{
-      padding:10px 18px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      background:var(--accent);
-      color:#000;
-    }
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
 
-    button.secondary{
-      background:var(--accent);
-      color:#000;
-    }
+/* Grid background */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
 
-    main{
-      max-width:1000px;
-      margin:0 auto;
-      padding:12px;
-    }
+/* Home Button */
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
 
-    .loading{
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-    }
+/* Loader */
 
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:16px;
-      margin-top:16px;
-    }
+.loader{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+}
 
-    .row{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-top:12px;
-      align-items:center;
-    }
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
 
-    select,input{
-      padding:8px;
-      border-radius:8px;
-      border:none;
-      min-width:220px;
-    }
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+  background:transparent;
+}
 
-    table{
-      width:100%;
-      border-collapse:collapse;
-      margin-top:14px;
-    }
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
 
-    th,td{
-      padding:8px;
-      border-bottom:1px solid rgba(255,255,255,0.15);
-      text-align:left;
-    }
+/* Cards */
 
-    .muted{opacity:0.8;margin-top:12px}
-    .hidden{display:none}
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
+}
 
-    .dark-mode{
-      --bg:#1A252C;
-      --card:#023804;
-    }
-  </style>
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
+}
+
+/* Inputs */
+
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+  font-size:15px;
+}
+
+button{
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* Results */
+
+.results{
+  margin-top:20px;
+}
+
+.item-entry{
+  background:rgba(0,0,0,0.4);
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.item-name{
+  font-weight:600;
+  font-size:16px;
+}
+
+</style>
 </head>
 <body>
 
-<header id="mainHeader" class="hidden">
-  <button id="darkToggle" class="secondary">🌙 Dark Mode</button>
-</header>
+<a href="../index.html" class="home-btn">🏠</a>
 
-<main>
+<!-- Loading Screen -->
+<div id="loading" class="loader">
+  <div class="logo-wrap">
+    <img src="../assets/images/loading.png">
+  </div>
+  <div>Loading Item Database...</div>
+</div>
 
-  <div id="loading" class="loading">
-    <div>
-      <img src="../assets/images/load-logo.png" style="max-width:200px;margin-bottom:12px">
-      <div class="muted">Loading...</div>
+<div id="app" class="wrap">
+
+  <!-- SEARCH -->
+  <div class="card">
+    <h2>Item Search</h2>
+    <input type="text" id="searchInput" placeholder="Enter Item name...">
+
+    <div class="controls">
+      <button id="searchBtn">Show</button>
+      <button id="searchReset">Reset</button>
     </div>
+
+    <div id="searchResults" class="results"></div>
   </div>
 
-  <div id="app" class="hidden">
+  <!-- FILTER -->
+  <div class="card">
+    <h2>Category / Location Filter</h2>
 
-    <section class="card">
-      <h2>Item Finder</h2>
+    <select id="categorySelect">
+      <option value="">-- Select Category --</option>
+    </select>
 
-      <!-- Fuzzy Search -->
-      <div class="row">
-        <input id="manualInput" type="text"
-          placeholder="Search item (e.g. TM070, Trick Room)" />
-      </div>
+    <select id="whereSelect" disabled>
+      <option value="">-- Select Location --</option>
+    </select>
 
-      <div class="row">
-        <button id="manualBtn">Search</button>
-        <button id="manualReset" class="secondary">Reset</button>
-      </div>
+    <div class="controls">
+      <button id="filterReset">Reset</button>
+    </div>
 
-      <div id="manualOut"></div>
-
-      <hr style="margin:18px 0;opacity:0.2">
-
-      <!-- Filtered Search -->
-      <div class="row">
-        <select id="categorySelect">
-          <option value="">Select Category</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <button id="filterBtn">Search</button>
-        <button id="filterReset" class="secondary">Reset</button>
-      </div>
-
-      <div id="filterOut"></div>
-
-    </section>
+    <div id="filterResults" class="results"></div>
   </div>
-</main>
+
+</div>
 
 <script>
-const $ = id => document.getElementById(id);
-const normalize = s => (s||'').toString().trim().toLowerCase();
-const escapeHtml = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-const ITEM_CSV =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7A6OIMzNiZSJJxLyi3ybt1LKsuwLq02IJSHdzt5eRHG8FEr0PJu6e8dlTK-XeeRAZZYL13JRv0Gk0/pub?output=csv';
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRTS05_Sr6_psqMIi11lLXgmYiYAKzzyOXbVL4DkqAlmPKWFkPtIf0W0yCTLH_-uaEfKTnLJNMATQ-j/pub?output=csv";
+const $=id=>document.getElementById(id);
+let rows=[];
 
-let rows = [];
-let fields = [];
+/* ================= LOAD ================= */
 
-function loadData(){
-  Papa.parse(ITEM_CSV,{
-    download:true,
-    header:true,
-    skipEmptyLines:true,
-    complete:(res)=>{
-      rows = res.data.filter(r => Object.values(r).some(v => v && String(v).trim() !== ''));
-      fields = res.meta.fields;
-      initUI();
-      $('loading').style.display='none';
-      $('app').classList.remove('hidden');
-      $('mainHeader').classList.remove('hidden');
-    }
-  });
-}
-
-function initUI(){
-  const itemKey     = fields[0]; // A Item
-  const howKey      = fields[1]; // B How
-  const whereKey    = fields[2]; // C Where
-  const categoryKey = fields[3]; // D Category
-
-  /* ===== Category Filter Init ===== */
-  const categories = [...new Set(rows.map(r => r[categoryKey]).filter(Boolean))];
-  categories.forEach(c => $('categorySelect').add(new Option(c,c)));
-
-  /* ===== Fuzzy Search ===== */
-  $('manualBtn').onclick = ()=>{
-    const q = normalize($('manualInput').value);
-    const out = $('manualOut');
-    if(!q){
-      out.innerHTML='<p class="muted">Enter search term.</p>';
-      return;
-    }
-
-    const hits = rows.filter(r => normalize(r[itemKey]).includes(q));
-    out.innerHTML = hits.length
-      ? renderTable(hits,[itemKey,howKey,whereKey])
-      : '<p class="muted">No results.</p>';
-  };
-
-  $('manualReset').onclick = ()=>{
-    $('manualInput').value='';
-    $('manualOut').innerHTML='';
-  };
-
-  /* ===== Filtered Search ===== */
-  $('filterBtn').onclick = ()=>{
-    const c = $('categorySelect').value;
-    const out = $('filterOut');
-
-    if(!c){
-      out.innerHTML = '<p class="muted">Select category.</p>';
-      return;
-    }
-
-    const hits = rows.filter(r => r[categoryKey] === c);
-    out.innerHTML = hits.length
-      ? renderTable(hits,[itemKey,howKey,whereKey])
-      : '<p class="muted">No results.</p>';
-  };
-
-  $('filterReset').onclick = ()=>{
-    $('categorySelect').selectedIndex = 0;
-    $('filterOut').innerHTML='';
-  };
-}
-
-function renderTable(data, cols){
-  let html = '<table><thead><tr>';
-  cols.forEach(c => html+=`<th>${escapeHtml(c)}</th>`);
-  html += '</tr></thead><tbody>';
-
-  data.forEach(r=>{
-    html+='<tr>';
-    cols.forEach(c => html+=`<td>${escapeHtml(String(r[c]||''))}</td>`);
-    html+='</tr>';
-  });
-
-  html+='</tbody></table>';
-  return html;
-}
-
-$('darkToggle').addEventListener('click',()=>{
-  document.body.classList.toggle('dark-mode');
-  $('darkToggle').textContent =
-    document.body.classList.contains('dark-mode')
-      ? '☀️ Light Mode'
-      : '🌙 Dark Mode';
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initCategories();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
 });
 
-$('manualInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
-    e.preventDefault();
-    $('manualBtn').click();
-  }
+/* ================= FUZZY SEARCH ================= */
+
+function fuzzyMatch(str,search){
+  return str.toLowerCase().includes(search.toLowerCase());
+}
+
+function doSearch(){
+  const val=$('searchInput').value.trim();
+  if(!val) return;
+
+  const results=rows.filter(r=>fuzzyMatch(r.Item,val));
+
+  let html="";
+  results.forEach(r=>{
+    html+=`
+      <div class="item-entry">
+        <div class="item-name">${r.Item}</div>
+        How: ${r.How}<br>
+        Where: ${r.Where}
+      </div>
+    `;
+  });
+
+  $('searchResults').innerHTML=html || "No results found.";
+}
+
+$('searchBtn').onclick=doSearch;
+$('searchInput').addEventListener("keypress",e=>{
+ if(e.key==="Enter") doSearch();
 });
 
-loadData();
+$('searchReset').onclick=()=>{
+ $('searchInput').value="";
+ $('searchResults').innerHTML="";
+};
+
+/* ================= FILTER ================= */
+
+function initCategories(){
+ const cats=[...new Set(rows.map(r=>r.Category))];
+ cats.forEach(c=>{
+   $('categorySelect').add(new Option(c,c));
+ });
+}
+
+$('categorySelect').onchange=()=>{
+ const cat=$('categorySelect').value;
+ const whereSel=$('whereSelect');
+ whereSel.innerHTML='<option value="">-- Select Location --</option>';
+ $('filterResults').innerHTML="";
+
+ if(!cat){
+   whereSel.disabled=true;
+   return;
+ }
+
+ const locations=[...new Set(rows.filter(r=>r.Category===cat).map(r=>r.Where))];
+ locations.forEach(l=>whereSel.add(new Option(l,l)));
+ whereSel.disabled=false;
+};
+
+$('whereSelect').onchange=()=>{
+ const cat=$('categorySelect').value;
+ const where=$('whereSelect').value;
+ if(!where) return;
+
+ const filtered=rows.filter(r=>r.Category===cat && r.Where===where);
+
+ let html="";
+ filtered.forEach(r=>{
+   html+=`
+    <div class="item-entry">
+      <div class="item-name">${r.Item}</div>
+      How: ${r.How}
+    </div>
+   `;
+ });
+
+ $('filterResults').innerHTML=html;
+};
+
+$('filterReset').onclick=()=>{
+ $('categorySelect').selectedIndex=0;
+ $('whereSelect').innerHTML='<option value="">-- Select Location --</option>';
+ $('whereSelect').disabled=true;
+ $('filterResults').innerHTML="";
+};
+
 </script>
-
 </body>
 </html>
