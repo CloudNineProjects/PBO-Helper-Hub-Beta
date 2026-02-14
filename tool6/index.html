@@ -1,351 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PBO Seasonal Events</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dungeon Finder</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
-:root {
-  --bg-light: #666769;
-  --bg-dark: #1A252C;
-  --card-light: #02491D;
-  --card-dark: #023804;
-  --text-light: #000;
-  --text-dark: #F0F0F0;
-  --btn-bg: #F0F0F0;
-  --btn-text: #000;
-}
-body {
-  font-family: Arial, sans-serif;
-  background-color: var(--bg-light);
-  color: var(--text-light);
-  margin: 0;
-  padding: 0;
-  transition: background-color 0.3s, color 0.3s;
-}
-.dark-mode {
-  background-color: var(--bg-dark);
-  color: var(--text-dark);
-}
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-}
-.card {
-  background-color: var(--card-light);
-  color: white;
-  border-radius: 12px;
-  padding: 15px 20px;
-  margin-bottom: 20px;
-  transition: background-color 0.3s;
-}
-.dark-mode .card {
-  background-color: var(--card-dark);
-}
-h1 {
-  text-align: center;
-  color: white;
-  margin-bottom: 20px;
-}
-button, select {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 10px;
-  margin-top: 5px;
-  background: var(--btn-bg);
-  color: var(--btn-text);
-}
-.dark-mode button, .dark-mode select {
-  background: #000;
-  color: white;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background: white;
-  color: black;
-  border-radius: 8px;
-  overflow: hidden;
-}
-table th, table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-.dark-mode table {
-  background: #111;
-  color: white;
-}
-img.map {
-  display: block;
-  margin: 20px auto;
-  width: 80%;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-img.map:hover {
-  transform: scale(1.02);
+:root{
+  --bg:#0d1117;
+  --card:#0f2a1d;
+  --accent:#00ff99;
+  --btn:#d9d9d9;
 }
 
-/* Overlay */
-#overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  overflow: hidden;
-}
-#overlay img {
-  width: 1900px;
-  height: 1900px;
-  display: block;
-  cursor: grab;
-  user-select: none;
-}
-#closeOverlay {
-  position: fixed;
-  top: 20px;
-  right: 35px;
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  cursor: pointer;
-  z-index: 1001;
-}
-#closeOverlay:hover {
-  color: #ff5050;
+html,body{
+  margin:0;
+  font-family:Inter,system-ui,Arial;
+  background:radial-gradient(circle at 20% 20%, #0f2a1d 0%, #0d1117 60%);
+  color:white;
 }
 
-/* Toggle */
-.toggle-container {
-  position: fixed;
-  top: 15px;
-  right: 20px;
-  z-index: 2000;
+/* Home Button */
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  cursor:pointer;
+  z-index:1000;
 }
-.toggle-btn {
-  background-color: var(--btn-bg);
-  color: var(--btn-text);
-  border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
-  font-size: 15px;
-  cursor: pointer;
-}
-.dark-mode .toggle-btn {
-  background-color: #000;
-  color: white;
-}
-.footer {
-  text-align: center;
-  color: white;
-  margin-top: 20px;
-}
-</style>
-</head>
-<body>
 
-<!-- Loading Screen -->
-<div id="loadingScreen" style="
+/* Loader */
+.loader{
   min-height:100vh;
   display:flex;
-  flex-direction:column;
   align-items:center;
   justify-content:center;
+  flex-direction:column;
   gap:20px;
-  text-align:center;
-">
-  <img src="../assets/images/load-logo.png"
-       alt="Loading Logo"
-       style="width:200px;height:200px;border-radius:50%;">
-  <div id="loadingText" style="color:white;font-size:16px;">
-    Loading...
+}
+
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
+
+.logo-wrap img{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+/* Layout */
+.wrap{
+  max-width:1000px;
+  margin:80px auto;
+  padding:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:25px;
+  box-shadow:0 0 25px rgba(0,255,150,0.15);
+}
+
+/* Alphabet */
+.alphabet{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.letter{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  background:#132f22;
+  transition:.2s;
+  user-select:none;
+}
+
+.letter:hover{
+  background:var(--accent);
+  color:black;
+}
+
+.letter.disabled{
+  background:#1a1a1a;
+  opacity:.3;
+  cursor:default;
+}
+
+.controls{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+button{
+  padding:8px 14px;
+  border-radius:8px;
+  border:none;
+  background:var(--btn);
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* Results */
+.result-entry{
+  background:#132f22;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 0 15px rgba(0,255,150,0.1);
+}
+
+.entry-title{
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:8px;
+  color:var(--accent);
+}
+
+.entry-field{
+  margin-bottom:5px;
+  opacity:.9;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="home-btn" onclick="location.href='../index.html'">🏠</div>
+
+<!-- LOADING -->
+<div id="loading" class="loader">
+  <div class="logo-wrap">
+    <img src="../assets/images/placeholder-loading.png">
   </div>
+  <div>Connecting to DigiWorld...</div>
 </div>
 
-<div class="toggle-container" id="toggleContainer" style="display:none;">
-  <button id="toggleMode" class="toggle-btn">🌙 Dark Mode</button>
-</div>
-
-<div class="container" id="app" style="display:none;">
-  <h1>❄️PBO Winter Event 2025 Map & Spawns (Event is over)❄️</h1>
-
+<!-- APP -->
+<div id="app" class="wrap" style="display:none">
   <div class="card">
-    <h2>Filter by Location</h2>
-    <select id="locationSelect">
-      <option value="">Select Location</option>
-    </select>
-    <button id="resetLocation">Reset</button>
-    <div id="locationResult"></div>
+
+    <div class="alphabet" id="alphabet"></div>
+
+    <div class="controls">
+      <button id="showAllBtn">Show All</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div id="results"></div>
+
   </div>
-
-  <div class="card">
-    <h2>Filter by Pokemon</h2>
-    <select id="pokemonSelect">
-      <option value="">Select Pokemon</option>
-    </select>
-    <button id="resetPokemon">Reset</button>
-    <div id="pokemonResult"></div>
-  </div>
-
-  <div class="card" style="text-align:center;">
-    <h2>Event Map</h2>
-    <img src="../assets/images/event-map.png" alt="Event Map" class="map" id="mapImage">
-  </div>
-
-  <div class="footer">@CloudNine</div>
-</div>
-
-<div id="overlay">
-  <span id="closeOverlay">&times;</span>
-  <img src="../assets/images/event-map.png" alt="Full Map" id="overlayMap">
 </div>
 
 <script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTD4tvzsc7wvpY9bKllI4AQJbz4fwO2jmHbw-lljQICTu21y56FBB64qFswzVeKgzjlU2y1rNOd9ewG/pub?output=csv";
-let data = [];
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUHR19ADVPMMcDfJ1kf3Cdo63TpCsn6kMwT_i9vr4IFwWvcLrU1C504TvYwQluoqQ9ZJ0DDSSscRl/pub?output=csv";
 
-// Dark Mode toggle
-const toggleBtn = document.getElementById("toggleMode");
-toggleBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark-mode");
-  toggleBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
-});
+const $=id=>document.getElementById(id);
+let rows=[];
 
-function updateToggleText() {
-  toggleBtn.textContent =
-    document.body.classList.contains("dark-mode")
-      ? "☀️ Light Mode"
-      : "🌙 Dark Mode";
-}
-updateToggleText();
-
-// Load CSV
-function loadData() {
-  fetch(sheetUrl)
-    .then(res => res.text())
-    .then(txt => {
-      const rows = txt.split("\n").map(r => r.split(","));
-      rows.shift();
-      data = rows.map(r => ({ A: r[0]?.trim(), B: r[1]?.trim() }));
-
-      populateSelectors();
-
-      // Ladebildschirm ausblenden
-      document.getElementById("loadingScreen").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      document.getElementById("toggleContainer").style.display = "block";
-    })
-    .catch(err => {
-      document.getElementById("loadingText").textContent = "Error loading data";
-      console.error(err);
-    });
+/* LOAD DATA */
+function loadData(){
+ Papa.parse(CSV_URL,{
+  download:true,
+  header:true,
+  skipEmptyLines:true,
+  complete:r=>{
+    rows=r.data;
+    initAlphabet();
+    $('loading').style.display='none';
+    $('app').style.display='block';
+  }
+ });
 }
 
-function populateSelectors() {
-  const locSet = [...new Set(data.map(r => r.A))];
-  const pokSet = [...new Set(data.map(r => r.B))];
-  const locSelect = document.getElementById("locationSelect");
-  const pokSelect = document.getElementById("pokemonSelect");
-  locSet.forEach(l => locSelect.add(new Option(l, l)));
-  pokSet.forEach(p => pokSelect.add(new Option(p, p)));
+/* INIT ALPHABET */
+function initAlphabet(){
+ const alphabetContainer=$('alphabet');
+ const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+ letters.forEach(letter=>{
+   const hasEntry=rows.some(r=>r.Name && r.Name.toUpperCase().startsWith(letter));
+   const div=document.createElement("div");
+   div.textContent=letter;
+   div.className="letter"+(hasEntry?"":" disabled");
+
+   if(hasEntry){
+     div.onclick=()=>filterByLetter(letter);
+   }
+
+   alphabetContainer.appendChild(div);
+ });
 }
 
-function displayTable(rows, targetId) {
-  if (!rows.length) return;
-  let html = "<table><tr><th>Location</th><th>Pokemon</th></tr>";
-  rows.forEach(r => { html += `<tr><td>${r.A}</td><td>${r.B}</td></tr>`; });
-  html += "</table>";
-  document.getElementById(targetId).innerHTML = html;
+/* FILTER */
+function filterByLetter(letter){
+ const filtered=rows.filter(r=>r.Name && r.Name.toUpperCase().startsWith(letter));
+ renderResults(filtered);
 }
 
-document.getElementById("locationSelect").addEventListener("change", e => {
-  const val = e.target.value;
-  const filtered = data.filter(r => r.A === val);
-  displayTable(filtered, "locationResult");
-});
-document.getElementById("pokemonSelect").addEventListener("change", e => {
-  const val = e.target.value;
-  const filtered = data.filter(r => r.B === val);
-  displayTable(filtered, "pokemonResult");
-});
-document.getElementById("resetLocation").onclick = () => {
-  document.getElementById("locationSelect").value = "";
-  document.getElementById("locationResult").innerHTML = "";
-};
-document.getElementById("resetPokemon").onclick = () => {
-  document.getElementById("pokemonSelect").value = "";
-  document.getElementById("pokemonResult").innerHTML = "";
+/* SHOW ALL */
+$('showAllBtn').onclick=()=>{
+ renderResults(rows);
 };
 
-// Overlay logic
-const overlay = document.getElementById("overlay");
-const overlayImg = document.getElementById("overlayMap");
-const closeBtn = document.getElementById("closeOverlay");
-const mapImg = document.getElementById("mapImage");
+/* RESET */
+$('resetBtn').onclick=()=>{
+ $('results').innerHTML="";
+};
 
-mapImg.addEventListener("click", () => overlay.style.display = "flex");
-closeBtn.addEventListener("click", () => overlay.style.display = "none");
-overlay.addEventListener("click", e => { if (e.target === overlay) overlay.style.display = "none"; });
-
-// drag-to-pan logic
-let isDragging = false, startX, startY, scrollX = 0, scrollY = 0;
-let offsetX = 0, offsetY = 0;
-
-function startDrag(e) {
-  e.preventDefault();
-  isDragging = true;
-  overlayImg.style.cursor = "grabbing";
-  startX = e.pageX - offsetX;
-  startY = e.pageY - offsetY;
+/* RENDER */
+function renderResults(data){
+ let html="";
+ data.forEach(r=>{
+   html+=`
+    <div class="result-entry">
+      <div class="entry-title">${r.Name}</div>
+      <div class="entry-field"><strong>Location:</strong> ${r.Location}</div>
+      <div class="entry-field"><strong>Ticket Based:</strong> ${r["Ticket Based"]}</div>
+      <div class="entry-field"><strong>Recommended Digimon:</strong> ${r["Recommended Digimon"]}</div>
+      <div class="entry-field"><strong>Purpose:</strong> ${r.Purpose}</div>
+    </div>
+   `;
+ });
+ $('results').innerHTML=html;
 }
 
-function onDrag(e) {
-  if (!isDragging) return;
-  e.preventDefault();
-  offsetX = e.pageX - startX;
-  offsetY = e.pageY - startY;
-  overlayImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-}
-
-function endDrag() {
-  isDragging = false;
-  overlayImg.style.cursor = "grab";
-}
-
-// Mouse events
-overlayImg.addEventListener("mousedown", startDrag);
-overlayImg.addEventListener("mousemove", onDrag);
-overlayImg.addEventListener("mouseup", endDrag);
-overlayImg.addEventListener("mouseleave", endDrag);
-
-// Touch events
-overlayImg.addEventListener("touchstart", e => {
-  const t = e.touches[0];
-  isDragging = true;
-  startX = t.pageX - offsetX;
-  startY = t.pageY - offsetY;
-}, { passive: true });
-overlayImg.addEventListener("touchmove", e => {
-  if (!isDragging) return;
-  const t = e.touches[0];
-  offsetX = t.pageX - startX;
-  offsetY = t.pageY - startY;
-  overlayImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-}, { passive: true });
-overlayImg.addEventListener("touchend", endDrag);
-
-window.addEventListener("DOMContentLoaded", loadData);
+loadData();
 </script>
 </body>
 </html>
