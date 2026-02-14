@@ -8,11 +8,11 @@
 
 <style>
 :root {
-  --bg-main: #0e141a;
-  --bg-soft: #1a232c;
-  --green-main: #1ea31e;
-  --green-dark: #0f6f0f;
-  --text-main: #f0f0f0;
+  --bg-main: #0a0f0d;
+  --bg-soft: #0f2e1f;
+  --green-main: #00ff99;
+  --green-dark: #00b36b;
+  --text-main: #e8fdf5;
 }
 
 * {
@@ -22,19 +22,44 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, #1f2b35, var(--bg-main));
+  background: var(--bg-main);
   font-family: Inter, system-ui, Arial, sans-serif;
   color: var(--text-main);
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-x: hidden;
 }
 
-.hub {
+/* Digital Grid Overlay */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+/* Ambient Glow behind Hub */
+.hub{
+  position:relative;
   width: 100%;
   max-width: 520px;
   padding: 32px 20px;
   text-align: center;
+  z-index:1;
+}
+
+.hub::before{
+  content:"";
+  position:absolute;
+  inset:-40px;
+  background: radial-gradient(circle, rgba(0,255,150,0.15), transparent 70%);
+  filter: blur(60px);
+  z-index:-1;
 }
 
 /* Branding */
@@ -139,7 +164,7 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #3a444d;
+  background: #2a3a33;
 }
 
 .dot.active {
@@ -171,41 +196,41 @@ body {
         <!-- Block 1 -->
         <div class="block">
           <a class="tool" href="tool1/">
-			<img src="assets/images/spawn_icon.png" alt="" class="tool-icon">
-			<span>Digimon Spawns</span>
-		  </a>
+            <img src="assets/images/spawn_icon.png" alt="" class="tool-icon">
+            <span>Digimon Spawns</span>
+          </a>
           <a class="tool" href="tool2/">
-			<img src="assets/images/item_icon.png" alt="" class="tool-icon">
-			<span>Item Finder</span>
-		  </a>
-		  <a class="tool" href="tool3/">
-			<img src="assets/images/egg_icon.png" alt="" class="tool-icon">
-			<span>Egg Check</span>
-		  </a>
-		  <a class="tool" href="tool4/">
-			<img src="assets/images/seal_icon.png" alt="" class="tool-icon">
-			<span>Seals</span>
-		  </a>          
+            <img src="assets/images/item_icon.png" alt="" class="tool-icon">
+            <span>Item Finder</span>
+          </a>
+          <a class="tool" href="tool3/">
+            <img src="assets/images/egg_icon.png" alt="" class="tool-icon">
+            <span>Egg Check</span>
+          </a>
+          <a class="tool" href="tool4/">
+            <img src="assets/images/seal_icon.png" alt="" class="tool-icon">
+            <span>Seals</span>
+          </a>          
         </div>
 
         <!-- Block 2 -->
         <div class="block">
           <a class="tool" href="tool5/">
-			<img src="assets/images/deck_icon.png" alt="" class="tool-icon">
-			<span>Deck Buff</span>
-		  </a>
-		  <a class="tool" href="tool6/">
-			<img src="assets/images/dungeon_icon.png" alt="" class="tool-icon">
-			<span>Dungeon Finder</span>
-		  </a>
-		  <a class="tool" href="tool7/">
-			<img src="assets/images/event_icon.png" alt="" class="tool-icon">
-			<span>Event</span>
-		  </a>
-            <a class="tool" href="tool8/">
-			<img src="assets/images/changelog_icon.png" alt="" class="tool-icon">
-			<span>Changelog</span>
-		  </a>
+            <img src="assets/images/deck_icon.png" alt="" class="tool-icon">
+            <span>Deck Buff</span>
+          </a>
+          <a class="tool" href="tool6/">
+            <img src="assets/images/dungeon_icon.png" alt="" class="tool-icon">
+            <span>Dungeon Finder</span>
+          </a>
+          <a class="tool" href="tool7/">
+            <img src="assets/images/event_icon.png" alt="" class="tool-icon">
+            <span>Event</span>
+          </a>
+          <a class="tool" href="tool8/">
+            <img src="assets/images/changelog_icon.png" alt="" class="tool-icon">
+            <span>Changelog</span>
+          </a>
         </div>
 
       </div>
