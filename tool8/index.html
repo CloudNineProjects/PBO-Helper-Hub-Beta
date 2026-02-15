@@ -3,307 +3,410 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Dynamax Helper</title>
+<title>DNO Guide</title>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-  :root{
-    --bg-light:#666769;
-    --bg-dark:#1A252C;
-    --card-light:#02491D;
-    --card-dark:#023804;
-    --button-bg:#F0F0F0;
-    --toggle-light:#F0F0F0;
-    --toggle-dark:#333333;
-    --text-light:#0A0A0A;
-    --text-dark:#F5F5F5;
-    --glass:rgba(255,255,255,0.04);
-  }
 
-  html,body{
-    height:100%;
-    margin:0;
-    font-family:Inter,system-ui,Arial,sans-serif;
-    transition:background .25s,color .25s;
-  }
+/* ================= DIGITAL THEME ================= */
 
-  body{
-    background:var(--bg-light);
-    color:var(--text-dark);
-  }
-  body.dark{
-    background:var(--bg-dark);
-    color:var(--text-dark);
-  }
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
+}
 
-  /* toggle button */
-  .mode-toggle{
-    position:fixed;
-    top:14px;
-    right:14px;
-    z-index:1200;
-    background:var(--toggle-light);
-    color:#000;
-    padding:8px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    box-shadow:0 6px 16px rgba(0,0,0,0.15);
-    user-select:none;
-    font-size:14px;
-  }
-  body.dark .mode-toggle{
-    background:var(--toggle-dark);
-    color:#F0F0F0;
-  }
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
 
-  /* loading */
-  .loader{
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:20px;
-    text-align:center;
-  }
-  .loader img.logo{
-    width:200px;
-    height:200px;
-    border-radius:50%;
-    object-fit:cover;
-    border:none;
-    box-shadow:none;
-  }
-  .load-btn{
-    display:inline-block;
-    min-width:160px;
-    padding:10px 18px;
-    border-radius:8px;
-    border:none;
-    background:var(--button-bg);
-    color:#000;
-    font-size:16px;
-    cursor:pointer;
-  }
-  .load-btn[disabled]{opacity:0.6;cursor:default;}
-  .loading-text{font-size:14px;color:#F0F0F0;}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
 
-  /* layout */
-  .wrap{
-    max-width:980px;
-    margin:24px auto;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-  }
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
 
-  .card{
-    border-radius:14px;
-    padding:18px;
-    background:var(--card-light);
-    color:#F0F0F0;
-    box-shadow:0 10px 30px rgba(0,0,0,0.12);
-    transition:transform .12s ease, box-shadow .12s ease;
-  }
-  body.dark .card{ background:var(--card-dark); }
-  .card:hover{ transform:translateY(-3px); }
+.loader{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+}
 
-  h1{margin:0 0 12px;font-size:20px}
-  label{display:block;margin:10px 0 6px;font-weight:600;color:#F0F0F0}
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
 
-  select{
-    width:100%;
-    padding:10px 12px;
-    border-radius:8px;
-    border:none;
-    font-size:15px;
-    background:#F0F0F0;
-    color:#000;
-    box-sizing:border-box;
-  }
-  body.dark select{background:#000;color:#F0F0F0;}
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
 
-  .controls{
-    margin-top:10px;
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .controls button{
-    padding:10px 14px;
-    border-radius:8px;
-    border:none;
-    background:var(--button-bg);
-    color:#000;
-    cursor:pointer;
-  }
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
 
-  .results{
-    margin-top:12px;
-    padding:12px;
-    border-radius:10px;
-    background:var(--glass);
-    color:inherit;
-  }
-  pre.preserve{white-space:pre-wrap;margin:0;font-family:inherit}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
-  th{position:sticky;top:0;background:rgba(0,0,0,0.1);z-index:2;font-weight:700}
-  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.15);margin:4px 6px 4px 0;font-size:13px}
-  .badge.highlight {
-  background: #ff4444; /* oder z.B. #00c853 für grün */
-  color: #fff;
-  font-weight: 700;
-  }
-  .cell-strong{background:#b42c2c;color:#F0F0F0;font-weight:700}
-  .cell-resist{background:#206699;color:#F0F0F0}
-  .cell-immune{background:#444;color:#F0F0F0}
-  .cell-normal{background:transparent;color:inherit}
-  .cell-other{background:rgba(255,255,255,0.03)}
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
+}
+
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  margin-top:15px;
+}
+
+.filter-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.goal-entry{
+  background:rgba(0,0,0,0.4);
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:14px;
+}
+
+.progress-container{
+  height:14px;
+  background:rgba(0,0,0,0.5);
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#00ff99,#00ffaa);
+  transition:width 0.3s ease;
+}
+
+.checkbox-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+input[type="checkbox"]{
+  transform:scale(1.3);
+  cursor:pointer;
+}
+
+.digimon-area{
+  text-align:center;
+  margin-bottom:25px;
+  position:relative;
+}
+
+.digimon-area img{
+  width:200px;
+  height:200px;
+  object-fit:contain;
+  transition:transform 0.4s ease, opacity 0.4s ease;
+}
+
+.level-text{
+  margin-top:8px;
+  font-weight:600;
+  color:var(--card-glow);
+}
+
+/* Evolution Animation */
+.evolve{
+  transform:scale(1.15);
+  opacity:0.4;
+}
+
+.level-glow{
+  animation:glowPulse 0.6s ease;
+}
+
+@keyframes glowPulse{
+  0%{ box-shadow:0 0 0px #00ff99; }
+  50%{ box-shadow:0 0 25px #00ff99; }
+  100%{ box-shadow:0 0 0px #00ff99; }
+}
+
 </style>
 </head>
 <body>
-<div id="modeToggle" class="mode-toggle" style="display:none;">🌙 Dark Mode</div>
 
-<!-- Loading -->
+<a href="../index.html" class="home-btn">🏠</a>
+
 <div id="loading" class="loader">
-  <img class="logo" src="../assets/images/load-logo.png" alt="Dynamax logo">
-  <div id="loadingText" class="loading-text">Loading...</div>
+  <div class="logo-wrap">
+    <img src="../assets/images/load_screen.png">
+  </div>
+  <div>Loading DNO Guide...</div>
 </div>
 
-<!-- App -->
-<div id="app" class="wrap" style="display:none;">
-  <div class="card" id="card-info">
-    <h1>Dynamax Info</h1>
-    <label for="infoFilter">Filter</label>
-    <select id="infoFilter"><option value="">-- select --</option></select>
-    <div class="controls">
-      <button id="infoShow">Show</button>
-      <button id="infoReset">Reset</button>
+<div id="app" class="wrap">
+
+  <div class="card">
+
+    <h2>DNO Guide</h2>
+
+    <div class="digimon-area">
+      <img id="digimonImg" src="../assets/images/dno/stage1.png">
+      <div class="level-text" id="levelText">Level 5</div>
     </div>
-    <div id="infoOut" class="results" style="display:none"></div>
+
+    <div id="goalButtons" class="filter-buttons"></div>
+
+    <div class="controls">
+      <button id="resetBtn">Reset</button>
+      <button id="clearBtn">Clear User Data</button>
+    </div>
+
+    <div id="results"></div>
+
   </div>
 
-  <div class="card" id="card-db">
-    <h1>Dynamax Database</h1>
-    <label for="dbFilter">Filter</label>
-    <select id="dbFilter"><option value="">-- select --</option></select>
-    <div class="controls">
-      <button id="dbShow">Show</button>
-      <button id="dbReset">Reset</button>
-    </div>
-    <div id="dbOut" class="results" style="display:none"></div>
-  </div>
-
-  <div class="card" id="card-attack">
-    <h1>Attack Check</h1>
-    <label for="atkDef1">Defender Type 1</label>
-    <select id="atkDef1"><option value="">-- select --</option></select>
-    <label for="atkDef2">Defender Type 2 (optional)</label>
-    <select id="atkDef2"><option value="">-- select --</option></select>
-    <div class="controls">
-      <button id="atkShow">Show</button>
-      <button id="atkReset">Reset</button>
-    </div>
-    <div id="atkOut" class="results" style="display:none"></div>
-    <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,0.1)">
-    <h1>Defense Check</h1>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-      <select id="def1"><option value="">-- Move 1 --</option></select>
-      <select id="def2"><option value="">-- Move 2 --</option></select>
-      <select id="def3"><option value="">-- Move 3 --</option></select>
-      <select id="def4"><option value="">-- Move 4 --</option></select>
-    </div>
-    <div class="controls" style="margin-top:8px">
-      <button id="defShow">Show</button>
-      <button id="defReset">Reset</button>
-    </div>
-    <div id="defOut" class="results" style="display:none;overflow-y:auto;max-height:420px"></div>
-  </div>
-
-  <div class="card" id="card-move">
-    <h1>Dynamax Move</h1>
-    <label for="moveFilter">Filter (Column A)</label>
-    <select id="moveFilter"><option value="">-- select --</option></select>
-    <div class="controls">
-      <button id="moveShow">Show</button>
-      <button id="moveReset">Reset</button>
-    </div>
-    <div id="moveOut" class="results" style="display:none"></div>
-  </div>
 </div>
 
 <script>
-/* helper + functionality (unchanged) */
+
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRMB_bgUCElvkoSmxZvOEI48JRdM92BWKQQkCn_w3BRPiy_2WNmgZUL8RomnM_brwHn4f-SHluKDVFp/pub?output=csv";
+const STORAGE_KEY="dnoGuideData";
+
+let rows=[];
+let currentLevel=5;
+let currentStage=1;
+
 const $=id=>document.getElementById(id);
-const escapeHtml=s=>s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function normalizeValue(v){if(v==null)return'';const s=String(v).trim();if(!s)return'';if(/^(2|2\.0)$/i.test(s))return'2';if(/^(1|1\.0)$/i.test(s))return'1';if(/^(0\.5|½|1\/2)$/i.test(s))return'0.5';if(/^(0|0\.0|immune|x0)$/i.test(s.toLowerCase()))return'0';return s;}
-function valueClass(v){const n=normalizeValue(v);if(n==='2')return'cell-strong';if(n==='1')return'cell-normal';if(n==='0.5')return'cell-resist';if(n==='0')return'cell-immune';return'cell-other';}
-const URL_INFO="https://docs.google.com/spreadsheets/d/e/2PACX-1vRKBJf3BXL7kqLIu8WAZCiFIBqNTMVvWCmkRA2kVoC30QskuIRkxwUKJJnrHKh2Y8I18iZ0p068wRD2/pub?output=csv";
-const URL_DB="https://docs.google.com/spreadsheets/d/e/2PACX-1vRGq_ta_VKuhpNif51aoWSm2XKE04CHREcDqGObDZnBQ0kK3Yo-_Bz7i7u1oP1Xv9pRm0-xN7dDgyiT/pub?output=csv";
-const URL_MOVE="https://docs.google.com/spreadsheets/d/e/2PACX-1vRfBHLwHVULXabVXPztSXOz-36oGnjJFxuHyhgftVYg3Ft_f7VqkVwfpdmQwrfZEXrdjCKnydJBqRHt/pub?output=csv";
-const URL_ATTACK="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUYm_GBIYmou5lzjHIeXmz9GlP0d4_z3g6Jxrpof_DvIBFdOh8bL4dNF8v4T2Vn5sseu8zOhRzP74O/pub?output=csv";
-let infoRows=[],infoFields=[],dbRows=[],dbFields=[],moveRows=[],moveFields=[],atkRows=[],atkFields=[];
-function parseCSV(url){return new Promise((res,rej)=>Papa.parse(url,{download:true,header:true,skipEmptyLines:true,complete:r=>res({fields:r.meta.fields||[],data:r.data}),error:e=>rej(e)}));}
-function showLoading(t){$('loadingText').style.display='block';$('loadingText').textContent=t||'Loading...';}
-function hideLoading(){$('loadingText').style.display='none';}
-function uniqueFromColumn(rows,col){const s=new Set();rows.forEach(r=>{const v=(r[col]||'').trim();if(v)s.add(v)});return[...s].sort((a,b)=>a.localeCompare(b,'en'));}
-function populateSelect(sel,arr,ph){sel.innerHTML='';const o=document.createElement('option');o.value='';o.textContent=ph||'-- select --';sel.appendChild(o);arr.forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;sel.appendChild(op);});}
-function renderPre(s){return`<pre class="preserve">${escapeHtml(s||'')}</pre>`;}
-function renderTable(rows,fields,cols){let h='<div style="overflow:auto"><table><thead><tr>';cols.forEach(c=>h+=`<th>${escapeHtml(c)}</th>`);h+='</tr></thead><tbody>';rows.forEach(r=>{h+='<tr>';cols.forEach(c=>{const raw=r[c]||'';const cls=valueClass(raw);const content=(typeof raw==='string'&&raw.includes('\n'))?`<pre class="preserve" style="margin:0">${escapeHtml(raw)}</pre>`:escapeHtml(raw);h+=`<td class="${cls}">${content}</td>`});h+='</tr>';});h+='</tbody></table></div>';return h;}
-function loadAll(){showLoading('Loading...');Promise.all([parseCSV(URL_INFO).then(r=>{infoFields=r.fields;infoRows=r.data;}),parseCSV(URL_DB).then(r=>{dbFields=r.fields;dbRows=r.data;}),parseCSV(URL_MOVE).then(r=>{moveFields=r.fields;moveRows=r.data;}),parseCSV(URL_ATTACK).then(r=>{atkFields=r.fields;atkRows=r.data;})]).then(()=>{hideLoading();$('loading').style.display='none';$('app').style.display='flex';$('modeToggle').style.display = 'block';populate();}).catch(e=>{$('loadingText').textContent='Error';console.error(e);});}
-function populate(){const infoA=infoFields[0];populateSelect($('infoFilter'),uniqueFromColumn(infoRows,infoA),'-- select --');const dbA=dbFields[0];populateSelect($('dbFilter'),uniqueFromColumn(dbRows,dbA),'-- select --');const moveA=moveFields[0];populateSelect($('moveFilter'),uniqueFromColumn(moveRows,moveA),'-- select --');const defenders=atkFields.slice(1);populateSelect($('atkDef1'),defenders,'-- Defender --');populateSelect($('atkDef2'),defenders,'-- Defender (opt.) --');const rowLabel=atkFields[0];const moveNames=uniqueFromColumn(atkRows,rowLabel);['def1','def2','def3','def4'].forEach(id=>populateSelect($(id),moveNames,'-- Move --'));}
 
-/* Cards functionality unchanged */
-$('infoShow').onclick=()=>{const sel=$('infoFilter').value;if(!sel)return alert('Select');const colA=infoFields[0],colB=infoFields[1];const m=infoRows.filter(r=>(r[colA]||'').trim()===sel);$('infoOut').innerHTML=m.map(x=>renderPre(x[colB]||'')).join('');$('infoOut').style.display='block';};
-$('infoReset').onclick=()=>{$('infoFilter').selectedIndex=0;$('infoOut').style.display='none';};
-$('dbShow').onclick=()=>{const sel=$('dbFilter').value;if(!sel)return alert('Select');const colA=dbFields[0];const m=dbRows.filter(r=>(r[colA]||'').trim()===sel);$('dbOut').innerHTML=renderTable(m,dbFields,dbFields.slice(1,7));$('dbOut').style.display='block';};
-$('dbReset').onclick=()=>{$('dbFilter').selectedIndex=0;$('dbOut').style.display='none';};
-$('atkShow').onclick = () => {
-  const s1 = $('atkDef1').value, s2 = $('atkDef2').value;
-  if (!s1 && !s2) return alert('Select at least one defender');
-  
-  const sel = [s1, s2].filter(Boolean);
-  const rowLabel = atkFields[0];
-  const out = [];
+/* ================= LOAD ================= */
 
-  atkRows.forEach(r => {
-    const vals = sel.map(c => normalizeValue(r[c] || ''));
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initGoals();
+   loadLevel();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
+});
 
-    if (sel.length === 1) {
-      if (vals[0] === '2') {
-        out.push({ name: r[rowLabel], highlight: false });
-      }
-    } else {
-      const has2 = vals.includes('2');
-      const count2 = vals.filter(v => v === '2').length;
-      const has1 = vals.includes('1');
-      if (has2 && (has1 || count2 >= 2)) {
-        // highlight only if both are 2
-        const highlight = (count2 >= 2);
-        out.push({ name: r[rowLabel], highlight });
-      }
-    }
-  });
+/* ================= STORAGE ================= */
 
-  $('atkOut').innerHTML = out.length
-    ? out.map(x =>
-        `<span class="badge${x.highlight ? ' highlight' : ''}">${escapeHtml(x.name)}</span>`
-      ).join(' ')
-    : '<p>No results.</p>';
+function getStored(){
+ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+}
 
-  $('atkOut').style.display = 'block';
+function saveStored(data){
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadLevel(){
+ const data=getStored();
+ currentLevel=data._level || 5;
+ updateLevelDisplay(false);
+}
+
+/* ================= LEVEL SYSTEM ================= */
+
+function changeLevel(amount){
+ currentLevel+=amount;
+ if(currentLevel<5) currentLevel=5;
+
+ const data=getStored();
+ data._level=currentLevel;
+ saveStored(data);
+
+ updateLevelDisplay(true);
+}
+
+function getStage(level){
+ if(level>=300) return 8;
+ if(level>=200) return 7;
+ if(level>=150) return 6;
+ if(level>=100) return 5;
+ if(level>=75) return 4;
+ if(level>=50) return 3;
+ if(level>=25) return 2;
+ return 1;
+}
+
+function updateLevelDisplay(animate){
+
+ $('levelText').textContent="Level "+currentLevel;
+ $('levelText').classList.add("level-glow");
+ setTimeout(()=> $('levelText').classList.remove("level-glow"),600);
+
+ const newStage=getStage(currentLevel);
+
+ if(newStage!==currentStage){
+   evolveTo(newStage);
+   currentStage=newStage;
+ }
+}
+
+function evolveTo(stage){
+ const img=$('digimonImg');
+ img.classList.add("evolve");
+
+ setTimeout(()=>{
+   img.src=`../assets/images/dno/stage${stage}.png`;
+   img.classList.remove("evolve");
+ },400);
+}
+
+/* ================= GOALS ================= */
+
+function initGoals(){
+ const container=$('goalButtons');
+ const unique=[...new Set(rows.map(r=>r.Goals).filter(Boolean))];
+
+ unique.forEach(goal=>{
+   const btn=document.createElement("button");
+   btn.textContent=goal;
+   btn.onclick=()=>showGoal(goal);
+   container.appendChild(btn);
+ });
+}
+
+function showGoal(goal){
+ const row=rows.find(r=>r.Goals===goal);
+ const data=getStored();
+ let html="";
+ const entries=Object.keys(row)
+   .filter(k=>k!=="Goals" && row[k]?.trim()!=="");
+
+ let checkedCount=0;
+
+ html+=`<div class="goal-entry">`;
+
+ entries.forEach((key,i)=>{
+   const id=goal+"_"+i;
+   const isChecked=data[id]===true;
+   if(isChecked) checkedCount++;
+
+   html+=`
+     <div class="checkbox-row">
+       <input type="checkbox" data-id="${id}" ${isChecked?"checked":""}>
+       <div>${row[key]}</div>
+     </div>
+   `;
+ });
+
+ const percent=entries.length ? (checkedCount/entries.length)*100 : 0;
+
+ html+=`
+   <div class="progress-container">
+     <div class="progress-bar" style="width:${percent}%"></div>
+   </div>
+ `;
+
+ html+=`</div>`;
+
+ $('results').innerHTML=html;
+
+ document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+   cb.onchange=e=>{
+     const id=e.target.dataset.id;
+     const data=getStored();
+
+     if(e.target.checked){
+       data[id]=true;
+       changeLevel(5);
+     }else{
+       delete data[id];
+       changeLevel(-5);
+     }
+
+     saveStored(data);
+     showGoal(goal);
+   };
+ });
+}
+
+/* ================= RESET ================= */
+
+$('resetBtn').onclick=()=>{
+ $('results').innerHTML="";
 };
-$('atkReset').onclick=()=>{$('atkDef1').selectedIndex=0;$('atkDef2').selectedIndex=0;$('atkOut').style.display='none';};
-$('defShow').onclick=()=>{const c=['def1','def2','def3','def4'].map(id=>$(id).value).filter(Boolean);if(!c.length)return alert('Select');const rowLabel=atkFields[0];const m=atkRows.filter(r=>c.includes((r[rowLabel]||'').trim()));$('defOut').innerHTML=renderTable(m,atkFields,atkFields.slice(0,19));$('defOut').style.display='block';};
-$('defReset').onclick=()=>{['def1','def2','def3','def4'].forEach(id=>$(id).selectedIndex=0);$('defOut').style.display='none';};
-$('moveShow').onclick=()=>{const sel=$('moveFilter').value;if(!sel)return alert('Select');const colA=moveFields[0],colB=moveFields[1];const m=moveRows.filter(r=>(r[colA]||'').trim()===sel);$('moveOut').innerHTML=m.map(x=>renderPre(x[colB]||'')).join('');$('moveOut').style.display='block';};
-$('moveReset').onclick=()=>{$('moveFilter').selectedIndex=0;$('moveOut').style.display='none';};
-const modeToggle=$('modeToggle');function updateModeLabel(){modeToggle.textContent=document.body.classList.contains('dark')?'☀️ Light Mode':'🌙 Dark Mode';}
-modeToggle.onclick=()=>{document.body.classList.toggle('dark');updateModeLabel();};
-updateModeLabel();
-window.addEventListener('DOMContentLoaded', loadAll);
+
+/* ================= CLEAR ================= */
+
+$('clearBtn').onclick=()=>{
+ if(confirm("Clear all saved data?")){
+   localStorage.removeItem(STORAGE_KEY);
+   currentLevel=5;
+   currentStage=1;
+   $('digimonImg').src="../assets/images/dno/stage1.png";
+   updateLevelDisplay(false);
+   $('results').innerHTML="";
+ }
+};
+
 </script>
 </body>
 </html>
