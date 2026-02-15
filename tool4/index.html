@@ -102,19 +102,21 @@ body::before{
   margin-bottom:30px;
 }
 
+.title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
 h2{
-  margin-top:0;
-  margin-bottom:15px;
+  margin:0;
   color:var(--card-glow);
 }
 
-button{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  background:var(--button);
+.counter{
   font-weight:600;
+  font-size:16px;
+  color:#ffffff;
 }
 
 /* ===== Type Buttons ===== */
@@ -123,6 +125,7 @@ button{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
+  margin-top:15px;
 }
 
 /* ===== Results ===== */
@@ -165,6 +168,15 @@ input[type="checkbox"]{
   margin-top:15px;
 }
 
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
 </style>
 </head>
 <body>
@@ -182,7 +194,11 @@ input[type="checkbox"]{
 <div id="app" class="wrap">
 
   <div class="card">
-    <h2>Seals</h2>
+
+    <div class="title-row">
+      <h2>Seals</h2>
+      <div class="counter" id="checkedCounter">Checked: 0</div>
+    </div>
 
     <div class="type-container" id="typeContainer"></div>
 
@@ -212,6 +228,7 @@ Papa.parse(CSV_URL,{
  complete:r=>{
    rows=r.data;
    initTypes();
+   updateCounter();
    $('loading').style.display='none';
    $('app').style.display='block';
  }
@@ -225,6 +242,14 @@ function getStored(){
 
 function saveStored(data){
  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+/* ================= COUNTER ================= */
+
+function updateCounter(){
+ const stored=getStored();
+ const count=Object.keys(stored).length;
+ $('checkedCounter').textContent="Checked: " + count;
 }
 
 /* ================= TYPE BUTTONS ================= */
@@ -279,6 +304,7 @@ function showByType(type){
      }
 
      saveStored(data);
+     updateCounter();
      showByType(type);
    };
  });
@@ -296,6 +322,7 @@ $('clearDataBtn').onclick=()=>{
  if(confirm("Clear all saved seal data?")){
    localStorage.removeItem(STORAGE_KEY);
    $('results').innerHTML="";
+   updateCounter();
  }
 };
 
