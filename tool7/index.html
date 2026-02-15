@@ -1,233 +1,247 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>PBO Checklist</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-body { 
-  font-family: Arial, sans-serif; 
-  margin:0; 
-  background:#666769; 
-  color:#fff; 
-}
-.dark-mode { background:#1A252C; color:#fff; }
-.card { background:#02491D; padding:20px; margin:20px; border-radius:10px; }
-.dark-mode .card { background:#023804; }
-button { 
-  margin-top:10px; 
-  padding:10px 18px; 
-  border:none; 
-  border-radius:8px; 
-  cursor:pointer; 
-  font-size: 1rem; 
-}
-.reset-btn { background:#f0f0f0; color:#000; }
-.dark-mode .reset-btn { background:#444; color:#fff; }
-.strike { text-decoration: line-through; opacity:0.6; }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Events</title>
 
-.loader { 
-  display:flex; 
-  flex-direction:column; 
-  justify-content:center; 
-  align-items:center; 
-  height:100vh; 
-}
-.loader img { 
-  width:200px; 
-  max-width:80%;
-  height:auto;
-  object-fit:cover; 
-  border-radius:50%; 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+
+/* ================= DIGITAL THEME (IDENTISCH) ================= */
+
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
 }
 
-@media (max-width:600px) { 
-  .loader img { 
-    width:160px; 
-    height:160px;
-  }
-  body { font-size:16px; }
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
 }
 
-/* Toggle top right – only visible in content */
-#toggleMode {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: #f0f0f0;
-  color: #000;
-  z-index: 1001;
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
+
+.loader{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+}
+
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
+
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
   display:none;
 }
-.dark-mode #toggleMode {
-  background: #444;
-  color: #fff;
+
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
 }
 
-#content {
-  display:none;
-  position:relative;
-  padding-top:70px;
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
 }
-  </style>
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  margin-top:15px;
+}
+
+.results{
+  margin-top:20px;
+}
+
+.event-entry{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  background:rgba(0,0,0,0.4);
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+.event-title{
+  font-weight:600;
+  font-size:16px;
+  color:var(--card-glow);
+}
+
+.event-section{
+  font-size:14px;
+  line-height:1.4;
+}
+
+.filter-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+</style>
 </head>
 <body>
 
-  <!-- Dark/Light toggle (hidden until tool is shown) -->
-  <button id="toggleMode">🌙 Dark Mode</button>
+<a href="../index.html" class="home-btn">🏠</a>
 
-  <!-- Loader -->
-  <div id="loader" class="loader">
-    <img src="../assets/images/load-logo.png" alt="logo">
-    <p id="loadingText">Loading...</p>
+<!-- Loading Screen -->
+<div id="loading" class="loader">
+  <div class="logo-wrap">
+    <img src="../assets/images/load_screen.png">
+  </div>
+  <div>Loading Event Database...</div>
+</div>
+
+<div id="app" class="wrap">
+
+  <div class="card">
+    <h2>Events</h2>
+
+    <div id="eventFilters" class="filter-buttons"></div>
+
+    <div class="controls">
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div id="results" class="results"></div>
   </div>
 
-  <!-- Main content -->
-  <div id="content">
-    <div id="daily" class="card">
-      <h2>Daily</h2>
-      <div id="dailyList"></div>
-      <button class="reset-btn" onclick="resetChecks('Daily')">Reset Dailies</button>
-    </div>
+</div>
 
-    <div id="weekly" class="card">
-      <h2>Weekly</h2>
-      <div id="weeklyList"></div>
-      <button class="reset-btn" onclick="resetChecks('Weekly')">Reset Weeklies</button>
-    </div>
+<script>
 
-    <div id="others" class="card">
-      <h2>Others</h2>
-      <div id="othersList"></div>
-    </div>
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRFs8Hbo5xqUhXvtoCRbToYzqY9n326dNj4-laJajrY-CtlkA207ZTzhnt1tTDCjaicETNJzO1ufyfe/pub?output=csv";
+const $=id=>document.getElementById(id);
 
-    <div class="card">
-      <h2>Settings</h2>
-      <button class="reset-btn" onclick="resetAllData()">Reset All Data</button>
-      <p style="font-size:0.9em;opacity:0.8;">⚠️ Clears all saved checks and timestamps.</p>
-    </div>
-  </div>
+let rows=[];
 
-  <!-- PapaParse -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+/* ================= LOAD ================= */
 
-  <script>
-    let dark=false;
-    function toggleMode(){
-      dark=!dark;
-      document.body.classList.toggle("dark-mode",dark);
-      const btn=document.getElementById("toggleMode");
-      btn.textContent=dark?"☀️ Light Mode":"🌙 Dark Mode";
-    }
-    document.getElementById("toggleMode").onclick=toggleMode;
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initFilters();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
+});
 
-    // AUTO LOAD DATA ON PAGE LOAD
-    window.addEventListener("DOMContentLoaded", () => {
-      Papa.parse(
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnQAomUZRPHbub-G3CwuUY9iByOE8Q1KHhat_xUIx3bUSo2TfG3DEkET3dumTbSKUMzDlCr3qo0BeN/pub?output=csv",
-        {
-          download:true,
-          header:true,
-          skipEmptyLines:true,
-          complete: function(results) {
-            const data = results.data;
-            let daily="", weekly="", others="";
-            data.forEach((r,i)=>{
-              if(!r.Activity) return;
-              const id="chk"+i;
-              const group=(r.Time||"").trim();
-              const item=`<label><input type="checkbox" id="${id}" onchange="markCheck('${id}')">
-                ${r.Activity} - ${r.Location||""} - ${r.Content||""} (${r.Time||""})
-                <span id="${id}ts"></span></label><br>`;
-              if(group==="Daily") daily+=item;
-              else if(group==="Weekly") weekly+=item;
-              else others+=item+`<button class="reset-btn" onclick="resetSingle('${id}')">Reset</button><br>`;
-            });
+/* ================= INIT FILTER BUTTONS ================= */
 
-            document.getElementById("dailyList").innerHTML=daily;
-            document.getElementById("weeklyList").innerHTML=weekly;
-            document.getElementById("othersList").innerHTML=others;
+function initFilters(){
+ const container=$('eventFilters');
+ container.innerHTML="";
 
-            document.getElementById("loader").style.display="none";
-            document.getElementById("content").style.display="block";
-            document.getElementById("toggleMode").style.display="block";
+ // Doppelte Namen entfernen
+ const uniqueEvents=[...new Set(rows.map(r=>r.Name).filter(Boolean))];
 
-            restoreChecks();
-          }
-        }
-      );
-    });
+ uniqueEvents.forEach(name=>{
+   const btn=document.createElement("button");
+   btn.textContent=name;
+   btn.onclick=()=>showEvent(name);
+   container.appendChild(btn);
+ });
+}
 
-    function markCheck(id){
-      const cb=document.getElementById(id);
-      const ts=document.getElementById(id+"ts");
-      const checked=cb.checked;
+/* ================= SHOW EVENT ================= */
 
-      if(checked){
-        cb.parentNode.classList.add("strike");
-        ts.textContent=" ("+new Date().toLocaleString()+")";
-      } else {
-        cb.parentNode.classList.remove("strike");
-        ts.textContent="";
-      }
+function showEvent(name){
+ const filtered=rows.filter(r=>r.Name===name);
+ let html="";
 
-      const saveData=JSON.parse(localStorage.getItem("checklistData")||"{}");
-      saveData[id]={ checked, timestamp: ts.textContent };
-      localStorage.setItem("checklistData", JSON.stringify(saveData));
-    }
+ filtered.forEach(r=>{
+   html+=`
+     <div class="event-entry">
+       <div class="event-title">${r.Name}</div>
+       <div class="event-section"><strong>Rewards:</strong> ${r.Rewards || "-"}</div>
+       <div class="event-section"><strong>How:</strong> ${r.How || "-"}</div>
+       <div class="event-section"><strong>Where:</strong> ${r.Where || "-"}</div>
+     </div>
+   `;
+ });
 
-    function resetChecks(type){
-      document.querySelectorAll("#"+type.toLowerCase()+"List input[type=checkbox]").forEach(cb=>{
-        cb.checked=false;
-        cb.parentNode.classList.remove("strike");
-        const ts=document.getElementById(cb.id+"ts");
-        if(ts) ts.textContent="";
-        markCheck(cb.id);
-      });
-    }
+ $('results').innerHTML=html || "No entries.";
+}
 
-    function resetSingle(id){
-      const cb=document.getElementById(id);
-      if(cb){ 
-        cb.checked=false;
-        cb.parentNode.classList.remove("strike");
-        const ts=document.getElementById(id+"ts");
-        if(ts) ts.textContent="";
-        markCheck(id);
-      }
-    }
+/* ================= RESET ================= */
 
-    function restoreChecks(){
-      const saveData=JSON.parse(localStorage.getItem("checklistData")||"{}");
-      Object.keys(saveData).forEach(id=>{
-        const entry=saveData[id];
-        const cb=document.getElementById(id);
-        const ts=document.getElementById(id+"ts");
-        if(cb){
-          cb.checked=entry.checked;
-          if(entry.checked) cb.parentNode.classList.add("strike");
-          if(ts) ts.textContent=entry.timestamp||"";
-        } else {
-          delete saveData[id];
-        }
-      });
-      localStorage.setItem("checklistData", JSON.stringify(saveData));
-    }
+$('resetBtn').onclick=()=>{
+ $('results').innerHTML="";
+};
 
-    function resetAllData(){
-      if(confirm("⚠️ Are you sure? All saved data will be deleted.")){
-        localStorage.removeItem("checklistData");
-        document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
-          cb.checked=false;
-          cb.parentNode.classList.remove("strike");
-          const ts=document.getElementById(cb.id+"ts");
-          if(ts) ts.textContent="";
-        });
-        alert("All saved data has been cleared.");
-      }
-    }
-  </script>
+</script>
 </body>
 </html>
