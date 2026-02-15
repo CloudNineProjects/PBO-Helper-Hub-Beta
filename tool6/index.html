@@ -191,8 +191,9 @@ button{
 
 <script>
 
-const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUHR19ADVPMMcDfJ1kf3Cdo63TpCsn6kMwT_i9vr4IFwWvcLrU1C504TvYwQluoqQ9ZJ0DDSSscRl/pub?output=csv";
-const CSV_URL = BASE_URL + "&cacheBust=" + new Date().getTime();
+const BASE_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLUHR19ADVPMMcDfJ1kf3Cdo63TpCsn6kMwT_i9vr4IFwWvcLrU1C504TvYwQluoqQ9ZJ0DDSSscRl/pub?output=csv";
+const CSV_URL = BASE_URL + "&cacheBust=" + Date.now();
+
 const $=id=>document.getElementById(id);
 let rows=[];
 
