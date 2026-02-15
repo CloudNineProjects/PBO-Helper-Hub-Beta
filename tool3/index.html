@@ -98,10 +98,20 @@ body::before{
   margin-bottom:30px;
 }
 
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
 h2{
-  margin-top:0;
-  margin-bottom:15px;
+  margin:0;
   color:var(--card-glow);
+}
+
+.counter{
+  font-weight:600;
+  font-size:16px;
 }
 
 button{
@@ -184,7 +194,11 @@ input[type="checkbox"]{
 <div id="app" class="wrap">
 
   <div class="card">
-    <h2>Egg Check</h2>
+
+    <div class="header-row">
+      <h2>Egg Check</h2>
+      <div class="counter" id="checkedCounter">Checked: 0</div>
+    </div>
 
     <div class="alphabet" id="alphabet"></div>
 
@@ -214,6 +228,7 @@ Papa.parse(CSV_URL,{
  complete:r=>{
    rows=r.data;
    initAlphabet();
+   updateCounter();
    $('loading').style.display='none';
    $('app').style.display='block';
  }
@@ -229,6 +244,14 @@ function saveStored(data){
  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+/* ================= COUNTER ================= */
+
+function updateCounter(){
+ const stored=getStored();
+ const count=Object.keys(stored).length;
+ $('checkedCounter').textContent="Checked: " + count;
+}
+
 /* ================= ALPHABET + MISSING ================= */
 
 function initAlphabet(){
@@ -242,7 +265,6 @@ function initAlphabet(){
    container.appendChild(btn);
  });
 
- // Neuer Button nach Z
  const missingBtn=document.createElement("button");
  missingBtn.textContent="Missing Digimon";
  missingBtn.style.width="auto";
@@ -260,7 +282,6 @@ function renderList(list, mode="letter", letter=null){
  list.forEach(r=>{
    const isChecked=stored[r.Name]===true;
 
-   // In Missing nur NICHT abgehakte anzeigen
    if(mode==="missing" && isChecked) return;
 
    html+=`
@@ -276,7 +297,6 @@ function renderList(list, mode="letter", letter=null){
 
  $('results').innerHTML=html || "No entries.";
 
- /* Checkbox Logic */
  document.querySelectorAll("input[type='checkbox']").forEach(cb=>{
    cb.onchange=e=>{
      const name=e.target.dataset.name;
@@ -289,8 +309,8 @@ function renderList(list, mode="letter", letter=null){
      }
 
      saveStored(data);
+     updateCounter();
 
-     // Nach Änderung korrekt neu rendern
      if(mode==="letter"){
        showByLetter(letter);
      }else{
@@ -324,6 +344,7 @@ $('resetBtn').onclick=()=>{
 $('clearDataBtn').onclick=()=>{
  if(confirm("Clear all saved egg data?")){
    localStorage.removeItem(STORAGE_KEY);
+   updateCounter();
    $('results').innerHTML="";
  }
 };
