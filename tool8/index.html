@@ -323,13 +323,45 @@ function evolveTo(stage){
 
 function initGoals(){
  const container=$('goalButtons');
+ container.innerHTML="";
+
  const unique=[...new Set(rows.map(r=>r.Goals).filter(Boolean))];
 
  unique.forEach(goal=>{
    const btn=document.createElement("button");
-   btn.textContent=goal;
+   btn.dataset.goal=goal;
    btn.onclick=()=>showGoal(goal);
    container.appendChild(btn);
+ });
+
+ updateAllGoalButtons();
+}
+
+function updateAllGoalButtons(){
+ const data=getStored();
+
+ document.querySelectorAll("#goalButtons button").forEach(btn=>{
+   const goal=btn.dataset.goal;
+   const row=rows.find(r=>r.Goals===goal);
+
+   const entries=Object.keys(row)
+     .filter(k=>k!=="Goals" && row[k]?.trim()!=="");
+
+   let checkedCount=0;
+
+   entries.forEach((key,i)=>{
+     const id=goal+"_"+i;
+     if(data[id]) checkedCount++;
+   });
+
+   btn.textContent=`${goal} ${checkedCount}/${entries.length}`;
+
+   // Optional: 100% Completion Glow
+   if(entries.length>0 && checkedCount===entries.length){
+     btn.style.boxShadow="0 0 15px #00ff99";
+   }else{
+     btn.style.boxShadow="none";
+   }
  });
 }
 
@@ -384,6 +416,7 @@ function showGoal(goal){
 
      saveStored(data);
      showGoal(goal);
+     updateAllGoalButtons();
    };
  });
 }
@@ -392,6 +425,7 @@ function showGoal(goal){
 
 $('resetBtn').onclick=()=>{
  $('results').innerHTML="";
+ updateAllGoalButtons();
 };
 
 /* ================= CLEAR ================= */
@@ -399,11 +433,19 @@ $('resetBtn').onclick=()=>{
 $('clearBtn').onclick=()=>{
  if(confirm("Clear all saved data?")){
    localStorage.removeItem(STORAGE_KEY);
+
    currentLevel=5;
    currentStage=1;
-   $('digimonImg').src="../assets/images/dno/stage1.png";
-   updateLevelDisplay(false);
+
+   const img=$('digimonImg');
+   img.src="../assets/images/dno/stage1.png";
+   img.classList.remove("evolve");
+
+   $('levelText').textContent="Level 5";
+
    $('results').innerHTML="";
+
+   updateAllGoalButtons(); // <-- neu
  }
 };
 
