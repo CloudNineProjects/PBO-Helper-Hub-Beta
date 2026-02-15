@@ -176,7 +176,6 @@ input[type="checkbox"]{
   color:var(--card-glow);
 }
 
-/* Evolution Animation */
 .evolve{
   transform:scale(1.15);
   opacity:0.4;
@@ -249,7 +248,7 @@ Papa.parse(CSV_URL,{
  complete:r=>{
    rows=r.data;
    initGoals();
-   loadLevel();
+   calculateLevel();
    $('loading').style.display='none';
    $('app').style.display='block';
  }
@@ -265,24 +264,21 @@ function saveStored(data){
  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function loadLevel(){
+function calculateLevel(){
  const data=getStored();
- currentLevel=data._level || 5;
+ let checkedCount=0;
+
+ Object.keys(data).forEach(key=>{
+   if(data[key]===true){
+     checkedCount++;
+   }
+ });
+
+ currentLevel = 5 + (checkedCount * 5);
  updateLevelDisplay(false);
 }
 
 /* ================= LEVEL SYSTEM ================= */
-
-function changeLevel(amount){
- currentLevel+=amount;
- if(currentLevel<5) currentLevel=5;
-
- const data=getStored();
- data._level=currentLevel;
- saveStored(data);
-
- updateLevelDisplay(true);
-}
 
 function getStage(level){
  if(level>=300) return 8;
@@ -356,7 +352,6 @@ function updateAllGoalButtons(){
 
    btn.textContent=`${goal} ${checkedCount}/${entries.length}`;
 
-   // Optional: 100% Completion Glow
    if(entries.length>0 && checkedCount===entries.length){
      btn.style.boxShadow="0 0 15px #00ff99";
    }else{
@@ -408,13 +403,12 @@ function showGoal(goal){
 
      if(e.target.checked){
        data[id]=true;
-       changeLevel(5);
      }else{
        delete data[id];
-       changeLevel(-5);
      }
 
      saveStored(data);
+     calculateLevel();
      showGoal(goal);
      updateAllGoalButtons();
    };
@@ -438,14 +432,15 @@ $('clearBtn').onclick=()=>{
    currentStage=1;
 
    const img=$('digimonImg');
-   img.src="../assets/images/dno/stage1.png";
+   img.src="../assets/images/stage1.png";
    img.classList.remove("evolve");
 
    $('levelText').textContent="Level 5";
 
    $('results').innerHTML="";
 
-   updateAllGoalButtons(); // <-- neu
+   updateAllGoalButtons();
+   calculateLevel();
  }
 };
 
