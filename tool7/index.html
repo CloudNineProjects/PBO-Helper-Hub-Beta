@@ -131,7 +131,7 @@ button{
   margin-bottom:12px;
 }
 
-.event-title{
+.event-highlight{
   font-weight:600;
   font-size:16px;
   color:var(--card-glow);
@@ -154,7 +154,6 @@ button{
 
 <a href="../index.html" class="home-btn">🏠</a>
 
-<!-- Loading Screen -->
 <div id="loading" class="loader">
   <div class="logo-wrap">
     <img src="../assets/images/load_screen.png">
@@ -185,8 +184,6 @@ const $=id=>document.getElementById(id);
 
 let rows=[];
 
-/* ================= LOAD ================= */
-
 Papa.parse(CSV_URL,{
  download:true,
  header:true,
@@ -199,13 +196,12 @@ Papa.parse(CSV_URL,{
  }
 });
 
-/* ================= INIT FILTER BUTTONS ================= */
+/* ================= FILTER BUTTONS ================= */
 
 function initFilters(){
  const container=$('eventFilters');
  container.innerHTML="";
 
- // Doppelte Namen entfernen
  const uniqueEvents=[...new Set(rows.map(r=>r.Name).filter(Boolean))];
 
  uniqueEvents.forEach(name=>{
@@ -225,8 +221,7 @@ function showEvent(name){
  filtered.forEach(r=>{
    html+=`
      <div class="event-entry">
-       <div class="event-title">${r.Name}</div>
-       <div class="event-section"><strong>Rewards:</strong> ${r.Rewards || "-"}</div>
+       <div class="event-highlight">${r.Rewards || "-"}</div>
        <div class="event-section"><strong>How:</strong> ${r.How || "-"}</div>
        <div class="event-section"><strong>Where:</strong> ${r.Where || "-"}</div>
      </div>
