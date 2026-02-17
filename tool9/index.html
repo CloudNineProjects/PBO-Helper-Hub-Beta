@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Guide</title>
+<title>Guide Tool</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 
-/* ================= DIGITAL THEME (IDENTICAL TO EGG CHECK) ================= */
+/* ================= DIGITAL THEME (IDENTICAL TO OTHER TOOLS) ================= */
 
 :root{
   --bg:#0a0f0d;
@@ -113,12 +113,6 @@ button{
   font-weight:600;
 }
 
-.controls{
-  margin-top:15px;
-  display:flex;
-  gap:10px;
-}
-
 /* Alphabet */
 
 .alphabet{
@@ -139,29 +133,46 @@ button{
   cursor:default;
 }
 
-/* Subject Buttons */
+.controls{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+}
+
+/* Subject Buttons (NOW SAME COLOR AS OTHERS) */
 
 .subject-list{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  margin-top:15px;
+  margin-top:20px;
 }
 
-.subject-list button{
-  background:rgba(255,255,255,0.15);
-  color:white;
+/* Content Style identical to dungeon-entry */
+
+.content-box{
+  background:rgba(0,0,0,0.4);
+  padding:15px;
+  border-radius:10px;
+  margin-top:20px;
 }
 
-/* Content Display */
-
-.content-display{
-  margin-top:25px;
+.content-title{
+  font-weight:600;
+  font-size:16px;
+  margin-bottom:10px;
+  color:var(--card-glow);
 }
+
+.content-text{
+  white-space:pre-line;
+}
+
+/* Preview Image */
 
 .preview-img{
   max-width:250px;
-  border-radius:12px;
+  border-radius:10px;
   cursor:pointer;
   margin-bottom:15px;
   box-shadow:0 0 15px rgba(0,255,150,0.4);
@@ -209,7 +220,7 @@ button{
 <div id="app" class="wrap">
 
   <div class="card">
-    <h2>Guide</h2>
+    <h2>Guide Tool</h2>
 
     <div class="alphabet" id="alphabet"></div>
 
@@ -220,12 +231,12 @@ button{
 
     <div id="subjects" class="subject-list"></div>
 
-    <div id="content" class="content-display"></div>
+    <div id="content"></div>
   </div>
 
 </div>
 
-<div id="imageModal" class="image-modal">
+<div id="imageModal" class="image-modal" onclick="backgroundClose(event)">
   <span class="close-modal" onclick="closeModal()">✖</span>
   <img id="modalImg">
 </div>
@@ -269,7 +280,7 @@ function initAlphabet(){
  });
 }
 
-/* SHOW SUBJECT BUTTONS */
+/* SUBJECT BUTTONS */
 function renderSubjects(list){
  let html="";
  list.forEach(r=>{
@@ -279,7 +290,7 @@ function renderSubjects(list){
  $('content').innerHTML="";
 }
 
-/* LETTER FILTER */
+/* FILTER */
 function showByLetter(letter){
  const filtered=rows.filter(r=>r.Subject?.toUpperCase().startsWith(letter));
  renderSubjects(filtered);
@@ -301,18 +312,20 @@ function showContent(subject){
  const entry=rows.find(r=>r.Subject===subject);
  if(!entry) return;
 
- let html="";
+ let html=`<div class="content-box">
+              <div class="content-title">${entry.Subject}</div>`;
 
  if(entry.Image){
    html+=`<img src="${entry.Image}" class="preview-img" onclick="openModal('${entry.Image}')">`;
  }
 
- html+=`<div>${entry.How || ""}</div>`;
+ html+=`<div class="content-text">${entry.How || ""}</div>
+         </div>`;
 
  $('content').innerHTML=html;
 }
 
-/* IMAGE MODAL */
+/* MODAL */
 function openModal(src){
  $('modalImg').src=src;
  $('imageModal').style.display="flex";
@@ -320,6 +333,12 @@ function openModal(src){
 
 function closeModal(){
  $('imageModal').style.display="none";
+}
+
+function backgroundClose(e){
+ if(e.target.id==="imageModal"){
+   closeModal();
+ }
 }
 
 </script>
