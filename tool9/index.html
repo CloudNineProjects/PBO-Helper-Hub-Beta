@@ -1,1 +1,328 @@
-FAQ
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Guide</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+
+/* ================= DIGITAL THEME (IDENTICAL TO EGG CHECK) ================= */
+
+:root{
+  --bg:#0a0f0d;
+  --card:#0f2e1f;
+  --card-glow:#00ff99;
+  --button:#cfcfcf;
+  --text:#e8fdf5;
+}
+
+html,body{
+  margin:0;
+  height:100%;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,255,150,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,150,0.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.home-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  font-size:22px;
+  text-decoration:none;
+  color:white;
+  z-index:1000;
+  background:rgba(255,255,255,0.08);
+  padding:8px 12px;
+  border-radius:10px;
+  backdrop-filter:blur(6px);
+}
+
+.loader{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+}
+
+.logo-wrap{
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 40px rgba(0,255,150,0.6),
+    0 0 100px rgba(0,255,150,0.3);
+}
+
+.loader img{
+  width:220px;
+  height:220px;
+  object-fit:cover;
+  border-radius:50%;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:60px auto;
+  padding:20px;
+  display:none;
+}
+
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:16px;
+  box-shadow:
+    0 0 15px rgba(0,255,150,0.2),
+    0 10px 25px rgba(0,0,0,0.6);
+  margin-bottom:30px;
+}
+
+h2{
+  margin-top:0;
+  margin-bottom:15px;
+  color:var(--card-glow);
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:var(--button);
+  font-weight:600;
+}
+
+.controls{
+  margin-top:15px;
+  display:flex;
+  gap:10px;
+}
+
+/* Alphabet */
+
+.alphabet{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:15px;
+}
+
+.alphabet button{
+  width:38px;
+  height:38px;
+  padding:0;
+}
+
+.alphabet button.disabled{
+  opacity:0.25;
+  cursor:default;
+}
+
+/* Subject Buttons */
+
+.subject-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:15px;
+}
+
+.subject-list button{
+  background:rgba(255,255,255,0.15);
+  color:white;
+}
+
+/* Content Display */
+
+.content-display{
+  margin-top:25px;
+}
+
+.preview-img{
+  max-width:250px;
+  border-radius:12px;
+  cursor:pointer;
+  margin-bottom:15px;
+  box-shadow:0 0 15px rgba(0,255,150,0.4);
+}
+
+/* Image Modal */
+
+.image-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+
+.image-modal img{
+  max-width:90%;
+  max-height:90%;
+}
+
+.close-modal{
+  position:absolute;
+  top:20px;
+  right:30px;
+  font-size:28px;
+  color:white;
+  cursor:pointer;
+}
+
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="home-btn">🏠</a>
+
+<div id="loading" class="loader">
+  <div class="logo-wrap">
+    <img src="../assets/images/load_screen.png">
+  </div>
+  <div>Loading Guide Database...</div>
+</div>
+
+<div id="app" class="wrap">
+
+  <div class="card">
+    <h2>Guide</h2>
+
+    <div class="alphabet" id="alphabet"></div>
+
+    <div class="controls">
+      <button id="showAllBtn">Show All</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div id="subjects" class="subject-list"></div>
+
+    <div id="content" class="content-display"></div>
+  </div>
+
+</div>
+
+<div id="imageModal" class="image-modal">
+  <span class="close-modal" onclick="closeModal()">✖</span>
+  <img id="modalImg">
+</div>
+
+<script>
+
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKZp_Ra0wMAhf-3zxzR4TJ67io4dwLPTmXsJgImNpFtfoJiLT_5M5yiVuFWBjvRhTolojTGrOWlbaL/pub?output=csv";
+const $=id=>document.getElementById(id);
+let rows=[];
+
+/* LOAD */
+Papa.parse(CSV_URL,{
+ download:true,
+ header:true,
+ skipEmptyLines:true,
+ complete:r=>{
+   rows=r.data;
+   initAlphabet();
+   $('loading').style.display='none';
+   $('app').style.display='block';
+ }
+});
+
+/* ALPHABET */
+function initAlphabet(){
+ const container=$('alphabet');
+ const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+ letters.forEach(letter=>{
+   const hasEntry=rows.some(r=>r.Subject?.toUpperCase().startsWith(letter));
+   const btn=document.createElement("button");
+   btn.textContent=letter;
+
+   if(!hasEntry){
+     btn.classList.add("disabled");
+   }else{
+     btn.onclick=()=>showByLetter(letter);
+   }
+
+   container.appendChild(btn);
+ });
+}
+
+/* SHOW SUBJECT BUTTONS */
+function renderSubjects(list){
+ let html="";
+ list.forEach(r=>{
+   html+=`<button onclick="showContent('${r.Subject.replace(/'/g,"\\'")}')">${r.Subject}</button>`;
+ });
+ $('subjects').innerHTML=html;
+ $('content').innerHTML="";
+}
+
+/* LETTER FILTER */
+function showByLetter(letter){
+ const filtered=rows.filter(r=>r.Subject?.toUpperCase().startsWith(letter));
+ renderSubjects(filtered);
+}
+
+/* SHOW ALL */
+$('showAllBtn').onclick=()=>{
+ renderSubjects(rows);
+};
+
+/* RESET */
+$('resetBtn').onclick=()=>{
+ $('subjects').innerHTML="";
+ $('content').innerHTML="";
+};
+
+/* SHOW CONTENT */
+function showContent(subject){
+ const entry=rows.find(r=>r.Subject===subject);
+ if(!entry) return;
+
+ let html="";
+
+ if(entry.Image){
+   html+=`<img src="${entry.Image}" class="preview-img" onclick="openModal('${entry.Image}')">`;
+ }
+
+ html+=`<div>${entry.How || ""}</div>`;
+
+ $('content').innerHTML=html;
+}
+
+/* IMAGE MODAL */
+function openModal(src){
+ $('modalImg').src=src;
+ $('imageModal').style.display="flex";
+}
+
+function closeModal(){
+ $('imageModal').style.display="none";
+}
+
+</script>
+
+</body>
+</html>
